@@ -1,0 +1,99 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import os
+import plotly.express as px
+
+
+os.environ["OMP_NUM_THREADS"] = "1"
+
+
+# URL del clan (ajusta con la URL de tu clan)
+url = "https://prstats.realitymod.com/clan/11204/ldh"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Extraer la tabla de datos
+tabla = soup.find('table')
+filas = tabla.find_all('tr')[1:]  # Omitir encabezado
+
+# Función para convertir valores con "k" y "M"
+def convertir_valor(valor):
+    try:
+        if 'M' in valor:
+            return int(float(valor.replace('M', '')) * 1_000_000)
+        elif 'k' in valor:
+            return int(float(valor.replace('k', '')) * 1_000)
+        else:
+            return int(valor.replace(',', '').strip())  # Sin notación especial
+    except ValueError:
+        return None  # Devolver None si falla la conversión
+
+# Lista para almacenar los datos
+datos_clan = []
+
+# Extraer los datos de cada fila
+for fila in filas:
+    columnas = fila.find_all('td')
+    try:
+        player = columnas[1].text.strip()
+        total_score = convertir_valor(columnas[2].text.strip())
+        total_kills = convertir_valor(columnas[3].text.strip())
+        total_deaths = convertir_valor(columnas[4].text.strip())
+        rounds = convertir_valor(columnas[5].text.strip())
+        
+        # Ignorar filas donde rounds no esté definido o sea cero
+        if rounds and rounds > 0:
+            datos_clan.append({
+                "Player": player, 
+                "Total Score": total_score, 
+                "Total Kills": total_kills, 
+                "Total Deaths": total_deaths, 
+                "Rounds": rounds
+            })
+    except IndexError:
+        print(f"Error al procesar datos de {fila}")
+
+# Convertir a DataFrame
+df = pd.DataFrame(datos_clan)
+
+# Eliminar filas con valores nulos
+df = df.dropna()
+
+# Calcular métricas adicionales con manejo de división segura
+df["K/D Ratio"] = df.apply(lambda row: row["Total Kills"] / row["Total Deaths"] if row["Total Deaths"] > 0 else 0, axis=1)
+df["Score per Round"] = df.apply(lambda row: row["Total Score"] / row["Rounds"] if row["Rounds"] > 0 else 0, axis=1)
+df["Kills per Round"] = df.apply(lambda row: row["Total Kills"] / row["Rounds"] if row["Rounds"] > 0 else 0, axis=1)
+
+# Aplicar K-means (3 clusters)
+kmeans = KMeans(n_clusters=10, random_state=42)
+df["Cluster"] = kmeans.fit_predict(df[['K/D Ratio', 'Score per Round']])
+
+labels = {
+    0: "Mal rendimiento",
+    1: "No rinde correctamente",
+    2: "rendimiento muy bajo",
+    3: "Rendimiento bajo",
+    4: "Rendimiento por debajo de lo esperado",
+    5: "Rendimiento promedio",
+    6: "Rendimiento aceptable",
+    7: "Buen rendimiento",
+    8: "Excelente rendimiento",
+    9: "Rendimiento óptimo"
+}
+
+df['Cluster Label'] = df['Cluster'].map(labels)
+fig = px.scatter(df, x="K/D Ratio", y="Score per Round", 
+                 hover_name="Player", color="Cluster Label")
+fig.show()
+
+
+# Mostrar resultados ordenados
+df = df.sort_values(by=["Cluster", "K/D Ratio"], ascending=[True, False])
+print(df[["Player", "K/D Ratio", "Score per Round", "Kills per Round", "Cluster"]])
+
+# Guardar el gráfico como archivo HTML
+fig.write_html("grafico_interactivo.html")
