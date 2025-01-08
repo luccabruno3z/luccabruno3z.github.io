@@ -104,3 +104,12 @@ fig_general.write_html("grafico_general_todos_clanes.html")
 df_general.to_json("todos_los_jugadores.json", orient="records", lines=False)
 
 print("\n✅ Gráfico general con información del clan creado exitosamente.")
+
+from datetime import datetime
+
+# Agregar una marca de tiempo al archivo JSON para forzar cambios
+timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+df.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+with open(f"{clan_name}_players.json", "a") as f:
+    f.write(f"\n# Last updated: {timestamp}\n")
+
