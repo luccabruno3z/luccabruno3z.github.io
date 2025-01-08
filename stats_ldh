@@ -3,15 +3,12 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-import matplotlib.pyplot as plt
-import os
 import plotly.express as px
-
+import os
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
-
-# URL del clan (ajusta con la URL de tu clan)
+# URL del clan
 url = "https://prstats.realitymod.com/clan/11204/ldh"
 response = requests.get(url)
 soup = BeautifulSoup(response.text, 'html.parser')
@@ -20,7 +17,6 @@ soup = BeautifulSoup(response.text, 'html.parser')
 tabla = soup.find('table')
 filas = tabla.find_all('tr')[1:]  # Omitir encabezado
 
-# Función para convertir valores con "k" y "M"
 def convertir_valor(valor):
     try:
         if 'M' in valor:
@@ -28,14 +24,12 @@ def convertir_valor(valor):
         elif 'k' in valor:
             return int(float(valor.replace('k', '')) * 1_000)
         else:
-            return int(valor.replace(',', '').strip())  # Sin notación especial
+            return int(valor.replace(',', '').strip())
     except ValueError:
-        return None  # Devolver None si falla la conversión
+        return None
 
-# Lista para almacenar los datos
 datos_clan = []
 
-# Extraer los datos de cada fila
 for fila in filas:
     columnas = fila.find_all('td')
     try:
@@ -44,8 +38,7 @@ for fila in filas:
         total_kills = convertir_valor(columnas[3].text.strip())
         total_deaths = convertir_valor(columnas[4].text.strip())
         rounds = convertir_valor(columnas[5].text.strip())
-        
-        # Ignorar filas donde rounds no esté definido o sea cero
+
         if rounds and rounds > 0:
             datos_clan.append({
                 "Player": player, 
@@ -57,43 +50,65 @@ for fila in filas:
     except IndexError:
         print(f"Error al procesar datos de {fila}")
 
-# Convertir a DataFrame
-df = pd.DataFrame(datos_clan)
+df = pd.DataFrame(datos_clan).dropna()
 
-# Eliminar filas con valores nulos
-df = df.dropna()
-
-# Calcular métricas adicionales con manejo de división segura
+# Calcular métricas adicionales
 df["K/D Ratio"] = df.apply(lambda row: row["Total Kills"] / row["Total Deaths"] if row["Total Deaths"] > 0 else 0, axis=1)
 df["Score per Round"] = df.apply(lambda row: row["Total Score"] / row["Rounds"] if row["Rounds"] > 0 else 0, axis=1)
 df["Kills per Round"] = df.apply(lambda row: row["Total Kills"] / row["Rounds"] if row["Rounds"] > 0 else 0, axis=1)
 
-# Aplicar K-means (3 clusters)
-kmeans = KMeans(n_clusters=10, random_state=42)
-df["Cluster"] = kmeans.fit_predict(df[['K/D Ratio', 'Score per Round']])
+# Normalizar los datos
+scaler = StandardScaler()
+data_scaled = scaler.fit_transform(df[['K/D Ratio', 'Score per Round']])
 
+# Aplicar K-means con 20 clusters
+kmeans = KMeans(n_clusters=20, random_state=42)
+df["Cluster"] = kmeans.fit_predict(data_scaled)
+
+# Reordenar clusters para que 0 sea el mejor y 19 el peor
+cluster_order = df.groupby('Cluster')[['K/D Ratio', 'Score per Round']].mean().sort_values(
+    by=['K/D Ratio', 'Score per Round'], ascending=[False, False]
+).index.tolist()
+
+cluster_reorder_map = {cluster: i for i, cluster in enumerate(cluster_order)}
+df['Cluster'] = df['Cluster'].map(cluster_reorder_map)
+
+# Etiquetas de los clusters
 labels = {
-    0: "Mal rendimiento",
-    1: "No rinde correctamente",
-    2: "rendimiento muy bajo",
-    3: "Rendimiento bajo",
-    4: "Rendimiento por debajo de lo esperado",
-    5: "Rendimiento promedio",
-    6: "Rendimiento aceptable",
-    7: "Buen rendimiento",
-    8: "Excelente rendimiento",
-    9: "Rendimiento óptimo"
+    0: "Rendimiento legendario",
+    1: "Rendimiento excepcional",
+    2: "Rendimiento sobresaliente",
+    3: "Rendimiento élite",
+    4: "Rendimiento excelente",
+    5: "Rendimiento notable",
+    6: "Rendimiento destacado",
+    7: "Rendimiento alto",
+    8: "Rendimiento muy bueno",
+    9: "Rendimiento bueno",
+    10: "Rendimiento promedio alto",
+    11: "Rendimiento promedio",
+    12: "Rendimiento promedio bajo",
+    13: "Rendimiento aceptable",
+    14: "Rendimiento bajo",
+    15: "Rendimiento insuficiente",
+    16: "Rendimiento deficiente",
+    17: "Rendimiento muy deficiente",
+    18: "Rendimiento crítico",
+    19: "Rendimiento extremadamente bajo"
 }
 
 df['Cluster Label'] = df['Cluster'].map(labels)
-fig = px.scatter(df, x="K/D Ratio", y="Score per Round", 
-                 hover_name="Player", color="Cluster Label")
+
+# Visualización interactiva
+fig = px.scatter(df, x="K/D Ratio", y="Score per Round", hover_name="Player", color="Cluster Label")
 fig.show()
 
+# Guardar los datos en un archivo JSON
+with open("players_clusters.json", "w") as json_file:
+    df.to_json(json_file, orient="records", lines=True)
+
+# Guardar gráfico como archivo HTML
+fig.write_html("grafico_interactivo.html")
 
 # Mostrar resultados ordenados
-df = df.sort_values(by=["Cluster", "K/D Ratio"], ascending=[True, False])
-print(df[["Player", "K/D Ratio", "Score per Round", "Kills per Round", "Cluster"]])
-
-# Guardar el gráfico como archivo HTML
-fig.write_html("grafico_interactivo.html")
+print(df.sort_values(by=["Cluster", "K/D Ratio"], ascending=[True, False])[["Player", "K/D Ratio", "Score per Round", "Kills per Round", "Cluster Label"]])
