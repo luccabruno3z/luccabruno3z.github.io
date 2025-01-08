@@ -26,12 +26,13 @@ jobs:
       - name: 🚀 Ejecutar el script de estadísticas
         run: python PRstats_multiclans.py
 
-      - name: 📤 Subir cambios al repositorio
-        run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions Bot"
-          git add -A
-          git commit -m "Actualización diaria de estadísticas PR"
-          git push
+- name: 📤 Subir cambios al repositorio
+  run: |
+    git config --local user.email "github-actions@github.com"
+    git config --local user.name "GitHub Actions Bot"
+    git add -A
+    git diff --cached --exit-code || git commit -m "Actualización diaria de estadísticas PR"
+    git push
+
         continue-on-error: true  # Evita fallos si no hay cambios
 
