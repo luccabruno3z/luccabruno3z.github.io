@@ -109,7 +109,14 @@ from datetime import datetime
 
 # Agregar una marca de tiempo al archivo JSON para forzar cambios
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-df.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+        if not df.empty:
+            df.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+            print(f"Datos guardados exitosamente para {clan_name}")
+        else:
+            print(f"No se generaron datos para el clan {clan_name}")
+
+    except Exception as e:
+        print(f"Error al procesar el clan {clan_name}: {e}")
 with open(f"{clan_name}_players.json", "w") as f:
     f.write(f"\n# Last updated: {timestamp}\n")
 
