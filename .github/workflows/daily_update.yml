@@ -1,38 +1,35 @@
-name: Actualizar estadísticas PR diario
+name: Actualización Diaria de PRstats
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Ejecuta la acción todos los días a la medianoche UTC
-  workflow_dispatch:  # Permite ejecutar manualmente desde GitHub
+    - cron: "0 0 * * *"  # Se ejecuta a medianoche todos los días (UTC)
+  workflow_dispatch:      # Permite ejecución manual
 
 jobs:
-  actualizar_stats:
+  update_stats:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔽 Clonar el repositorio
+      - name: 📥 Clonar Repositorio
         uses: actions/checkout@v4
 
-      - name: 🐍 Configurar Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: 📦 Instalar dependencias
+      - name: Instalar Dependencias
         run: |
-          python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 pandas scikit-learn plotly
+          pip install -r requirements.txt
 
-      - name: 🚀 Ejecutar el script de estadísticas
-        run: python PRstats_multiclans.py
+      - name: Ejecutar Script de Estadísticas
+        run: |
+          python PRstats_multiclans.py
 
-- name: 📤 Subir cambios al repositorio
-  run: |
-    git config --local user.email "github-actions@github.com"
-    git config --local user.name "GitHub Actions Bot"
-    git add -A
-    git diff --cached --exit-code || git commit -m "Actualización diaria de estadísticas PR"
-    git push
-
-        continue-on-error: true  # Evita fallos si no hay cambios
-
+      - name: 📤 Subir Cambios al Repositorio
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions Bot"
+          git add -A
+          git diff --cached --exit-code || git commit -m "Actualización diaria de estadísticas PR"
+          git push
