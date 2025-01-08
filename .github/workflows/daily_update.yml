@@ -33,7 +33,7 @@ jobs:
 
     - name: Commit y push de los cambios
       env:
-        TOKEN: ${{ secrets.PAT_TOKEN }}
+        TOKEN: ${{ secrets.GH_PAT }}
       run: |
         git add .
         git commit -m "Actualización diaria de estadísticas PR"
