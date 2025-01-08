@@ -2,15 +2,15 @@ name: Actualización Diaria de PRstats
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # Se ejecuta a medianoche todos los días (UTC)
-  workflow_dispatch:      # Permite ejecución manual
+    - cron: "0 0 * * *"  # Todos los días a medianoche UTC
+  workflow_dispatch:  # Permite ejecución manual desde GitHub
 
 jobs:
   update_stats:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Clonar Repositorio
+      - name: 📥 Clonar el repositorio
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -28,8 +28,8 @@ jobs:
 
       - name: 📤 Subir Cambios al Repositorio
         run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions Bot"
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
           git add -A
-          git diff --cached --exit-code || git commit -m "Actualización diaria de estadísticas PR"
+          git commit -m "Actualización diaria de estadísticas PR" || echo "Sin cambios para realizar commit."
           git push
