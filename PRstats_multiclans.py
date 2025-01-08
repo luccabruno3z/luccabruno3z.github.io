@@ -107,16 +107,27 @@ print("\n✅ Gráfico general con información del clan creado exitosamente.")
 
 from datetime import datetime
 
+from datetime import datetime
+
 # Agregar una marca de tiempo al archivo JSON para forzar cambios
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+for clan_name in clan_urls.keys():
+    try:
+        # Filtrar el DataFrame por clan
+        df = df_general[df_general["Clan"] == clan_name]
+        
         if not df.empty:
+            # Guardar datos del clan en JSON
             df.to_json(f"{clan_name}_players.json", orient="records", lines=False)
             print(f"Datos guardados exitosamente para {clan_name}")
         else:
             print(f"No se generaron datos para el clan {clan_name}")
+        
+        # Agregar la marca de tiempo al archivo JSON
+        with open(f"{clan_name}_players.json", "a") as f:
+            f.write(f"\n# Last updated: {timestamp}\n")
 
     except Exception as e:
         print(f"Error al procesar el clan {clan_name}: {e}")
-with open(f"{clan_name}_players.json", "w") as f:
-    f.write(f"\n# Last updated: {timestamp}\n")
 
