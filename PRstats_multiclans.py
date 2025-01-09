@@ -117,10 +117,8 @@ fig_general.write_html("all_players_interactive_chart.html")
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
 # Guardar promedios por clan con nuevas métricas
-clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Performance Score"]].mean().to_dict(orient="records")
-with open("clan_averages.json", "w") as f:
-    import json
-    json.dump(clan_averages, f, separators=(",", ":"))
+lan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Performance Score"]].mean()
+clan_averages.to_json("clan_averages.json", orient="records", lines=False)
 
 # Guardar archivos por clan y gráficos interactivos
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
