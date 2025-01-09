@@ -59,29 +59,29 @@ for clan_name, url in clan_urls.items():
 
 # Crear DataFrame general y calcular métricas
 df_general = pd.DataFrame(datos_todos_jugadores).dropna()
-df_general["K/D Ratio"] = df_general.apply(lambda row: row["Total Kills"] / row["Total Deaths"] 
-                                           if row["Total Deaths"] > 0 else np.nan, axis=1)
-df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] / row["Rounds"] 
-                                                 if row["Rounds"] > 0 else np.nan, axis=1)
+df_general["K/D Ratio"] = df_general["Total Kills"] / df_general["Total Deaths"]
+df_general["Score per Round"] = df_general["Total Score"] / df_general["Rounds"]
+df_general["Kills per Round"] = df_general["Total Kills"] / df_general["Rounds"]
+df_general["Kill Efficiency"] = df_general["Total Kills"] / df_general["Total Score"]
+df_general["Survivability Rate"] = df_general["Total Deaths"] / df_general["Rounds"]
 
+# Reemplazar infinitos y valores erróneos
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# ✅ Normalizar ambas métricas usando MinMaxScaler
+# ✅ Normalizar todas las métricas usando MinMaxScaler
 scaler = MinMaxScaler()
-df_general[["Normalized_KD", "Normalized_Score"]] = scaler.fit_transform(
-    df_general[["K/D Ratio", "Score per Round"]]
+df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round"]] = scaler.fit_transform(
+    df_general[["K/D Ratio", "Score per Round", "Kills per Round"]]
 )
 
-# ✅ Calcular el puntaje combinado balanceado
-df_general["Performance Score"] = (df_general["Normalized_KD"] + df_general["Normalized_Score"]) / 2
+# ✅ Calcular el puntaje combinado balanceado usando múltiples métricas
+df_general["Performance Score"] = (df_general["Normalized_KD"] + df_general["Normalized_Score"] + df_general["Normalized_Kills_Per_Round"]) / 3
 
 # ✅ Asignación de clusters usando percentiles (con orden invertido)
 df_general["Cluster"] = pd.qcut(df_general["Performance Score"], q=20, labels=False, duplicates="drop")
-
-# ✅ **Invertir la asignación de clusters para que el 0 sea el mejor**
 df_general["Cluster"] = df_general["Cluster"].max() - df_general["Cluster"]
 
-# ✅ Etiquetas Jerárquicas Corregidas (orden invertido)
+# ✅ Etiquetas Jerárquicas
 cluster_labels = [
     "Legendario (Top 5%)", "Excepcional", "Sobresaliente", "Elite", "Excelente",
     "Notable", "Destacado", "Alto", "Muy Bueno", "Bueno",
@@ -89,14 +89,14 @@ cluster_labels = [
     "Bajo", "Insuficiente", "Deficiente", "Muy Deficiente",
     "Crítico", "Extremadamente Bajo (Bottom 5%)"
 ]
-
 df_general["Cluster Label"] = df_general["Cluster"].map(lambda x: cluster_labels[x])
 
-# 🎯 Crear gráfico general interactivo
+# 🎯 Crear gráfico general interactivo con la métrica de Kills per Round
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
     y="Score per Round", 
+    size="Kills per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Cluster Label",
     title="Desempeño General de Todos los Jugadores (K/D y Score Balanceados)"
@@ -106,34 +106,30 @@ fig_general.write_html("all_players_interactive_chart.html")
 # ✅ Guardar archivos JSON y gráficos
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
-# Guardar promedios por clan
-clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds"]].mean().to_dict(orient="index")
+# Guardar promedios por clan con nuevas métricas
+clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round"]].mean().to_dict(orient="index")
 with open("clan_averages.json", "w") as f:
     import json
     json.dump(clan_averages, f, indent=4)
 
-# Guardar por clan individualmente
+# Guardar archivos por clan y gráficos interactivos
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for clan_name in clan_urls.keys():
     df_clan = df_general[df_general["Clan"] == clan_name]
     if not df_clan.empty:
-        # Agregar la marca de tiempo al DataFrame antes de exportarlo
         df_clan["Last Updated"] = timestamp
-        
-        # Guardar archivo JSON sin formato inválido
         df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
         
-        # Crear gráfico interactivo para cada clan
         fig_clan = px.scatter(
             df_clan, 
             x="K/D Ratio", 
             y="Score per Round", 
+            size="Kills per Round", 
             hover_name="Player", 
             color="Cluster Label",
             title=f"Gráfico Interactivo del Clan {clan_name}"
         )
         fig_clan.write_html(f"{clan_name}_interactive_chart.html")
 
-
-print("\n✅ Archivos actualizados con corrección de clusters.")
+print("Actualización completada exitosamente con las nuevas métricas.")
