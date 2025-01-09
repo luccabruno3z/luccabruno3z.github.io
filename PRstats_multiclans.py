@@ -87,7 +87,7 @@ cluster_labels = {
 }
 df_general["Cluster Label"] = df_general["Cluster"].map(cluster_labels)
 
-# 🎯 Gráfico general con información del clan
+# 🎯 Gráfico general interactivo con información del clan
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
@@ -106,21 +106,38 @@ with open("clan_averages.json", "w") as f:
     import json
     json.dump(clan_averages, f, indent=4)
 
-# ✅ Guardar JSON de cada clan y agregar timestamp
+# ✅ Guardar gráficos y archivos JSON individuales para cada clan
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for clan_name in clan_urls.keys():
     try:
+        # Filtrar el DataFrame por clan
         df_clan = df_general[df_general["Clan"] == clan_name]
+        
         if not df_clan.empty:
+            # Guardar datos del clan en JSON
             df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+            
+            # Guardar gráfico interactivo por clan
+            fig_clan = px.scatter(
+                df_clan, 
+                x="K/D Ratio", 
+                y="Score per Round", 
+                hover_name="Player", 
+                color="Cluster Label",
+                title=f"Gráfico interactivo de {clan_name}"
+            )
+            fig_clan.write_html(f"{clan_name}_interactive_chart.html")
+
+            # Agregar marca de tiempo al archivo JSON
             with open(f"{clan_name}_players.json", "a") as f:
                 f.write(f"\n# Last updated: {timestamp}\n")
-            print(f"Datos guardados exitosamente para {clan_name}")
+            
+            print(f"Datos y gráfico guardados exitosamente para {clan_name}")
         else:
             print(f"No se generaron datos para el clan {clan_name}")
+
     except Exception as e:
         print(f"Error al procesar el clan {clan_name}: {e}")
 
 print("\n✅ Todos los archivos han sido actualizados correctamente.")
-
