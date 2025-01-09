@@ -13,7 +13,10 @@ os.environ["OMP_NUM_THREADS"] = "1"
 clan_urls = {
     "LDH": "https://prstats.realitymod.com/clan/11204/ldh",
     "FI": "https://prstats.realitymod.com/clan/8067/fi",
-    "SAE": "https://prstats.realitymod.com/clan/42817/sae"
+    "SAE": "https://prstats.realitymod.com/clan/42817/sae",
+    "FI-R": "https://prstats.realitymod.com/clan/30397/fi-r",
+    "R-LDH": "https://prstats.realitymod.com/clan/37315/r-ldh",
+    "141": "https://prstats.realitymod.com/clan/7555/141"
 }
 
 datos_todos_jugadores = []
@@ -110,6 +113,12 @@ fig_general = px.scatter(
 )
 fig_general.write_html("all_players_interactive_chart.html")
 
+# Guardar promedios por clan con nuevas métricas
+clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Performance Score"]].mean().to_dict(orient="index")
+with open("clan_averages.json", "w") as f:
+    import json
+    json.dump(clan_averages, f, indent=4)
+    
 # Guardar resultados en archivos JSON y gráficos
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
