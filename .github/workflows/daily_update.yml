@@ -31,11 +31,11 @@ jobs:
         git config --global user.name "GitHub Actions Bot"
         git config --global user.email "github-actions@github.com"
 
-- name: Commit y push de los cambios
-  env:
-    GH_PAT: ${{ secrets.GH_PAT }}
-  run: |
-    git remote set-url origin https://x-access-token:${GH_PAT}@github.com/luccabruno3z/luccabruno3z.github.io.git
-    git add .
-    git commit -m "Actualización diaria de estadísticas PR"
-    git push origin HEAD:main
+    - name: Commit y push de los cambios
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        git remote set-url origin https://x-access-token:${GH_PAT}@github.com/luccabruno3z/luccabruno3z.github.io.git
+        git add .
+        git commit -m "Actualización diaria de estadísticas PR"
+        git push origin HEAD:main
