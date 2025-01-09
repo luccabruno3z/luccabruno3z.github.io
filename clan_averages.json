@@ -1,23 +1,50 @@
 {
+    "141": {
+        "Total Score": 43301.27731092437,
+        "Total Kills": 237.5546218487395,
+        "Total Deaths": 306.78991596638656,
+        "Rounds": 111.75630252100841,
+        "Kills per Round": 1.6718470693343541,
+        "Performance Score": 0.16520278056115678
+    },
     "FI": {
-        "Total Score": 550853.7222222222,
-        "Total Kills": 5110.277777777777,
-        "Total Deaths": 2750.4444444444443,
-        "Rounds": 1100.0555555555557,
-        "Kills per Round": 3.879639383713977
+        "Total Score": 551064.8333333334,
+        "Total Kills": 5111.083333333333,
+        "Total Deaths": 2753.8611111111113,
+        "Rounds": 1100.361111111111,
+        "Kills per Round": 3.8794919340328042,
+        "Performance Score": 0.34968270003623236
+    },
+    "FI-R": {
+        "Total Score": 226752.75,
+        "Total Kills": 1772.6666666666667,
+        "Total Deaths": 1420.4166666666667,
+        "Rounds": 585.75,
+        "Kills per Round": 2.434188118916945,
+        "Performance Score": 0.23085885844948906
     },
     "LDH": {
-        "Total Score": 97583.17341040462,
-        "Total Kills": 579.4104046242775,
-        "Total Deaths": 723.4797687861271,
-        "Rounds": 219.91329479768785,
-        "Kills per Round": 2.1591358841411132
+        "Total Score": 97632.76878612717,
+        "Total Kills": 579.8843930635838,
+        "Total Deaths": 723.9768786127167,
+        "Rounds": 220.09826589595374,
+        "Kills per Round": 2.1581088821117267,
+        "Performance Score": 0.19780508786278683
+    },
+    "R-LDH": {
+        "Total Score": 36799.333333333336,
+        "Total Kills": 137.33333333333334,
+        "Total Deaths": 334.6666666666667,
+        "Rounds": 116.0,
+        "Kills per Round": 1.0897268142162588,
+        "Performance Score": 0.13874795524833794
     },
     "SAE": {
-        "Total Score": 56174.58536585366,
-        "Total Kills": 281.7073170731707,
-        "Total Deaths": 456.4146341463415,
-        "Rounds": 141.0731707317073,
-        "Kills per Round": 1.5008573377860825
+        "Total Score": 56250.19512195122,
+        "Total Kills": 282.8292682926829,
+        "Total Deaths": 457.4634146341463,
+        "Rounds": 141.3658536585366,
+        "Kills per Round": 1.5030865266606923,
+        "Performance Score": 0.15648436932952403
     }
 }
