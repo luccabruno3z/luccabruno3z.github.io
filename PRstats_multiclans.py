@@ -87,10 +87,10 @@ df_general["Performance Score"] = (
 # Asignar clusters con nombres de materiales
 def asignar_cluster(score):
     materiales = [
-    "Carbón", "Hierro", "Cobre", "Bronce", "Plata",
-    "Oro", "Platino", "Zafiro", "Esmeralda", "Rubí",
-    "Cristal", "Amatista", "Topacio", "Ópalo", "Perla",
-    "Diamante"
+    "Carbón 1", "Carbón 2", "Hierro 1", "Hierro 2", "Cobre 1",
+    "Cobre 2", "Bronce 1", "Bronce 2", "Plata 1", "Plata 2",
+    "Oro 1", "Oro 2", "Platino 1", "Platino 2", "Diamante 1",
+    "Diamante 2"
     ]
     percentiles = np.linspace(0, 1, len(materiales) + 1)
     for i in range(len(materiales)):
