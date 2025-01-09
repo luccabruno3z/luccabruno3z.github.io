@@ -6,15 +6,15 @@
         "Rounds": 1100.0
     },
     "LDH": {
-        "Total Score": 96372.03428571428,
-        "Total Kills": 572.1542857142857,
-        "Total Deaths": 714.6457142857142,
-        "Rounds": 217.18857142857144
+        "Total Score": 96484.50857142857,
+        "Total Kills": 572.6171428571429,
+        "Total Deaths": 715.04,
+        "Rounds": 217.3257142857143
     },
     "SAE": {
-        "Total Score": 57346.55,
-        "Total Kills": 287.075,
-        "Total Deaths": 465.45,
-        "Rounds": 144.0
+        "Total Score": 56143.19512195122,
+        "Total Kills": 280.6829268292683,
+        "Total Deaths": 455.6341463414634,
+        "Rounds": 140.82926829268294
     }
 }
