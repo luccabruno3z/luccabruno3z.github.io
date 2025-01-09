@@ -68,30 +68,37 @@ df_general["Survivability Rate"] = df_general["Total Deaths"] / df_general["Roun
 # Reemplazar infinitos y valores erróneos
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# ✅ Normalizar todas las métricas usando MinMaxScaler
+# Normalizar métricas relevantes
 scaler = MinMaxScaler()
 df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round"]] = scaler.fit_transform(
     df_general[["K/D Ratio", "Score per Round", "Kills per Round"]]
 )
 
-# ✅ Calcular el puntaje combinado balanceado usando múltiples métricas
-df_general["Performance Score"] = (df_general["Normalized_KD"] + df_general["Normalized_Score"] + df_general["Normalized_Kills_Per_Round"]) / 3
+# Calcular Performance Score con prioridad para KD y Score
+df_general["Performance Score"] = (
+    0.5 * df_general["Normalized_KD"] +
+    0.3 * df_general["Normalized_Score"] +
+    0.2 * df_general["Normalized_Kills_Per_Round"]
+)
 
-# ✅ Asignación de clusters usando percentiles (con orden invertido)
-df_general["Cluster"] = pd.qcut(df_general["Performance Score"], q=20, labels=False, duplicates="drop")
-df_general["Cluster"] = df_general["Cluster"].max() - df_general["Cluster"]
+# Asignar clusters con nombres de materiales
+def asignar_cluster(score):
+    materiales = [
+        "Diamante", "Esmeralda", "Zafiro", "Rubí",
+        "Oro", "Plata", "Bronce", "Platino",
+        "Titanio", "Cobre", "Níquel", "Hierro",
+        "Aluminio", "Cuarzo", "Granito", "Carbón"
+    ]
+    percentiles = np.linspace(0, 1, len(materiales) + 1)
+    for i in range(len(materiales)):
+        if percentiles[i] <= score < percentiles[i + 1]:
+            return materiales[i]
+    return materiales[-1]  # Por defecto, el peor material
 
-# ✅ Etiquetas Jerárquicas
-cluster_labels = [
-    "Legendario (Top 5%)", "Excepcional", "Sobresaliente", "Elite", "Excelente",
-    "Notable", "Destacado", "Alto", "Muy Bueno", "Bueno",
-    "Promedio Alto", "Promedio", "Promedio Bajo", "Aceptable",
-    "Bajo", "Insuficiente", "Deficiente", "Muy Deficiente",
-    "Crítico", "Extremadamente Bajo (Bottom 5%)"
-]
-df_general["Cluster Label"] = df_general["Cluster"].map(lambda x: cluster_labels[x])
+# Aplicar clasificación
+df_general["Cluster Label"] = df_general["Performance Score"].apply(asignar_cluster)
 
-# 🎯 Crear gráfico general interactivo con la métrica de Kills per Round
+# Crear gráfico general interactivo
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
@@ -99,21 +106,13 @@ fig_general = px.scatter(
     size="Kills per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Cluster Label",
-    title="Desempeño General de Todos los Jugadores (K/D y Score Balanceados)"
+    title="Desempeño General de Todos los Jugadores (Clasificación por Materiales)"
 )
 fig_general.write_html("all_players_interactive_chart.html")
 
-# ✅ Guardar archivos JSON y gráficos
-df_general.to_json("all_players_clusters.json", orient="records", lines=False)
-
-# Guardar promedios por clan con nuevas métricas
-clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round"]].mean().to_dict(orient="index")
-with open("clan_averages.json", "w") as f:
-    import json
-    json.dump(clan_averages, f, indent=4)
-
-# Guardar archivos por clan y gráficos interactivos
+# Guardar resultados en archivos JSON y gráficos
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
 for clan_name in clan_urls.keys():
     df_clan = df_general[df_general["Clan"] == clan_name]
@@ -132,4 +131,5 @@ for clan_name in clan_urls.keys():
         )
         fig_clan.write_html(f"{clan_name}_interactive_chart.html")
 
-print("Actualización completada exitosamente con las nuevas métricas.")
+print("Actualización completada exitosamente con el sistema de clasificación por materiales.")
+
