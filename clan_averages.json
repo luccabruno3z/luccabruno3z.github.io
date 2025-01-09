@@ -1,1 +1,20 @@
-[{"Clan":"LDH","K\/D Ratio":0.6975217732,"Score per Round":355.0883659749,"Kills per Round":2.1555171101},{"Clan":"FI","K\/D Ratio":1.688698616,"Score per Round":443.2121751033,"Kills per Round":3.8788199679},{"Clan":"SAE","K\/D Ratio":0.4902769363,"Score per Round":317.6948579518,"Kills per Round":1.4694109068}]
+{
+    "FI": {
+        "Total Score": 550845.3888888889,
+        "Total Kills": 5110.055555555556,
+        "Total Deaths": 2750.3611111111113,
+        "Rounds": 1100.0
+    },
+    "LDH": {
+        "Total Score": 96365.02857142857,
+        "Total Kills": 572.1085714285714,
+        "Total Deaths": 714.6342857142857,
+        "Rounds": 217.18857142857144
+    },
+    "SAE": {
+        "Total Score": 51416.97435897436,
+        "Total Kills": 236.92307692307693,
+        "Total Deaths": 425.4102564102564,
+        "Rounds": 130.4102564102564
+    }
+}
