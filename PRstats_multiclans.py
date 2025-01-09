@@ -116,8 +116,12 @@ fig_general.write_html("all_players_interactive_chart.html")
 # Guardar archivos JSON y gráficos
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
-# Calcular promedios por clan
-clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Performance Score"]].mean()
+clan_averages = (
+    df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Performance Score"]]
+    .mean()
+    .reset_index()  # Asegura que "Clan" sea una columna en lugar de un índice
+)
+
 
 # Guardar promedios por clan
 clan_averages.to_json("clan_averages.json", orient="records", lines=False)
