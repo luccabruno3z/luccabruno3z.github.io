@@ -117,7 +117,16 @@ fig_general.write_html("all_players_interactive_chart.html")
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
 clan_averages = (
-    df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds", "Kills per Round", "Score per Round", "Performance Score"]]
+    df_general.groupby("Clan")[[
+        "Total Score", 
+        "Total Kills", 
+        "Total Deaths", 
+        "Rounds", 
+        "Kills per Round", 
+        "Score per Round", 
+        "Performance Score",
+        "K/D Ratio"  # Nueva métrica añadida
+    ]]
     .mean()
     .reset_index()
 )
