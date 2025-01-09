@@ -32,8 +32,6 @@ def convertir_valor(valor):
 
 # Extracción de datos
 for clan_name, url in clan_urls.items():
-    print(f"\nProcesando datos para el clan: {clan_name}")
-
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
     tabla = soup.find('table')
@@ -60,7 +58,7 @@ for clan_name, url in clan_urls.items():
         except IndexError:
             print(f"Error al procesar fila: {fila}")
 
-# Creación del DataFrame general
+# Crear DataFrame general
 df_general = pd.DataFrame(datos_todos_jugadores).dropna()
 df_general["K/D Ratio"] = df_general.apply(lambda row: row["Total Kills"] / row["Total Deaths"] 
                                            if row["Total Deaths"] > 0 else np.nan, axis=1)
@@ -68,7 +66,6 @@ df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] 
                                                  if row["Rounds"] > 0 else np.nan, axis=1)
 df_general["Kills per Round"] = df_general.apply(lambda row: row["Total Kills"] / row["Rounds"] 
                                                  if row["Rounds"] > 0 else np.nan, axis=1)
-
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
 # Normalizar y aplicar K-means con 20 clusters
@@ -77,17 +74,24 @@ data_scaled = scaler.fit_transform(df_general[['K/D Ratio', 'Score per Round']])
 kmeans = KMeans(n_clusters=20, random_state=42)
 df_general["Cluster"] = kmeans.fit_predict(data_scaled)
 
-# Definir etiquetas para clusters
-cluster_labels = {
-    0: "Legendario", 1: "Excepcional", 2: "Sobresaliente", 3: "Elite", 4: "Excelente",
-    5: "Notable", 6: "Destacado", 7: "Alto", 8: "Muy Bueno", 9: "Bueno",
-    10: "Promedio Alto", 11: "Promedio", 12: "Promedio Bajo", 13: "Aceptable",
-    14: "Bajo", 15: "Insuficiente", 16: "Deficiente", 17: "Muy Deficiente",
-    18: "Crítico", 19: "Extremadamente Bajo"
-}
-df_general["Cluster Label"] = df_general["Cluster"].map(cluster_labels)
+# ✅ Reordenar los clusters en base a la puntuación promedio
+cluster_means = df_general.groupby("Cluster")["Score per Round"].mean().sort_values(ascending=False)
+sorted_clusters = {cluster: rank for rank, cluster in enumerate(cluster_means.index)}
 
-# 🎯 Gráfico general interactivo con información del clan
+# ✅ Actualizar los clusters con los nuevos índices ordenados
+df_general["Cluster"] = df_general["Cluster"].map(sorted_clusters)
+
+# ✅ Definir etiquetas jerárquicas corregidas
+cluster_labels = [
+    "Legendario", "Excepcional", "Sobresaliente", "Elite", "Excelente",
+    "Notable", "Destacado", "Alto", "Muy Bueno", "Bueno",
+    "Promedio Alto", "Promedio", "Promedio Bajo", "Aceptable",
+    "Bajo", "Insuficiente", "Deficiente", "Muy Deficiente",
+    "Crítico", "Extremadamente Bajo"
+]
+df_general["Cluster Label"] = df_general["Cluster"].map(lambda x: cluster_labels[x])
+
+# 🎯 Gráfico general interactivo corregido
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
