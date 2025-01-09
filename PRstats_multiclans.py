@@ -1,8 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 import plotly.express as px
 import numpy as np
 import os
@@ -30,7 +28,7 @@ def convertir_valor(valor):
     except (ValueError, AttributeError):
         return None
 
-# Extracción de datos
+# Extraer datos de PRStats
 for clan_name, url in clan_urls.items():
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -64,57 +62,48 @@ df_general["K/D Ratio"] = df_general.apply(lambda row: row["Total Kills"] / row[
                                            if row["Total Deaths"] > 0 else np.nan, axis=1)
 df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] / row["Rounds"] 
                                                  if row["Rounds"] > 0 else np.nan, axis=1)
-df_general["Kills per Round"] = df_general.apply(lambda row: row["Total Kills"] / row["Rounds"] 
-                                                 if row["Rounds"] > 0 else np.nan, axis=1)
 
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# ✅ Nuevo: Calcular un puntaje combinado para ordenar clusters con más precisión
+# ✅ Calcular un puntaje combinado de desempeño
 df_general["Performance Score"] = (df_general["Score per Round"] + df_general["K/D Ratio"]) / 2
 
-# Normalizar y aplicar K-means con 20 clusters
-scaler = StandardScaler()
-data_scaled = scaler.fit_transform(df_general[['Performance Score']])
-kmeans = KMeans(n_clusters=20, random_state=42)
-df_general["Cluster"] = kmeans.fit_predict(data_scaled)
+# ✅ Asignar clusters basados en percentiles
+df_general["Cluster"] = pd.qcut(df_general["Performance Score"], q=20, labels=False, duplicates='drop')
 
-# ✅ Reordenar los clusters basándose en el puntaje promedio
-cluster_means = df_general.groupby("Cluster")["Performance Score"].mean().sort_values(ascending=False)
-sorted_clusters = {cluster: rank for rank, cluster in enumerate(cluster_means.index)}
-
-# ✅ Actualizar los clusters con los nuevos índices ordenados
-df_general["Cluster"] = df_general["Cluster"].map(sorted_clusters)
-
-# ✅ Definir etiquetas jerárquicas corregidas
+# ✅ Crear etiquetas jerárquicas basadas en percentiles
 cluster_labels = [
-    "Legendario", "Excepcional", "Sobresaliente", "Elite", "Excelente",
+    "Legendario (Top 5%)", "Excepcional", "Sobresaliente", "Elite", "Excelente",
     "Notable", "Destacado", "Alto", "Muy Bueno", "Bueno",
     "Promedio Alto", "Promedio", "Promedio Bajo", "Aceptable",
     "Bajo", "Insuficiente", "Deficiente", "Muy Deficiente",
-    "Crítico", "Extremadamente Bajo"
+    "Crítico", "Extremadamente Bajo (Bottom 5%)"
 ]
+
+# Asignar las etiquetas de manera inversa (mejor desempeño = cluster 0)
 df_general["Cluster Label"] = df_general["Cluster"].map(lambda x: cluster_labels[x])
 
-# 🎯 Gráfico general interactivo corregido con rendimiento ordenado
+# 🎯 Crear gráfico general interactivo con etiquetas correctas
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
     y="Score per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
-    color="Cluster Label"
+    color="Cluster Label",
+    title="Desempeño General de Todos los Jugadores"
 )
 fig_general.write_html("all_players_interactive_chart.html")
 
-# ✅ Guardar JSON de todos los jugadores con clusters
+# ✅ Guardar el archivo JSON general
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
-# ✅ Guardar JSON con promedios por clan
+# ✅ Guardar los promedios por clan
 clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds"]].mean().to_dict(orient="index")
 with open("clan_averages.json", "w") as f:
     import json
     json.dump(clan_averages, f, indent=4)
 
-# ✅ Guardar gráficos y archivos JSON individuales para cada clan
+# ✅ Guardar archivos individuales por clan
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for clan_name in clan_urls.keys():
