@@ -8,7 +8,6 @@ import numpy as np
 import os
 from datetime import datetime
 
-# Evitar errores con hilos en KMeans
 os.environ["OMP_NUM_THREADS"] = "1"
 
 # URLs de clanes
@@ -18,11 +17,9 @@ clan_urls = {
     "SAE": "https://prstats.realitymod.com/clan/42817/sae"
 }
 
-# Lista para almacenar todos los jugadores de todos los clanes
 datos_todos_jugadores = []
 
 def convertir_valor(valor):
-    """Convierte valores con 'M' y 'k' a enteros."""
     try:
         if 'M' in valor:
             return int(float(valor.replace('M', '')) * 1_000_000)
@@ -33,7 +30,7 @@ def convertir_valor(valor):
     except (ValueError, AttributeError):
         return None
 
-# Recopilar datos de los clanes
+# Extracción de datos
 for clan_name, url in clan_urls.items():
     print(f"\nProcesando datos para el clan: {clan_name}")
 
@@ -63,29 +60,24 @@ for clan_name, url in clan_urls.items():
         except IndexError:
             print(f"Error al procesar fila: {fila}")
 
-# Crear DataFrame general y eliminar valores problemáticos
+# Creación del DataFrame general
 df_general = pd.DataFrame(datos_todos_jugadores).dropna()
+df_general["K/D Ratio"] = df_general.apply(lambda row: row["Total Kills"] / row["Total Deaths"] 
+                                           if row["Total Deaths"] > 0 else np.nan, axis=1)
+df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] / row["Rounds"] 
+                                                 if row["Rounds"] > 0 else np.nan, axis=1)
+df_general["Kills per Round"] = df_general.apply(lambda row: row["Total Kills"] / row["Rounds"] 
+                                                 if row["Rounds"] > 0 else np.nan, axis=1)
 
-# Evitar división por cero y valores infinitos
-df_general["K/D Ratio"] = df_general.apply(
-    lambda row: row["Total Kills"] / row["Total Deaths"] if row["Total Deaths"] > 0 else np.nan, axis=1)
-df_general["Score per Round"] = df_general.apply(
-    lambda row: row["Total Score"] / row["Rounds"] if row["Rounds"] > 0 else np.nan, axis=1)
-df_general["Kills per Round"] = df_general.apply(
-    lambda row: row["Total Kills"] / row["Rounds"] if row["Rounds"] > 0 else np.nan, axis=1)
-
-# Eliminar valores infinitos y nulos
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# Normalizar los datos y aplicar K-means
+# Normalizar y aplicar K-means con 20 clusters
 scaler = StandardScaler()
 data_scaled = scaler.fit_transform(df_general[['K/D Ratio', 'Score per Round']])
-
-# K-means con 20 clusters
-kmeans = KMeans(n_clusters=20, random_state=42, n_init=10)
+kmeans = KMeans(n_clusters=20, random_state=42)
 df_general["Cluster"] = kmeans.fit_predict(data_scaled)
 
-# Definir etiquetas para los clusters
+# Definir etiquetas para clusters
 cluster_labels = {
     0: "Legendario", 1: "Excepcional", 2: "Sobresaliente", 3: "Elite", 4: "Excelente",
     5: "Notable", 6: "Destacado", 7: "Alto", 8: "Muy Bueno", 9: "Bueno",
@@ -95,7 +87,7 @@ cluster_labels = {
 }
 df_general["Cluster Label"] = df_general["Cluster"].map(cluster_labels)
 
-# Crear gráfico general
+# 🎯 Gráfico general con información del clan
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
@@ -103,45 +95,32 @@ fig_general = px.scatter(
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Cluster Label"
 )
-fig_general.write_html("grafico_general_todos_clanes.html")
+fig_general.write_html("all_players_interactive_chart.html")
 
-# Guardar el archivo JSON general con timestamp
+# ✅ Guardar JSON de todos los jugadores con clusters
+df_general.to_json("all_players_clusters.json", orient="records", lines=False)
+
+# ✅ Guardar JSON con promedios por clan
+clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds"]].mean().to_dict(orient="index")
+with open("clan_averages.json", "w") as f:
+    import json
+    json.dump(clan_averages, f, indent=4)
+
+# ✅ Guardar JSON de cada clan y agregar timestamp
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-df_general.to_json("todos_los_jugadores.json", orient="records", indent=4)
-with open("todos_los_jugadores.json", "a") as f:
-    f.write(f"\n# Last updated: {timestamp}\n")
 
-print("\n✅ Gráfico general y archivo JSON creados exitosamente.")
-
-# Guardar gráficos y archivos JSON individuales por clan
 for clan_name in clan_urls.keys():
     try:
         df_clan = df_general[df_general["Clan"] == clan_name]
-        
         if not df_clan.empty:
-            # Guardar archivo JSON corregido
-            df_clan.to_json(f"{clan_name}_players.json", orient="records", indent=4)
-            
-            # Agregar marca de tiempo
+            df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
             with open(f"{clan_name}_players.json", "a") as f:
                 f.write(f"\n# Last updated: {timestamp}\n")
-            
-            # Crear gráfico para el clan
-            fig_clan = px.scatter(
-                df_clan, 
-                x="K/D Ratio", 
-                y="Score per Round", 
-                hover_name="Player", 
-                color="Cluster Label"
-            )
-            fig_clan.write_html(f"{clan_name}_grafico_interactivo.html")
-
-            print(f"✅ Datos y gráficos generados correctamente para {clan_name}")
-
+            print(f"Datos guardados exitosamente para {clan_name}")
         else:
-            print(f"⚠️ No se encontraron datos para el clan {clan_name}")
-
+            print(f"No se generaron datos para el clan {clan_name}")
     except Exception as e:
-        print(f"❌ Error al procesar el clan {clan_name}: {e}")
+        print(f"Error al procesar el clan {clan_name}: {e}")
 
-print("\n✅ Proceso completado.")
+print("\n✅ Todos los archivos han sido actualizados correctamente.")
+
