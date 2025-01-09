@@ -65,77 +65,53 @@ df_general = pd.DataFrame(datos_todos_jugadores).dropna()
 df_general["K/D Ratio"] = df_general["Total Kills"] / df_general["Total Deaths"]
 df_general["Score per Round"] = df_general["Total Score"] / df_general["Rounds"]
 df_general["Kills per Round"] = df_general["Total Kills"] / df_general["Rounds"]
-df_general["Kill Efficiency"] = df_general["Total Kills"] / df_general["Total Score"]
-df_general["Survivability Rate"] = df_general["Total Deaths"] / df_general["Rounds"]
 
 # Reemplazar infinitos y valores erróneos
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# Normalizar métricas relevantes
+# Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
 df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round"]] = scaler.fit_transform(
     df_general[["K/D Ratio", "Score per Round", "Kills per Round"]]
 )
 
-# Calcular Performance Score con prioridad para KD y Score
+# Calcular Performance Score con pesos ajustados
 df_general["Performance Score"] = (
     0.5 * df_general["Normalized_KD"] +
     0.3 * df_general["Normalized_Score"] +
     0.2 * df_general["Normalized_Kills_Per_Round"]
 )
 
-# Asignar clusters con nombres de materiales
-def asignar_cluster(score):
-    materiales = [
-    "Carbón 1", "Carbón 2", "Hierro 1", "Hierro 2", "Cobre 1",
-    "Cobre 2", "Bronce 1", "Bronce 2", "Plata 1", "Plata 2",
-    "Oro 1", "Oro 2", "Platino 1", "Platino 2", "Diamante 1",
-    "Diamante 2"
-    ]
-    percentiles = np.linspace(0, 1, len(materiales) + 1)
-    for i in range(len(materiales)):
-        if percentiles[i] <= score < percentiles[i + 1]:
-            return materiales[i]
-    return materiales[-1]  # Por defecto, el peor material
-
-# Aplicar clasificación
-df_general["Cluster Label"] = df_general["Performance Score"].apply(asignar_cluster)
-
-# Crear gráfico general interactivo
+# Crear gráfico general interactivo basado en el Performance Score
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
     y="Score per Round", 
     size="Kills per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
-    color="Cluster Label",
-    title="Desempeño General de Todos los Jugadores (Clasificación por Materiales)"
+    color="Performance Score",
+    title="Desempeño General de Todos los Jugadores (Basado en Performance Score)"
 )
 fig_general.write_html("all_players_interactive_chart.html")
 
-# Guardar archivos JSON y gráficos
+# Guardar archivos JSON y gráficos individuales
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
-clan_averages = (
-    df_general.groupby("Clan")[[
-        "Total Score", 
-        "Total Kills", 
-        "Total Deaths", 
-        "Rounds", 
-        "Kills per Round", 
-        "Score per Round", 
-        "Performance Score",
-        "K/D Ratio"  # Nueva métrica añadida
-    ]]
-    .mean()
-    .reset_index()
-)
+# Calcular y guardar promedios por clan
+clan_averages = df_general.groupby("Clan")[[
+    "Total Score", 
+    "Total Kills", 
+    "Total Deaths", 
+    "Rounds", 
+    "Kills per Round", 
+    "Score per Round", 
+    "Performance Score",
+    "K/D Ratio"
+]].mean().reset_index()
 
-
-# Guardar promedios por clan
 clan_averages.to_json("clan_averages.json", orient="records", lines=False)
 
-# Guardar archivos por clan y gráficos interactivos
+# Guardar datos individuales de cada clan
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for clan_name in clan_urls.keys():
@@ -144,16 +120,17 @@ for clan_name in clan_urls.keys():
         df_clan["Last Updated"] = timestamp
         df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
         
+        # Gráfico interactivo individual por clan
         fig_clan = px.scatter(
             df_clan, 
             x="K/D Ratio", 
             y="Score per Round", 
             size="Kills per Round", 
             hover_name="Player", 
-            color="Cluster Label",
+            color="Performance Score",
             title=f"Gráfico Interactivo del Clan {clan_name}"
         )
         fig_clan.write_html(f"{clan_name}_interactive_chart.html")
 
-print("Actualización completada exitosamente con el sistema de clasificación por materiales.")
+print("Actualización completada exitosamente usando Performance Score.")
 
