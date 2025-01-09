@@ -66,16 +66,20 @@ df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] 
                                                  if row["Rounds"] > 0 else np.nan, axis=1)
 df_general["Kills per Round"] = df_general.apply(lambda row: row["Total Kills"] / row["Rounds"] 
                                                  if row["Rounds"] > 0 else np.nan, axis=1)
+
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
+
+# ✅ Nuevo: Calcular un puntaje combinado para ordenar clusters con más precisión
+df_general["Performance Score"] = (df_general["Score per Round"] + df_general["K/D Ratio"]) / 2
 
 # Normalizar y aplicar K-means con 20 clusters
 scaler = StandardScaler()
-data_scaled = scaler.fit_transform(df_general[['K/D Ratio', 'Score per Round']])
+data_scaled = scaler.fit_transform(df_general[['Performance Score']])
 kmeans = KMeans(n_clusters=20, random_state=42)
 df_general["Cluster"] = kmeans.fit_predict(data_scaled)
 
-# ✅ Reordenar los clusters en base a la puntuación promedio
-cluster_means = df_general.groupby("Cluster")["Score per Round"].mean().sort_values(ascending=False)
+# ✅ Reordenar los clusters basándose en el puntaje promedio
+cluster_means = df_general.groupby("Cluster")["Performance Score"].mean().sort_values(ascending=False)
 sorted_clusters = {cluster: rank for rank, cluster in enumerate(cluster_means.index)}
 
 # ✅ Actualizar los clusters con los nuevos índices ordenados
@@ -91,7 +95,7 @@ cluster_labels = [
 ]
 df_general["Cluster Label"] = df_general["Cluster"].map(lambda x: cluster_labels[x])
 
-# 🎯 Gráfico general interactivo corregido
+# 🎯 Gráfico general interactivo corregido con rendimiento ordenado
 fig_general = px.scatter(
     df_general, 
     x="K/D Ratio", 
@@ -145,3 +149,4 @@ for clan_name in clan_urls.keys():
         print(f"Error al procesar el clan {clan_name}: {e}")
 
 print("\n✅ Todos los archivos han sido actualizados correctamente.")
+
