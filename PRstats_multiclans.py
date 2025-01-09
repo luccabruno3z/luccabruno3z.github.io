@@ -66,19 +66,22 @@ df_general["Score per Round"] = df_general.apply(lambda row: row["Total Score"] 
 
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-# ✅ Normalizar K/D Ratio y Score per Round usando MinMaxScaler
+# ✅ Normalizar ambas métricas usando MinMaxScaler
 scaler = MinMaxScaler()
 df_general[["Normalized_KD", "Normalized_Score"]] = scaler.fit_transform(
     df_general[["K/D Ratio", "Score per Round"]]
 )
 
-# ✅ Calcular un puntaje ponderado balanceado (50% KD, 50% Score)
+# ✅ Calcular el puntaje combinado balanceado
 df_general["Performance Score"] = (df_general["Normalized_KD"] + df_general["Normalized_Score"]) / 2
 
-# ✅ Crear clusters usando percentiles basados en el nuevo puntaje balanceado
-df_general["Cluster"] = pd.qcut(df_general["Performance Score"], q=20, labels=False, duplicates='drop')
+# ✅ Asignación de clusters usando percentiles (con orden invertido)
+df_general["Cluster"] = pd.qcut(df_general["Performance Score"], q=20, labels=False, duplicates="drop")
 
-# ✅ Etiquetas Jerárquicas Actualizadas
+# ✅ **Invertir la asignación de clusters para que el 0 sea el mejor**
+df_general["Cluster"] = df_general["Cluster"].max() - df_general["Cluster"]
+
+# ✅ Etiquetas Jerárquicas Corregidas (orden invertido)
 cluster_labels = [
     "Legendario (Top 5%)", "Excepcional", "Sobresaliente", "Elite", "Excelente",
     "Notable", "Destacado", "Alto", "Muy Bueno", "Bueno",
@@ -96,14 +99,14 @@ fig_general = px.scatter(
     y="Score per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Cluster Label",
-    title="Desempeño General de Todos los Jugadores (K/D y Score Balanceado)"
+    title="Desempeño General de Todos los Jugadores (K/D y Score Balanceados)"
 )
 fig_general.write_html("all_players_interactive_chart.html")
 
 # ✅ Guardar archivos JSON y gráficos
 df_general.to_json("all_players_clusters.json", orient="records", lines=False)
 
-# Guardar los promedios por clan
+# Guardar promedios por clan
 clan_averages = df_general.groupby("Clan")[["Total Score", "Total Kills", "Total Deaths", "Rounds"]].mean().to_dict(orient="index")
 with open("clan_averages.json", "w") as f:
     import json
@@ -122,11 +125,11 @@ for clan_name in clan_urls.keys():
             y="Score per Round", 
             hover_name="Player", 
             color="Cluster Label",
-            title=f"Gráfico interactivo de {clan_name}"
+            title=f"Gráfico Interactivo del Clan {clan_name}"
         )
         fig_clan.write_html(f"{clan_name}_interactive_chart.html")
 
         with open(f"{clan_name}_players.json", "a") as f:
             f.write(f"\n# Last updated: {timestamp}\n")
 
-print("\n✅ Archivos actualizados con K/D y Score balanceados.")
+print("\n✅ Archivos actualizados con corrección de clusters.")
