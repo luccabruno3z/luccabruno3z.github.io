@@ -118,7 +118,13 @@ timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 for clan_name in clan_urls.keys():
     df_clan = df_general[df_general["Clan"] == clan_name]
     if not df_clan.empty:
+        # Agregar la marca de tiempo al DataFrame antes de exportarlo
+        df_clan["Last Updated"] = timestamp
+        
+        # Guardar archivo JSON sin formato inválido
         df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+        
+        # Crear gráfico interactivo para cada clan
         fig_clan = px.scatter(
             df_clan, 
             x="K/D Ratio", 
@@ -129,7 +135,5 @@ for clan_name in clan_urls.keys():
         )
         fig_clan.write_html(f"{clan_name}_interactive_chart.html")
 
-        with open(f"{clan_name}_players.json", "a") as f:
-            f.write(f"\n# Last updated: {timestamp}\n")
 
 print("\n✅ Archivos actualizados con corrección de clusters.")
