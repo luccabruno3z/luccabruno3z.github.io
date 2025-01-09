@@ -1,20 +1,23 @@
 {
     "FI": {
-        "Total Score": 550845.3888888889,
-        "Total Kills": 5110.055555555556,
-        "Total Deaths": 2750.3611111111113,
-        "Rounds": 1100.0
+        "Total Score": 550853.7222222222,
+        "Total Kills": 5110.277777777777,
+        "Total Deaths": 2750.4444444444443,
+        "Rounds": 1100.0555555555557,
+        "Kills per Round": 3.879639383713977
     },
     "LDH": {
-        "Total Score": 96484.50857142857,
-        "Total Kills": 572.6171428571429,
-        "Total Deaths": 715.04,
-        "Rounds": 217.3257142857143
+        "Total Score": 97583.17341040462,
+        "Total Kills": 579.4104046242775,
+        "Total Deaths": 723.4797687861271,
+        "Rounds": 219.91329479768785,
+        "Kills per Round": 2.1591358841411132
     },
     "SAE": {
-        "Total Score": 56150.39024390244,
-        "Total Kills": 280.9024390243902,
-        "Total Deaths": 455.8048780487805,
-        "Rounds": 140.90243902439025
+        "Total Score": 56174.58536585366,
+        "Total Kills": 281.7073170731707,
+        "Total Deaths": 456.4146341463415,
+        "Rounds": 141.0731707317073,
+        "Kills per Round": 1.5008573377860825
     }
 }
