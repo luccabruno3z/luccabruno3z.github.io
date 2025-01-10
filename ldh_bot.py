@@ -5,9 +5,11 @@ import discord
 from discord.ext import commands
 import requests
 
-# Cargar variables de entorno desde el archivo .env
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
+# Solo cargar .env si está en local
+if os.path.exists(".env"):
+    load_dotenv()
+
+TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Validación del token
 if not TOKEN:
