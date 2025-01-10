@@ -7,7 +7,7 @@ import requests
 
 # Cargar variables de entorno desde el archivo .env
 load_dotenv()
-TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+TOKEN = os.getenv('DISCORD_TOKEN')
 
 # Validación del token
 if not TOKEN:
