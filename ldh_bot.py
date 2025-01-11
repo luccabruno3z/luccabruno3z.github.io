@@ -4,6 +4,7 @@ import json
 import discord
 from discord.ext import commands
 import requests
+import random
 
 # Solo cargar .env si está en local
 if os.path.exists(".env"):
@@ -256,18 +257,30 @@ async def tips(ctx, kit: str = None):
         )
     }
 
+    # Seleccionar consejos aleatorios
     if kit is None:
+        consejos = random.sample(consejos_generales, k=min(5, len(consejos_generales)))
         embed = discord.Embed(
-            title="Consejos Generales",
-            description=consejos_generales,
+            title="Consejos Generales Aleatorios",
+            description="\n".join(consejos),
             color=discord.Color.blue()
         )
     else:
         kit = kit.lower()
-        if kit in kits:
+        if kit in consejos_kits:
+            consejos = random.sample(consejos_kits[kit], k=min(5, len(consejos_kits[kit])))
             embed = discord.Embed(
-                title=f"Consejos para {kit.capitalize()}",
-                description=kits[kit],
+                title=f"Consejos Aleatorios para {kit.capitalize()}",
+                description="\n".join(consejos),
+                color=discord.Color.green()
+            )
+            else:
+        kit = kit.lower()
+        if kit in consejos_kits:
+            consejos = random.sample(consejos_kits[kit], k=min(5, len(consejos_kits[kit])))
+            embed = discord.Embed(
+                title=f"Consejos Aleatorios para {kit.capitalize()}",
+                description="\n".join(consejos),
                 color=discord.Color.green()
             )
         else:
