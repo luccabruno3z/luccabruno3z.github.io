@@ -131,32 +131,53 @@ async def estadisticas(ctx, jugador: str = None):
 async def tips(ctx):
     import random
 
-    # Lista de consejos para Project Reality
+    # Lista ampliada de consejos para Project Reality
     consejos = [
+        # Básicos
         "👀 **Mantén siempre una conciencia situacional**: Mira a tu alrededor constantemente y comunícate con tu escuadrón sobre la posición del enemigo.",
         "🎯 **Apunta con calma**: Disparar en ráfagas cortas y con paciencia mejora tu precisión. No dispares en movimiento a menos que sea absolutamente necesario.",
         "🗣️ **Comunica todo**: Usa el chat de voz para reportar enemigos, avisar sobre amenazas o coordinar movimientos con tu escuadrón.",
         "🏃 **Cúbrete siempre**: Nunca corras en campo abierto sin cobertura. Usa muros, árboles y colinas para protegerte del fuego enemigo.",
-        "⏳ **Sé paciente**: No avances solo por avanzar. Analiza las posiciones enemigas y coordina tus movimientos con el resto del equipo.",
         "🔧 **Construye FOBs estratégicas**: Las Bases de Operaciones Avanzadas son esenciales para mantener la presión en el enemigo y asegurar puntos de reaparición.",
         "🎮 **Sigue las órdenes del líder de escuadrón**: Escucha al líder y no tomes decisiones impulsivas que pongan en riesgo al equipo.",
-        "🏹 **Usa armas especializadas con cuidado**: Si tienes un rol como francotirador o antitanque, elige bien tus disparos y comunícate antes de atacar.",
-        "🗺️ **Conoce el mapa**: Familiarízate con los mapas más jugados para aprender rutas seguras y posiciones estratégicas para flanquear o defender.",
-        "🏥 **Prioriza a tu médico**: Si eres médico, mantente a salvo para poder revivir a tu equipo. Si no lo eres, protege siempre al médico.",
-        "💨 **No te quedes quieto mucho tiempo**: Si disparas desde una posición fija, muévete rápido antes de que el enemigo te localice.",
-        "💡 **Aprende las distancias de combate**: Enfrentamientos a larga distancia requieren paciencia y precisión, mientras que en corto necesitas moverte rápido y atacar primero.",
-        "🛡️ **No te separes del escuadrón**: Estar solo es una receta para el desastre. Siempre quédate cerca de tus compañeros para apoyo mutuo.",
-        "🛠️ **Construye activos defensivos**: Usar sacos de arena, ametralladoras y morteros puede cambiar el curso de una batalla.",
-        "🎯 **Conoce tu rol**: Cada clase tiene un propósito. No uses un francotirador como si fuera fusilero, o un lanzacohetes como rifle.",
-        "🚁 **Comunícate con pilotos**: Si necesitas apoyo aéreo o transporte, coordina con los pilotos y sigue sus indicaciones.",
-        "🕵️ **Observa antes de actuar**: Antes de disparar, asegúrate de que estás apuntando a un enemigo y no a un aliado. Verifica uniformes y banderas.",
-        "🌲 **Usa el entorno a tu favor**: Escóndete en arbustos, usa sombras y evita ser visto desde posiciones altas.",
-        "🗡️ **Flanquea al enemigo**: En lugar de atacar de frente, busca una posición lateral o trasera para sorprender al enemigo.",
-        "🕒 **Gestiona tus suministros**: Pide municiones a tiempo y comparte con tus compañeros. No te quedes sin balas en el momento crítico.",
-        "🚶 **Camina y observa**: Correr constantemente puede hacerte perder detalles importantes, como enemigos cercanos o trampas.",
-        "💥 **Cuidado con los explosivos**: No lances granadas o explosivos sin saber exactamente dónde caerán. Pueden ser letales para aliados.",
-        "⚔️ **Trabaja en equipo**: Project Reality premia el trabajo en equipo más que la habilidad individual. Jugar solo te pondrá en desventaja.",
-        "🚩 **Prioriza los objetivos**: Capturar y defender puntos clave es más importante que conseguir kills. Juega para el equipo."
+
+        # CQB (Close Quarters Battle)
+        "🏠 **CQB: Usa la cobertura a tu favor**: Avanza entre esquinas y puertas con cuidado. Nunca te expongas completamente al enemigo.",
+        "🔫 **CQB: Apunta al pecho**: En combate cercano, apuntar al torso es más efectivo que intentar disparos a la cabeza.",
+        "👟 **CQB: Muévete rápido y mantén el control**: En espacios cerrados, la rapidez es clave, pero evita correr si puedes caminar silenciosamente.",
+        "🛑 **CQB: Limpia habitación por habitación**: Al entrar a un edificio, siempre revisa esquinas y espacios ocultos antes de avanzar.",
+        "🎙️ **CQB: Coordina con tu equipo**: Si estás atacando un edificio, asigna roles claros: uno cubre mientras otro avanza o lanza granadas.",
+        "💣 **CQB: Usa granadas de manera efectiva**: Lanza granadas para limpiar habitaciones antes de entrar, pero asegúrate de no dañar a aliados.",
+        
+        # Combate en equipo
+        "🛡️ **Crea líneas de fuego seguras**: Nunca dispares sin saber dónde están tus compañeros para evitar bajas por fuego amigo.",
+        "👥 **Flanquea con tu equipo**: En lugar de atacar de frente, envía un grupo para rodear al enemigo mientras los distraes.",
+        "📻 **Comunica amenazas prioritarias**: Si ves un francotirador, un vehículo blindado o una emboscada, informa inmediatamente.",
+        "🎯 **Usa marcadores**: Marca posiciones enemigas en el mapa para que tu escuadrón y el equipo puedan reaccionar rápidamente.",
+        "⚙️ **Carga siempre suministros**: Llevar un kit de munición o de reparaciones puede salvar a tu equipo en momentos críticos.",
+        
+        # Vehículos
+        "🚁 **Comunica con el piloto**: Antes de abordar un helicóptero o transporte, coordina tu punto de aterrizaje y objetivos.",
+        "🛠️ **Mantén tus vehículos reparados**: Si usas tanques o vehículos blindados, planea pausas para reparaciones y reabastecimiento.",
+        "🔍 **Reconocimiento con vehículos ligeros**: Usa jeeps y vehículos rápidos para explorar áreas antes de comprometer unidades más grandes.",
+        "🚨 **Nunca uses vehículos solos**: Especialmente los vehículos pesados, deben ser operados en equipo para maximizar su efectividad y supervivencia.",
+
+        # Avanzados
+        "🕒 **Gestiona tu tiempo en batalla**: No te apresures. Cada decisión debe enfocarse en maximizar tu ventaja táctica.",
+        "🏹 **Usa el terreno como ventaja**: Colinas, ríos y edificios pueden convertirse en posiciones defensivas cruciales.",
+        "💾 **Aprende de tus errores**: Después de cada partida, reflexiona sobre lo que salió mal y busca mejorar tus habilidades.",
+        "📋 **Conoce las reglas del servidor**: Algunos servidores tienen restricciones específicas (kits, roles, vehículos). Evita sanciones innecesarias.",
+        "🎮 **Practica en servidores cooperativos**: Usa modos cooperativos para entrenar con vehículos y aprender mapas antes de jugar en PVP.",
+
+        # Objetivos
+        "🎯 **Prioriza los objetivos estratégicos**: Atacar o defender objetivos clave asegura la victoria más que simplemente buscar enfrentamientos.",
+        "🔍 **Espía posiciones enemigas**: Usa binoculares para observar antes de atacar o moverte hacia un objetivo.",
+        "📦 **Suministros primero**: Sin municiones ni médicos, el equipo colapsa. Asegúrate de mantener las líneas de suministro abiertas.",
+        
+        # Liderazgo
+        "⚔️ **Como líder, asigna roles claros**: Divide tareas como flanqueo, defensa y asalto para que tu escuadrón opere eficientemente.",
+        "🗺️ **Planifica con el mapa**: Usa el mapa para coordinar ataques con otros escuadrones y evitar choques internos.",
+        "🛠️ **Construye donde importa**: Ubica FOBs y puntos defensivos cerca de objetivos estratégicos, pero lo suficientemente lejos para evitar destrucción inmediata."
     ]
 
     # Seleccionar un consejo al azar
@@ -169,10 +190,11 @@ async def tips(ctx):
         color=discord.Color.blue()
     )
     embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
-    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Puedes cambiar la URL por otra imagen representativa
+    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
 
     # Enviar el consejo
     await ctx.send(embed=embed)
+
 
 
 
