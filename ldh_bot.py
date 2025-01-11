@@ -190,7 +190,7 @@ async def tips(ctx, kit: str = None):
         "🛠️ **Construye donde importa**: Ubica FOBs y puntos defensivos cerca de objetivos estratégicos, pero lo suficientemente lejos para evitar destrucción inmediata."
     )
 
-    kits = {
+    consejos_kits = {
         "rifleman": (
             "**Consejos para Rifleman:**\n"
             "1. 🎯 **Usa tu rifle con precisión:** Dispara en ráfagas cortas o individuales para mejor precisión.\n"
@@ -283,6 +283,10 @@ async def tips(ctx, kit: str = None):
                             "`rifleman`, `medic`, `automatic rifleman`, `grenadier`, `sniper`, `lat`, `hat`, `combat engineer`.",
                 color=discord.Color.red()
             )
+    embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
+    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
+
+   
 
     await ctx.send(embed=embed)
 
