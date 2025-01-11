@@ -20,7 +20,7 @@ else:
 
 # Configurar permisos del bot (acceso total)
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="l", intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 # URLs de los recursos
 GITHUB_GRAPH_LDH = "https://luccabruno3z.github.io/LDH_interactive_chart.html"
