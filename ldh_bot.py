@@ -316,9 +316,9 @@ async def ayuda(ctx):
     embed.add_field(
         name="🔧 **Comandos Básicos**",
         value=(
-            "`/hola` - Saluda al bot.\n"
-            "`/tips <kit>` - Tips para tener en cuenta en el juego. Si no especificas kit se te daran consejos generales.\n"
-            "`/apagar` - Apaga el bot (solo el dueño del bot puede usar este comando)."
+            "`-hola` - Saluda al bot.\n"
+            "`-tips <kit>` - Tips para tener en cuenta en el juego. Si no especificas kit se te daran consejos generales.\n"
+            "`-apagar` - Apaga el bot (solo el dueño del bot puede usar este comando)."
         ),
         inline=False
     )
@@ -327,7 +327,7 @@ async def ayuda(ctx):
     embed.add_field(
         name="📊 **Estadísticas de Jugadores**",
         value=(
-            "`/estadisticas <jugador>` - Muestra estadísticas detalladas de un jugador, incluyendo:\n"
+            "`-estadisticas <jugador>` - Muestra estadísticas detalladas de un jugador, incluyendo:\n"
             "  💥 **K/D Ratio**\n"
             "  🔫 **Kills per Round**\n"
             "  🎯 **Score per Round**\n"
@@ -335,7 +335,7 @@ async def ayuda(ctx):
             "  🎮 **Rounds Jugados**\n"
             "  ☠️ **Total Kills**\n"
             "  🏆 **Total Score**\n\n"
-            "`/compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores."
+            "`-compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores."
         ),
         inline=False
     )
@@ -344,16 +344,16 @@ async def ayuda(ctx):
     embed.add_field(
         name="📈 **Gráficos Interactivos**",
         value=(
-            "`/grafico` - Muestra el gráfico interactivo con estadísticas de todos los jugadores.\n"
-            "`/graficoldh` - Muestra el gráfico interactivo de la LDH.\n"
-            "`/graficosae` - Muestra el gráfico interactivo de la SAE.\n"
-            "`/graficofi` - Muestra el gráfico interactivo de la FI.\n"
-            "`/graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
-            "`/grafico141` - Muestra el gráfico interactivo del 141.\n"
-            "`/graficowd` - Muestra el gráfico interactivo del 141.\n"
-            "`/grafico300` - Muestra el gráfico interactivo del 141.\n"
-            "`/graficoe_lam` - Muestra el gráfico interactivo del 141.\n"
-            "`/graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
+            "`-grafico` - Muestra el gráfico interactivo con estadísticas de todos los jugadores.\n"
+            "`-graficoldh` - Muestra el gráfico interactivo de la LDH.\n"
+            "`-graficosae` - Muestra el gráfico interactivo de la SAE.\n"
+            "`-graficofi` - Muestra el gráfico interactivo de la FI.\n"
+            "`-graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
+            "`-grafico141` - Muestra el gráfico interactivo del 141.\n"
+            "`-graficowd` - Muestra el gráfico interactivo del 141.\n"
+            "`-grafico300` - Muestra el gráfico interactivo del 141.\n"
+            "`-graficoe_lam` - Muestra el gráfico interactivo del 141.\n"
+            "`-graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
         ),
         inline=False
     )
@@ -362,9 +362,9 @@ async def ayuda(ctx):
     embed.add_field(
         name="🏅 **Rankings y Promedios**",
         value=(
-            "`/top <cantidad de jugadores> <categoría>` - Muestra el top 15 de jugadores según la categoría especificada:\n"
+            "`-top <cantidad de jugadores> <categoría>` - Muestra el top 15 de jugadores según la categoría especificada:\n"
             "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `wd`, `300`, `e-lam`, `r-ldh`.\n"
-            "`/promedios` - Muestra los promedios de estadísticas por clan."
+            "`-promedios` - Muestra los promedios de estadísticas por clan."
         ),
         inline=False
     )
