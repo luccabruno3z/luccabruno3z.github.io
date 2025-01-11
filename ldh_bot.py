@@ -263,6 +263,131 @@ async def tips(ctx, kit: str = None):
     if kit is None:
         consejos = random.sample(consejos_generales, k=min(3, len(consejos_generales)))
         embed = discord.Embed(
+import random
+
+import random
+
+@bot.command()
+async def tips(ctx, kit: str = None):
+    """
+    Proporciona consejos aleatorios para los jugadores según el kit seleccionado.
+    Si no se especifica un kit, se muestran consejos generales.
+    """
+    # Consejos generales ampliados
+    consejos_generales = [
+        
+        # Básicos
+        "👀 **Mantén siempre una conciencia situacional**: Mira a tu alrededor constantemente y comunícate con tu escuadrón sobre la posición del enemigo.",
+        "🎯 **Apunta con calma**: Disparar en ráfagas cortas y con paciencia mejora tu precisión. No dispares en movimiento a menos que sea absolutamente necesario.",
+        "🗣️ **Comunica todo**: Usa el chat de voz para reportar enemigos, avisar sobre amenazas o coordinar movimientos con tu escuadrón.",
+        "🏃 **Cúbrete siempre**: Nunca corras en campo abierto sin cobertura. Usa muros, árboles y colinas para protegerte del fuego enemigo.",
+        "🔧 **Construye FOBs estratégicas**: Las Bases de Operaciones Avanzadas son esenciales para mantener la presión en el enemigo y asegurar puntos de reaparición.",
+        "🎮 **Sigue las órdenes del líder de escuadrón**: Escucha al líder y no tomes decisiones impulsivas que pongan en riesgo al equipo.",
+
+        # CQB (Close Quarters Battle)
+        "🏠 **CQB: Usa la cobertura a tu favor**: Avanza entre esquinas y puertas con cuidado. Nunca te expongas completamente al enemigo.",
+        "🔫 **CQB: Apunta al pecho**: En combate cercano, apuntar al torso es más efectivo que intentar disparos a la cabeza.",
+        "👟 **CQB: Muévete rápido y mantén el control**: En espacios cerrados, la rapidez es clave, pero evita correr si puedes caminar silenciosamente.",
+        "🛑 **CQB: Limpia habitación por habitación**: Al entrar a un edificio, siempre revisa esquinas y espacios ocultos antes de avanzar.",
+        "🎙️ **CQB: Coordina con tu equipo**: Si estás atacando un edificio, asigna roles claros: uno cubre mientras otro avanza o lanza granadas.",
+        "💣 **CQB: Usa granadas de manera efectiva**: Lanza granadas para limpiar habitaciones antes de entrar, pero asegúrate de no dañar a aliados.",
+        
+        # Combate en equipo
+        "🛡️ **Crea líneas de fuego seguras**: Nunca dispares sin saber dónde están tus compañeros para evitar bajas por fuego amigo.",
+        "👥 **Flanquea con tu equipo**: En lugar de atacar de frente, envía un grupo para rodear al enemigo mientras los distraes.",
+        "📻 **Comunica amenazas prioritarias**: Si ves un francotirador, un vehículo blindado o una emboscada, informa inmediatamente.",
+        "🎯 **Usa marcadores**: Marca posiciones enemigas en el mapa para que tu escuadrón y el equipo puedan reaccionar rápidamente.",
+        "⚙️ **Carga siempre suministros**: Llevar un kit de munición o de reparaciones puede salvar a tu equipo en momentos críticos.",
+        
+        # Vehículos
+        "🚁 **Comunica con el piloto**: Antes de abordar un helicóptero o transporte, coordina tu punto de aterrizaje y objetivos.",
+        "🛠️ **Mantén tus vehículos reparados**: Si usas tanques o vehículos blindados, planea pausas para reparaciones y reabastecimiento.",
+        "🔍 **Reconocimiento con vehículos ligeros**: Usa jeeps y vehículos rápidos para explorar áreas antes de comprometer unidades más grandes.",
+        "🚨 **Nunca uses vehículos solos**: Especialmente los vehículos pesados, deben ser operados en equipo para maximizar su efectividad y supervivencia.",
+
+        # Avanzados
+        "🕒 **Gestiona tu tiempo en batalla**: No te apresures. Cada decisión debe enfocarse en maximizar tu ventaja táctica.",
+        "🏹 **Usa el terreno como ventaja**: Colinas, ríos y edificios pueden convertirse en posiciones defensivas cruciales.",
+        "💾 **Aprende de tus errores**: Después de cada partida, reflexiona sobre lo que salió mal y busca mejorar tus habilidades.",
+        "📋 **Conoce las reglas del servidor**: Algunos servidores tienen restricciones específicas (kits, roles, vehículos). Evita sanciones innecesarias.",
+        "🎮 **Practica en servidores cooperativos**: Usa modos cooperativos para entrenar con vehículos y aprender mapas antes de jugar en PVP.",
+
+        # Objetivos
+        "🎯 **Prioriza los objetivos estratégicos**: Atacar o defender objetivos clave asegura la victoria más que simplemente buscar enfrentamientos.",
+        "🔍 **Espía posiciones enemigas**: Usa binoculares para observar antes de atacar o moverte hacia un objetivo.",
+        "📦 **Suministros primero**: Sin municiones ni médicos, el equipo colapsa. Asegúrate de mantener las líneas de suministro abiertas.",
+        
+        # Liderazgo
+        "⚔️ **Como líder, asigna roles claros**: Divide tareas como flanqueo, defensa y asalto para que tu escuadrón opere eficientemente.",
+        "🗺️ **Planifica con el mapa**: Usa el mapa para coordinar ataques con otros escuadrones y evitar choques internos.",
+        "🛠️ **Construye donde importa**: Ubica FOBs y puntos defensivos cerca de objetivos estratégicos, pero lo suficientemente lejos para evitar destrucción inmediata."
+    ]
+
+    
+    # Consejos por kit
+    consejos_kits = {
+        "rifleman": [
+            "🎯 **Usa tu rifle con precisión:** Dispara en ráfagas cortas o individuales para mejor precisión.",
+            "📦 **Reparte munición:** Apoya a compañeros como médicos, ametralladores y antitanques.",
+            "🛡️ **Mantente en las líneas:** Eres el núcleo del escuadrón, no vayas solo.",
+            "🕶️ **Usa granadas de humo:** Cubre avances y extracciones con humo.",
+            "🔋 **Gestiona tu stamina:** Evita correr innecesariamente en combate."
+        ],
+        "medic": [
+            "💉 **Prioriza la supervivencia:** No te arriesgues innecesariamente para revivir.",
+            "🛡️ **Usa humo para cubrir:** Antes de revivir, lanza humo para evitar ser un blanco fácil.",
+            "🏃 **Mantente cerca del escuadrón:** Apoya desde la retaguardia.",
+            "⏳ **Sé eficiente al curar:** Usa ráfagas cortas con el botiquín para ahorrar suministros.",
+            "🗣️ **Comunica tus movimientos:** Coordina con tu escuadrón a quién atender primero."
+        ],
+        "automatic rifleman": [
+            "🔫 **Encuentra una buena posición defensiva:** Usa cobertura y terreno elevado para maximizar control.",
+            "🏋️ **Dispara en ráfagas cortas:** Controla el retroceso para mantener precisión.",
+            "🛡️ **Fuego de supresión:** Mantén al enemigo bajo presión, incluso sin matar.",
+            "🚩 **Defiende puntos clave:** Ideal para proteger banderas o FOBs.",
+            "🎯 **Cambia de posición:** No seas predecible después de disparar."
+        ],
+        "grenadier": [
+            "📍 **Ajusta la mira:** Usa el telémetro para disparos precisos a larga distancia.",
+            "🏠 **Ataca detrás de cobertura:** Usa tus granadas para eliminar enemigos tras muros o trincheras.",
+            "🛡️ **Usa granadas de humo:** Proporciona cobertura en objetivos importantes.",
+            "🌍 **Coordina con el líder:** Apunta a los puntos indicados por tu líder.",
+            "🎮 **Entrena la puntería:** Familiarízate con el comportamiento de las granadas."
+        ],
+        "sniper": [
+            "🎯 **Apunta siempre a la cabeza:** Maximiza la eficacia eliminando enemigos clave.",
+            "🕶️ **Mantente oculto:** Usa vegetación y terreno para no ser detectado.",
+            "📻 **Informa al equipo:** Reporta posiciones enemigas para asistir a tu escuadrón.",
+            "⏳ **Sé paciente:** No dispares a menos que sea necesario.",
+            "🏃 **Cambia de posición:** Después de disparar, muévete para evitar ser localizado."
+        ],
+        "lat": [
+            "🚀 **Prioriza vehículos ligeros:** Guarda tus misiles para transportes y vehículos pequeños.",
+            "🔭 **Ajusta tu mira:** Evalúa la distancia antes de disparar.",
+            "🛡️ **Usa cobertura:** Dispara desde posiciones protegidas.",
+            "🏃 **Muévete después de disparar:** Evita represalias al cambiar de ubicación.",
+            "🎮 **Practica con el lanzacohetes:** Familiarízate con la caída del proyectil."
+        ],
+        "hat": [
+            "🔍 **Planifica cada disparo:** Asegúrate de que cada misil impacte.",
+            "🛡️ **Usa terreno elevado:** Maximiza tu ventaja con buena visibilidad.",
+            "🚁 **Coordina con el equipo:** Avísales antes de disparar para evitar confusión.",
+            "🎯 **Apunta a puntos débiles:** Lados y traseras de tanques son más vulnerables.",
+            "🔄 **Reabastece frecuentemente:** Mantente cerca de cajas de munición."
+        ],
+        "combat engineer": [
+            "🛠️ **Coloca minas y C4 estratégicamente:** Embosca vehículos en rutas frecuentes.",
+            "🚧 **Construye defensas rápidamente:** Protege FOBs con alambre o sacos de arena.",
+            "🚜 **Repara vehículos:** Mantén los activos del equipo operativos.",
+            "🏃 **No te expongas:** Mantén un perfil bajo al colocar trampas.",
+            "📻 **Coordina con tu líder:** Ubica explosivos en lugares clave."
+        ]
+    }
+
+    # Seleccionar consejos aleatorios
+    if kit is None:
+        consejos = random.sample(consejos_generales, k=min(5, len(consejos_generales)))
+        embed = discord.Embed(
             title="Consejos Generales Aleatorios",
             description="\n".join([f"- {c}" for c in consejos]),
             color=discord.Color.blue()
@@ -270,7 +395,7 @@ async def tips(ctx, kit: str = None):
     else:
         kit = kit.lower()
         if kit in consejos_kits:
-            consejos = random.sample(consejos_kits[kit], k=min(3, len(consejos_kits[kit])))
+            consejos = random.sample(consejos_kits[kit], k=min(5, len(consejos_kits[kit])))
             embed = discord.Embed(
                 title=f"Consejos Aleatorios para {kit.capitalize()}",
                 description="\n".join([f"- {c}" for c in consejos]),
@@ -283,6 +408,8 @@ async def tips(ctx, kit: str = None):
                             "`rifleman`, `medic`, `automatic rifleman`, `grenadier`, `sniper`, `lat`, `hat`, `combat engineer`.",
                 color=discord.Color.red()
             )
+
+                
     embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
     embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
 
