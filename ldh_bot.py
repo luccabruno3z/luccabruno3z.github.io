@@ -29,6 +29,7 @@ GITHUB_GRAPH_FI = "https://luccabruno3z.github.io/FI_interactive_chart.html"
 GITHUB_GRAPH_FI_R = "https://luccabruno3z.github.io/FI-R_interactive_chart.html"
 GITHUB_GRAPH_141 = "https://luccabruno3z.github.io/141_interactive_chart.html"
 GITHUB_GRAPH_R_LDH = "https://luccabruno3z.github.io/R-LDH_interactive_chart.html"
+GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/WD_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/LDH_players.json"
@@ -37,6 +38,7 @@ GITHUB_JSON_FI = "https://luccabruno3z.github.io/FI_players.json"
 GITHUB_JSON_FI_R = "https://luccabruno3z.github.io/FI-R_players.json"
 GITHUB_JSON_141 = "https://luccabruno3z.github.io/141_players.json"
 GITHUB_JSON_R_LDH = "https://luccabruno3z.github.io/R-LDH_players.json"
+GITHUB_JSON_WD = "https://luccabruno3z.github.io/WD_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/clan_averages.json"
@@ -64,6 +66,10 @@ async def grafico141(ctx):
 @bot.command()
 async def graficor_ldh(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la R-LDH!]({GITHUB_GRAPH_R_LDH})")
+
+@bot.command()
+async def graficowd(ctx):
+    await ctx.send(f"[Aquí tienes el gráfico interactivo de la WD!]({GITHUB_GRAPH_WD})")
 
 @bot.command()
 async def grafico(ctx):
