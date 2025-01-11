@@ -17,7 +17,9 @@ clan_urls = {
     "FI-R": "https://prstats.realitymod.com/clan/30397/fi-r",
     "R-LDH": "https://prstats.realitymod.com/clan/37315/r-ldh",
     "141": "https://prstats.realitymod.com/clan/7555/141",
-    "WD": "https://prstats.realitymod.com/clan/11052/wd"
+    "WD": "https://prstats.realitymod.com/clan/11052/wd",
+    "300": "https://prstats.realitymod.com/clan/36331/300",
+    "E-LAM": "https://prstats.realitymod.com/clan/29486/e-lam"
 }
 
 datos_todos_jugadores = []
