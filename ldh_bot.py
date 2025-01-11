@@ -297,7 +297,7 @@ async def ayuda(ctx):
         name="🔧 **Comandos Básicos**",
         value=(
             "`lhola` - Saluda al bot.\n"
-            "`ltips` - Tips para tener en cuenta en el juego.\n"
+            "`ltips <kit>` - Tips para tener en cuenta en el juego. Si no especificas kit se te daran consejos generales.\n"
             "`lapagar` - Apaga el bot (solo el dueño del bot puede usar este comando)."
         ),
         inline=False
