@@ -30,6 +30,8 @@ GITHUB_GRAPH_FI_R = "https://luccabruno3z.github.io/FI-R_interactive_chart.html"
 GITHUB_GRAPH_141 = "https://luccabruno3z.github.io/141_interactive_chart.html"
 GITHUB_GRAPH_R_LDH = "https://luccabruno3z.github.io/R-LDH_interactive_chart.html"
 GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/WD_interactive_chart.html"
+GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/300_interactive_chart.html"
+GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/E-LAM_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/LDH_players.json"
@@ -39,6 +41,8 @@ GITHUB_JSON_FI_R = "https://luccabruno3z.github.io/FI-R_players.json"
 GITHUB_JSON_141 = "https://luccabruno3z.github.io/141_players.json"
 GITHUB_JSON_R_LDH = "https://luccabruno3z.github.io/R-LDH_players.json"
 GITHUB_JSON_WD = "https://luccabruno3z.github.io/WD_players.json"
+GITHUB_JSON_300 = "https://luccabruno3z.github.io/300_players.json"
+GITHUB_JSON_E_LAM = "https://luccabruno3z.github.io/E-LAM_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/clan_averages.json"
@@ -46,6 +50,15 @@ GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/clan_averages.json"
 @bot.command()
 async def graficoldh(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la LDH!]({GITHUB_GRAPH_LDH})")
+
+@bot.command()
+async def grafico300(ctx):
+    await ctx.send(f"[Aquí tienes el gráfico interactivo de 300!]({GITHUB_GRAPH_300})")
+
+
+@bot.command()
+async def graficoe_lam(ctx):
+    await ctx.send(f"[Aquí tienes el gráfico interactivo de la E-LAM!]({GITHUB_GRAPH_E_LAM})")
 
 @bot.command()
 async def graficosae(ctx):
@@ -337,6 +350,9 @@ async def ayuda(ctx):
             "`/graficofi` - Muestra el gráfico interactivo de la FI.\n"
             "`/graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
             "`/grafico141` - Muestra el gráfico interactivo del 141.\n"
+            "`/graficowd` - Muestra el gráfico interactivo del 141.\n"
+            "`/grafico300` - Muestra el gráfico interactivo del 141.\n"
+            "`/graficoe_lam` - Muestra el gráfico interactivo del 141.\n"
             "`/graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
         ),
         inline=False
@@ -347,7 +363,7 @@ async def ayuda(ctx):
         name="🏅 **Rankings y Promedios**",
         value=(
             "`/top <cantidad de jugadores> <categoría>` - Muestra el top 15 de jugadores según la categoría especificada:\n"
-            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`.\n"
+            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `wd`, `300`, `e-lam`, `r-ldh`.\n"
             "`/promedios` - Muestra los promedios de estadísticas por clan."
         ),
         inline=False
