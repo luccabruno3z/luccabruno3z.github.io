@@ -127,6 +127,52 @@ async def estadisticas(ctx, jugador: str = None):
 
     else:
         await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado en la base de datos.")
+@bot.command()
+async def tips(ctx):
+    import random
+
+    # Lista de consejos para Project Reality
+    consejos = [
+        "👀 **Mantén siempre una conciencia situacional**: Mira a tu alrededor constantemente y comunícate con tu escuadrón sobre la posición del enemigo.",
+        "🎯 **Apunta con calma**: Disparar en ráfagas cortas y con paciencia mejora tu precisión. No dispares en movimiento a menos que sea absolutamente necesario.",
+        "🗣️ **Comunica todo**: Usa el chat de voz para reportar enemigos, avisar sobre amenazas o coordinar movimientos con tu escuadrón.",
+        "🏃 **Cúbrete siempre**: Nunca corras en campo abierto sin cobertura. Usa muros, árboles y colinas para protegerte del fuego enemigo.",
+        "⏳ **Sé paciente**: No avances solo por avanzar. Analiza las posiciones enemigas y coordina tus movimientos con el resto del equipo.",
+        "🔧 **Construye FOBs estratégicas**: Las Bases de Operaciones Avanzadas son esenciales para mantener la presión en el enemigo y asegurar puntos de reaparición.",
+        "🎮 **Sigue las órdenes del líder de escuadrón**: Escucha al líder y no tomes decisiones impulsivas que pongan en riesgo al equipo.",
+        "🏹 **Usa armas especializadas con cuidado**: Si tienes un rol como francotirador o antitanque, elige bien tus disparos y comunícate antes de atacar.",
+        "🗺️ **Conoce el mapa**: Familiarízate con los mapas más jugados para aprender rutas seguras y posiciones estratégicas para flanquear o defender.",
+        "🏥 **Prioriza a tu médico**: Si eres médico, mantente a salvo para poder revivir a tu equipo. Si no lo eres, protege siempre al médico.",
+        "💨 **No te quedes quieto mucho tiempo**: Si disparas desde una posición fija, muévete rápido antes de que el enemigo te localice.",
+        "💡 **Aprende las distancias de combate**: Enfrentamientos a larga distancia requieren paciencia y precisión, mientras que en corto necesitas moverte rápido y atacar primero.",
+        "🛡️ **No te separes del escuadrón**: Estar solo es una receta para el desastre. Siempre quédate cerca de tus compañeros para apoyo mutuo.",
+        "🛠️ **Construye activos defensivos**: Usar sacos de arena, ametralladoras y morteros puede cambiar el curso de una batalla.",
+        "🎯 **Conoce tu rol**: Cada clase tiene un propósito. No uses un francotirador como si fuera fusilero, o un lanzacohetes como rifle.",
+        "🚁 **Comunícate con pilotos**: Si necesitas apoyo aéreo o transporte, coordina con los pilotos y sigue sus indicaciones.",
+        "🕵️ **Observa antes de actuar**: Antes de disparar, asegúrate de que estás apuntando a un enemigo y no a un aliado. Verifica uniformes y banderas.",
+        "🌲 **Usa el entorno a tu favor**: Escóndete en arbustos, usa sombras y evita ser visto desde posiciones altas.",
+        "🗡️ **Flanquea al enemigo**: En lugar de atacar de frente, busca una posición lateral o trasera para sorprender al enemigo.",
+        "🕒 **Gestiona tus suministros**: Pide municiones a tiempo y comparte con tus compañeros. No te quedes sin balas en el momento crítico.",
+        "🚶 **Camina y observa**: Correr constantemente puede hacerte perder detalles importantes, como enemigos cercanos o trampas.",
+        "💥 **Cuidado con los explosivos**: No lances granadas o explosivos sin saber exactamente dónde caerán. Pueden ser letales para aliados.",
+        "⚔️ **Trabaja en equipo**: Project Reality premia el trabajo en equipo más que la habilidad individual. Jugar solo te pondrá en desventaja.",
+        "🚩 **Prioriza los objetivos**: Capturar y defender puntos clave es más importante que conseguir kills. Juega para el equipo."
+    ]
+
+    # Seleccionar un consejo al azar
+    consejo = random.choice(consejos)
+
+    # Crear el embed
+    embed = discord.Embed(
+        title="🎮 Consejos para Project Reality",
+        description=consejo,
+        color=discord.Color.blue()
+    )
+    embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
+    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Puedes cambiar la URL por otra imagen representativa
+
+    # Enviar el consejo
+    await ctx.send(embed=embed)
 
 
 
@@ -143,6 +189,7 @@ async def ayuda(ctx):
         name="🔧 **Comandos Básicos**",
         value=(
             "`lhola` - Saluda al bot.\n"
+            "`ltips` - Tips para tener en cuenta en el juego.\n"
             "`lapagar` - Apaga el bot (solo el dueño del bot puede usar este comando)."
         ),
         inline=False
