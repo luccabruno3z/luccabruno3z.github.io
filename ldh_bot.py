@@ -127,12 +127,62 @@ async def estadisticas(ctx, jugador: str = None):
 
     else:
         await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado en la base de datos.")
+        
 @bot.command()
 async def tips(ctx):
     import random
 
     # Lista ampliada de consejos para Project Reality
     consejos = [
+        # Básicos
+        "👀 **Mantén siempre una conciencia situacional**: Mira a tu alrededor constantemente y comunícate con tu escuadrón sobre la posición del enemigo.",
+        "🎯 **Apunta con calma**: Disparar en ráfagas cortas y con paciencia mejora tu precisión. No dispares en movimiento a menos que sea absolutamente necesario.",
+        "🗣️ **Comunica todo**: Usa el chat de voz para reportar enemigos, avisar sobre amenazas o coordinar movimientos con tu escuadrón.",
+        "🏃 **Cúbrete siempre**: Nunca corras en campo abierto sin cobertura. Usa muros, árboles y colinas para protegerte del fuego enemigo.",
+        "🔧 **Construye FOBs estratégicas**: Las Bases de Operaciones Avanzadas son esenciales para mantener la presión en el enemigo y asegurar puntos de reaparición.",
+        "🎮 **Sigue las órdenes del líder de escuadrón**: Escucha al líder y no tomes decisiones impulsivas que pongan en riesgo al equipo.",
+
+        # CQB (Close Quarters Battle)
+        "🏠 **CQB: Usa la cobertura a tu favor**: Avanza entre esquinas y puertas con cuidado. Nunca te expongas completamente al enemigo.",
+        "🔫 **CQB: Apunta al pecho**: En combate cercano, apuntar al torso es más efectivo que intentar disparos a la cabeza.",
+        "👟 **CQB: Muévete rápido y mantén el control**: En espacios cerrados, la rapidez es clave, pero evita correr si puedes caminar silenciosamente.",
+        "🛑 **CQB: Limpia habitación por habitación**: Al entrar a un edificio, siempre revisa esquinas y espacios ocultos antes de avanzar.",
+        "🎙️ **CQB: Coordina con tu equipo**: Si estás atacando un edificio, asigna roles claros: uno cubre mientras otro avanza o lanza granadas.",
+        "💣 **CQB: Usa granadas de manera efectiva**: Lanza granadas para limpiar habitaciones antes de entrar, pero asegúrate de no dañar a aliados.",
+        
+        # Combate en equipo
+        "🛡️ **Crea líneas de fuego seguras**: Nunca dispares sin saber dónde están tus compañeros para evitar bajas por fuego amigo.",
+        "👥 **Flanquea con tu equipo**: En lugar de atacar de frente, envía un grupo para rodear al enemigo mientras los distraes.",
+        "📻 **Comunica amenazas prioritarias**: Si ves un francotirador, un vehículo blindado o una emboscada, informa inmediatamente.",
+        "🎯 **Usa marcadores**: Marca posiciones enemigas en el mapa para que tu escuadrón y el equipo puedan reaccionar rápidamente.",
+        "⚙️ **Carga siempre suministros**: Llevar un kit de munición o de reparaciones puede salvar a tu equipo en momentos críticos.",
+        
+        # Vehículos
+        "🚁 **Comunica con el piloto**: Antes de abordar un helicóptero o transporte, coordina tu punto de aterrizaje y objetivos.",
+        "🛠️ **Mantén tus vehículos reparados**: Si usas tanques o vehículos blindados, planea pausas para reparaciones y reabastecimiento.",
+        "🔍 **Reconocimiento con vehículos ligeros**: Usa jeeps y vehículos rápidos para explorar áreas antes de comprometer unidades más grandes.",
+        "🚨 **Nunca uses vehículos solos**: Especialmente los vehículos pesados, deben ser operados en equipo para maximizar su efectividad y supervivencia.",
+
+        # Avanzados
+        "🕒 **Gestiona tu tiempo en batalla**: No te apresures. Cada decisión debe enfocarse en maximizar tu ventaja táctica.",
+        "🏹 **Usa el terreno como ventaja**: Colinas, ríos y edificios pueden convertirse en posiciones defensivas cruciales.",
+        "💾 **Aprende de tus errores**: Después de cada partida, reflexiona sobre lo que salió mal y busca mejorar tus habilidades.",
+        "📋 **Conoce las reglas del servidor**: Algunos servidores tienen restricciones específicas (kits, roles, vehículos). Evita sanciones innecesarias.",
+        "🎮 **Practica en servidores cooperativos**: Usa modos cooperativos para entrenar con vehículos y aprender mapas antes de jugar en PVP.",
+
+@bot.command()
+async def tips(ctx, kit: str = None):
+    """
+    Proporciona consejos para los jugadores según el kit seleccionado.
+    Si no se especifica un kit, se muestran consejos generales.
+    """
+    consejos_generales = (
+        "1. 🛡️ **Comunicación es clave:** Usa el chat de voz y las órdenes del líder del escuadrón para coordinarte.\n"
+        "2. 🌍 **Usa el mapa:** Siempre revisa el mapa para mantenerte informado sobre objetivos y enemigos.\n"
+        "3. 💉 **Prioriza la supervivencia:** Un escuadrón vivo es más efectivo que un jugador solitario.\n"
+        "4. ⚡ **Administra tu stamina:** No corras innecesariamente para no quedar vulnerable en combate.\n"
+        "5. 🛠️ **Usa tus herramientas:** Cada kit tiene un propósito. Aprende cómo aprovechar cada una de tus herramientas."
+        
         # Básicos
         "👀 **Mantén siempre una conciencia situacional**: Mira a tu alrededor constantemente y comunícate con tu escuadrón sobre la posición del enemigo.",
         "🎯 **Apunta con calma**: Disparar en ráfagas cortas y con paciencia mejora tu precisión. No dispares en movimiento a menos que sea absolutamente necesario.",
@@ -178,22 +228,99 @@ async def tips(ctx):
         "⚔️ **Como líder, asigna roles claros**: Divide tareas como flanqueo, defensa y asalto para que tu escuadrón opere eficientemente.",
         "🗺️ **Planifica con el mapa**: Usa el mapa para coordinar ataques con otros escuadrones y evitar choques internos.",
         "🛠️ **Construye donde importa**: Ubica FOBs y puntos defensivos cerca de objetivos estratégicos, pero lo suficientemente lejos para evitar destrucción inmediata."
-    ]
-
-    # Seleccionar un consejo al azar
-    consejo = random.choice(consejos)
-
-    # Crear el embed
-    embed = discord.Embed(
-        title="🎮 Consejos para Project Reality",
-        description=consejo,
-        color=discord.Color.blue()
     )
-    embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
-    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
 
-    # Enviar el consejo
+    kits = {
+        "rifleman": (
+            "**Consejos para Rifleman:**\n"
+            "1. 🎯 **Usa tu rifle con precisión:** Dispara en ráfagas cortas o individuales para mejor precisión.\n"
+            "2. 📦 **Reparte munición:** Apoya a compañeros como médicos, ametralladores y antitanques.\n"
+            "3. 🛡️ **Mantente en las líneas:** Eres el núcleo del escuadrón, no vayas solo.\n"
+            "4. 🕶️ **Usa granadas de humo:** Cubre avances y extracciones con humo.\n"
+            "5. 🔋 **Gestiona tu stamina:** Evita correr innecesariamente en combate."
+        ),
+        "medic": (
+            "**Consejos para Medic:**\n"
+            "1. 💉 **Prioriza la supervivencia:** No te arriesgues innecesariamente para revivir.\n"
+            "2. 🛡️ **Usa humo para cubrir:** Antes de revivir, lanza humo para evitar ser un blanco fácil.\n"
+            "3. 🏃 **Mantente cerca del escuadrón:** Apoya desde la retaguardia.\n"
+            "4. ⏳ **Sé eficiente al curar:** Usa ráfagas cortas con el botiquín para ahorrar suministros.\n"
+            "5. 🗣️ **Comunica tus movimientos:** Coordina con tu escuadrón a quién atender primero."
+        ),
+        "automatic rifleman": (
+            "**Consejos para Automatic Rifleman:**\n"
+            "1. 🔫 **Encuentra una buena posición defensiva:** Usa cobertura y terreno elevado para maximizar control.\n"
+            "2. 🏋️ **Dispara en ráfagas cortas:** Controla el retroceso para mantener precisión.\n"
+            "3. 🛡️ **Fuego de supresión:** Mantén al enemigo bajo presión, incluso sin matar.\n"
+            "4. 🚩 **Defiende puntos clave:** Ideal para proteger banderas o FOBs.\n"
+            "5. 🎯 **Cambia de posición:** No seas predecible después de disparar."
+        ),
+        "grenadier": (
+            "**Consejos para Grenadier:**\n"
+            "1. 📍 **Ajusta la mira:** Usa el telémetro para disparos precisos a larga distancia.\n"
+            "2. 🏠 **Ataca detrás de cobertura:** Usa tus granadas para eliminar enemigos tras muros o trincheras.\n"
+            "3. 🛡️ **Usa granadas de humo:** Proporciona cobertura en objetivos importantes.\n"
+            "4. 🌍 **Coordina con el líder:** Apunta a los puntos indicados por tu líder.\n"
+            "5. 🎮 **Entrena la puntería:** Familiarízate con el comportamiento de las granadas."
+        ),
+        "sniper": (
+            "**Consejos para Sniper:**\n"
+            "1. 🎯 **Apunta siempre a la cabeza:** Maximiza la eficacia eliminando enemigos clave.\n"
+            "2. 🕶️ **Mantente oculto:** Usa vegetación y terreno para no ser detectado.\n"
+            "3. 📻 **Informa al equipo:** Reporta posiciones enemigas para asistir a tu escuadrón.\n"
+            "4. ⏳ **Sé paciente:** No dispares a menos que sea necesario.\n"
+            "5. 🏃 **Cambia de posición:** Después de disparar, muévete para evitar ser localizado."
+        ),
+        "lat": (
+            "**Consejos para Light Anti-Tank (LAT):**\n"
+            "1. 🚀 **Prioriza vehículos ligeros:** Guarda tus misiles para transportes y vehículos pequeños.\n"
+            "2. 🔭 **Ajusta tu mira:** Evalúa la distancia antes de disparar.\n"
+            "3. 🛡️ **Usa cobertura:** Dispara desde posiciones protegidas.\n"
+            "4. 🏃 **Muévete después de disparar:** Evita represalias al cambiar de ubicación.\n"
+            "5. 🎮 **Practica con el lanzacohetes:** Familiarízate con la caída del proyectil."
+        ),
+        "hat": (
+            "**Consejos para Heavy Anti-Tank (HAT):**\n"
+            "1. 🔍 **Planifica cada disparo:** Asegúrate de que cada misil impacte.\n"
+            "2. 🛡️ **Usa terreno elevado:** Maximiza tu ventaja con buena visibilidad.\n"
+            "3. 🚁 **Coordina con el equipo:** Avísales antes de disparar para evitar confusión.\n"
+            "4. 🎯 **Apunta a puntos débiles:** Lados y traseras de tanques son más vulnerables.\n"
+            "5. 🔄 **Reabastece frecuentemente:** Mantente cerca de cajas de munición."
+        ),
+        "combat engineer": (
+            "**Consejos para Combat Engineer:**\n"
+            "1. 🛠️ **Coloca minas y C4 estratégicamente:** Embosca vehículos en rutas frecuentes.\n"
+            "2. 🚧 **Construye defensas rápidamente:** Protege FOBs con alambre o sacos de arena.\n"
+            "3. 🚜 **Repara vehículos:** Mantén los activos del equipo operativos.\n"
+            "4. 🏃 **No te expongas:** Mantén un perfil bajo al colocar trampas.\n"
+            "5. 📻 **Coordina con tu líder:** Ubica explosivos en lugares clave."
+        )
+    }
+
+    if kit is None:
+        embed = discord.Embed(
+            title="Consejos Generales",
+            description=consejos_generales,
+            color=discord.Color.blue()
+        )
+    else:
+        kit = kit.lower()
+        if kit in kits:
+            embed = discord.Embed(
+                title=f"Consejos para {kit.capitalize()}",
+                description=kits[kit],
+                color=discord.Color.green()
+            )
+        else:
+            embed = discord.Embed(
+                title="Kit no reconocido",
+                description="Por favor, elige uno de los siguientes kits:\n"
+                            "`rifleman`, `medic`, `automatic rifleman`, `grenadier`, `sniper`, `lat`, `hat`, `combat engineer`.",
+                color=discord.Color.red()
+            )
+
     await ctx.send(embed=embed)
+
 
 
 
