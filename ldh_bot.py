@@ -623,11 +623,11 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 async def on_command_error(ctx, error):
     # Error cuando el comando no existe
     if isinstance(error, commands.CommandNotFound):
-        await ctx.send("❌ **Comando no reconocido.** Usa `layuda` para ver la lista de comandos disponibles.")
+        await ctx.send("❌ **Comando no reconocido.** Usa `-ayuda` para ver la lista de comandos disponibles.")
     
     # Error cuando faltan argumentos en un comando
     elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"❗ Faltan argumentos. Asegúrate de usar el comando correctamente. Ejemplo: `lestadisticas <jugador>`.")
+        await ctx.send(f"❗ Faltan argumentos. Asegúrate de usar el comando correctamente. Ejemplo: `-estadisticas <jugador>`.")
         
     # Error cuando un usuario no tiene permisos para usar un comando
     elif isinstance(error, commands.MissingPermissions):
