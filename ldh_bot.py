@@ -258,6 +258,8 @@ async def tips(ctx, kit: str = None):
     }
 
     # Seleccionar consejos aleatorios
+    
+    # Seleccionar consejos aleatorios
     if kit is None:
         consejos = random.sample(consejos_generales, k=min(5, len(consejos_generales)))
         embed = discord.Embed(
@@ -266,15 +268,6 @@ async def tips(ctx, kit: str = None):
             color=discord.Color.blue()
         )
     else:
-        kit = kit.lower()
-        if kit in consejos_kits:
-            consejos = random.sample(consejos_kits[kit], k=min(5, len(consejos_kits[kit])))
-            embed = discord.Embed(
-                title=f"Consejos Aleatorios para {kit.capitalize()}",
-                description="\n".join(consejos),
-                color=discord.Color.green()
-            )
-            else:
         kit = kit.lower()
         if kit in consejos_kits:
             consejos = random.sample(consejos_kits[kit], k=min(5, len(consejos_kits[kit])))
@@ -292,6 +285,7 @@ async def tips(ctx, kit: str = None):
             )
 
     await ctx.send(embed=embed)
+
 
 
 
