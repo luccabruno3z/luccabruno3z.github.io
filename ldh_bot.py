@@ -87,10 +87,11 @@ async def graficowd(ctx):
 @bot.command()
 async def grafico(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de los usuarios!]({GITHUB_GRAPH_PLAYERS})")
+
 @bot.command()
 async def estadisticas(ctx, jugador: str = None):
     if not jugador:
-        await ctx.send("❗ Por favor, proporciona un nombre de jugador. Ejemplo: `/estadisticas W4RR10R`.")
+        await ctx.send("❗ Por favor, proporciona un nombre de jugador. Ejemplo: `-estadisticas W4RR10R`.")
         return
     try:
         response = requests.get(GITHUB_JSON_PLAYERS)
