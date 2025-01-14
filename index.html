@@ -263,15 +263,15 @@
         <h2>Síguenos en nuestras redes sociales</h2>
         <div class="social-buttons">
             <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" alt="YouTube">
+                <img src="luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube">
                 Youtube
             </a>
             <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
+                <img src="luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Grozny
             </a>
             <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
+                <img src="luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Doc
             </a>
         </div>
@@ -308,11 +308,16 @@
     <script>
         document.getElementById('search-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            const playerName = document.getElementById('player-name').value;
+            const playerName = document.getElementById('player-name').value.trim().toLowerCase();
             fetch('graphs/all_players_clusters.json')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
                 .then(data => {
-                    const player = data.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+                    const player = data.find(p => p.name.toLowerCase() === playerName);
                     const resultsContainer = document.getElementById('search-results');
                     resultsContainer.innerHTML = '';
                     if (player) {
@@ -327,7 +332,10 @@
                         resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
                     }
                 })
-                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+                .catch(error => {
+                    console.error('Error al cargar el archivo JSON:', error);
+                    document.getElementById('search-results').innerHTML = '<p>Error al cargar las estadísticas. Por favor, inténtalo de nuevo más tarde.</p>';
+                });
         });
     </script>
 </body>
