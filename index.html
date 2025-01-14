@@ -103,30 +103,6 @@
             font-size: 16px;
         }
 
-        /* Secciones adicionales */
-        .info, .examples {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .examples .example-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-        }
-
-        .examples .example-item {
-            background: #222;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-            border: 1px solid #555;
-        }
-
-        /* Estilos para móviles */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100px;
@@ -144,9 +120,6 @@
             .logo img {
                 max-width: 120px;
             }
-            .container {
-                padding: 20px;
-            }
         }
 
         /* Animaciones suaves */
@@ -157,7 +130,6 @@
         a:hover, button:hover {
             transform: scale(1.05);
         }
-
     </style>
 </head>
 <body>
@@ -172,11 +144,11 @@
         </div>
         <button onclick="toggleDropdown('chartsDropdown')">Gráficos</button>
         <div class="dropdown" id="chartsDropdown">
-            <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a>
+            <a href="#" onclick="toggleDropdown('ldhSubDropdown'); return false;">LDH</a>
             <div class="dropdown" id="ldhSubDropdown">
                 <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
             </div>
-            <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a>
+            <a href="#" onclick="toggleDropdown('fiSubDropdown'); return false;">FI</a>
             <div class="dropdown" id="fiSubDropdown">
                 <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
             </div>
@@ -190,51 +162,29 @@
 
     <div class="container">
         <div class="logo">
-            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH" />
+            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
         </div>
         <h1>Project Reality - Stats y Repeticiones</h1>
-
-        <section class="info">
-            <h2>Últimas Noticias</h2>
-            <p>Explora las novedades y actualizaciones recientes de Project Reality.</p>
-        </section>
-
-        <section class="examples">
-            <h2>Ejemplos Destacados</h2>
-            <div class="example-grid">
-                <div class="example-item">
-                    <h3>Guías de Roles</h3>
-                    <p>Aprende a jugar como un profesional con nuestras guías detalladas.</p>
-                </div>
-                <div class="example-item">
-                    <h3>Estadísticas Interactivas</h3>
-                    <p>Revisa gráficos interactivos y analiza el rendimiento en el juego.</p>
-                </div>
-            </div>
-        </section>
     </div>
 
     <script>
         // Función para manejar el menú desplegable
         function toggleDropdown(id) {
-            $("#" + id).slideToggle();
-        }
-
-        // Manejo de submenús
-        $("#chartsDropdown").on("click", "a", function (e) {
-            const text = $(this).text();
-            if (text === "LDH" || text === "FI") {
-                $(this).siblings(".dropdown").slideToggle();
-                e.preventDefault(); // Prevenir navegación solo para abrir submenús
+            const dropdown = document.getElementById(id);
+            if (dropdown.style.display === "none" || dropdown.style.display === "") {
+                dropdown.style.display = "block";
+            } else {
+                dropdown.style.display = "none";
             }
-        });
+        }
 
         // Filtro de enlaces
         function filterLinks() {
-            const query = $("#search").val().toLowerCase();
-            $(".dropdown a").each(function () {
-                const text = $(this).text().toLowerCase();
-                $(this).toggle(text.includes(query));
+            const query = document.getElementById("search").value.toLowerCase();
+            const links = document.querySelectorAll(".dropdown a");
+            links.forEach(link => {
+                const text = link.textContent.toLowerCase();
+                link.style.display = text.includes(query) ? "block" : "none";
             });
         }
     </script>
