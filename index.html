@@ -66,9 +66,10 @@
             border: 1px solid #fff;
         }
 
-        nav a:hover {
+        nav a:hover, nav a:focus {
             background: #fff;
             color: #000;
+            outline: none;
         }
 
         /* Hero Section */
@@ -160,10 +161,15 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: background 0.3s;
         }
         .social-button img {
             width: 20px;
             height: 20px;
+        }
+        .social-button:hover, .social-button:focus {
+            background: #555;
+            outline: none;
         }
 
         /* Estilos para el formulario de búsqueda */
@@ -187,9 +193,11 @@
             background: #fff;
             color: #000;
             cursor: pointer;
+            transition: background 0.3s;
         }
-        .search-form button:hover {
+        .search-form button:hover, .search-form button:focus {
             background: #ddd;
+            outline: none;
         }
         .suggestions {
             position: absolute;
@@ -209,8 +217,9 @@
             cursor: pointer;
             color: #fff;
         }
-        .suggestion-item:hover {
+        .suggestion-item:hover, .suggestion-item:focus {
             background: #444;
+            outline: none;
         }
         .search-results {
             margin-top: 20px;
@@ -260,6 +269,41 @@
 
         footer a:hover {
             text-decoration: underline;
+        }
+
+        /* Media queries para dispositivos móviles */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            nav {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+
+            nav a {
+                width: calc(100% - 40px);
+                text-align: center;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .updates h2, .resources h2, .guides h2 {
+                font-size: 2rem;
+            }
+
+            .resource-grid, .guide-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
