@@ -22,6 +22,7 @@
             font-family: 'Bebas Neue', sans-serif;
             letter-spacing: 1px;
             color: #fff;
+            text-align: center;
         }
 
         /* Encabezado con tema oscuro y detalles militares */
@@ -156,12 +157,37 @@
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .social-button img {
+            width: 20px;
+            height: 20px;
         }
 
         /* Estilos para el formulario de búsqueda */
         .search-form {
             margin-top: 20px;
             text-align: center;
+        }
+        .search-form input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #fff;
+            background: #333;
+            color: #fff;
+        }
+        .search-form button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background: #fff;
+            color: #000;
+            cursor: pointer;
+        }
+        .search-form button:hover {
+            background: #ddd;
         }
         .search-results {
             margin-top: 20px;
@@ -236,9 +262,18 @@
     <section class="social-section">
         <h2>Síguenos en nuestras redes sociales</h2>
         <div class="social-buttons">
-            <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">Youtube</a>
-            <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">Tiktok Grozny</a>
-            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">Tiktok Doc</a>
+            <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" alt="YouTube">
+                Youtube
+            </a>
+            <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
+                Tiktok Grozny
+            </a>
+            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
+                Tiktok Doc
+            </a>
         </div>
     </section>
 
