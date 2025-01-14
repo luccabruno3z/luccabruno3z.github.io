@@ -27,8 +27,8 @@ jobs:
         touch public/.nojekyll
 
         # Configura git para hacer el commit en la rama gh-pages
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
+        git config user.name "luccabruno3z"
+        git config user.email "luccabruno96@gmail.com"
 
         # Cambia al directorio public y configura un nuevo repositorio
         cd public
