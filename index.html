@@ -7,23 +7,47 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        /* Estilo general con temática oscura y militar */
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Verdana', sans-serif;
             margin: 0;
             padding: 0;
+            background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #1b1b1b;
-            color: white;
-        }
-        .container {
             text-align: center;
         }
+
+        /* Contenedor principal */
+        .container {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.8);
+            border: 2px solid #444;
+        }
+
+        /* Estilo para el logo */
+        .logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid #888;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
         h1 {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             margin-bottom: 20px;
         }
+
+        /* Botones con efecto militar */
         .button {
             padding: 15px 30px;
             margin: 10px;
@@ -31,33 +55,63 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 18px;
-            background: #007bff;
+            background: linear-gradient(145deg, #222, #444);
             color: white;
+            box-shadow: 3px 3px 8px rgba(0,0,0,0.7);
+            border: 1px solid #555;
             transition: all 0.3s ease;
         }
+
         .button:hover {
-            background: #0056b3;
+            background: #555;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
+
+        /* Dropdown estilizado */
         .dropdown {
             display: none;
             margin-top: 10px;
         }
+
         .dropdown a {
             display: block;
             padding: 10px;
-            background: #333;
+            background: #222;
             border-radius: 5px;
             margin: 5px 0;
             color: white;
             text-decoration: none;
+            border: 1px solid #555;
+            transition: 0.3s;
         }
+
         .dropdown a:hover {
-            background: #555;
+            background: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+        }
+
+        /* Animación de aparición */
+        .fadeIn {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            .button { font-size: 16px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container fadeIn">
+        <!-- Logo de la Legión de Hierro -->
+        <img src="https://luccabruno3z.github.io/logo_ldh.png" alt="Legión de Hierro" class="logo">
+
         <h1>Project Reality - Stats y Repeticiones</h1>
         
         <!-- Botón del Visualizador 2D -->
@@ -79,7 +133,7 @@
     </div>
 
     <script>
-        // Función para mostrar y ocultar el menú desplegable
+        // Función para manejar el menú desplegable
         function toggleDropdown() {
             $("#dropdownMenu").slideToggle();
         }
