@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Reality - Stats y Repeticiones</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1b1b1b;
+            color: white;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .button {
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            background: #007bff;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .dropdown {
+            display: none;
+            margin-top: 10px;
+        }
+        .dropdown a {
+            display: block;
+            padding: 10px;
+            background: #333;
+            border-radius: 5px;
+            margin: 5px 0;
+            color: white;
+            text-decoration: none;
+        }
+        .dropdown a:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Project Reality - Stats y Repeticiones</h1>
+        
+        <!-- Botón del Visualizador 2D -->
+        <a href="heatmap/index.html" class="button">🎯 Visualizador de PR 2D</a>
+        
+        <!-- Botón de Gráficos con submenú -->
+        <button class="button" onclick="toggleDropdown()">📊 Gráficos (Ver Clanes)</button>
+        <div class="dropdown" id="dropdownMenu">
+            <a href="https://luccabruno3z.github.io/LDH_interactive_chart.html">LDH</a>
+            <a href="https://luccabruno3z.github.io/R-LDH_interactive_chart.html">R-LDH</a>
+            <a href="https://luccabruno3z.github.io/FI_interactive_chart.html">FI</a>
+            <a href="https://luccabruno3z.github.io/FI-R_interactive_chart.html">FI-R</a>
+            <a href="https://luccabruno3z.github.io/SAE_interactive_chart.html">SAE</a>
+            <a href="https://luccabruno3z.github.io/300_interactive_chart.html">300</a>
+            <a href="https://luccabruno3z.github.io/E-LAM_interactive_chart.html">E-LAM</a>
+            <a href="https://luccabruno3z.github.io/141_interactive_chart.html">141</a>
+            <a href="https://luccabruno3z.github.io/all_players_interactive_chart.html">All Players</a>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar y ocultar el menú desplegable
+        function toggleDropdown() {
+            $("#dropdownMenu").slideToggle();
+        }
+    </script>
+</body>
+</html>
