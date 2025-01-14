@@ -15,31 +15,47 @@
             background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
             color: white;
             display: flex;
-            justify-content: center;
-            align-items: center;
             height: 100vh;
-            text-align: center;
-            overflow: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .sidebar a, .sidebar button {
+            text-align: left;
+            padding: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+            background: linear-gradient(145deg, #222, #444);
+            border: 1px solid #555;
+            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .sidebar a:hover, .sidebar button:hover {
+            background: #555;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
 
         .container {
-            background: rgba(0, 0, 0, 0.85);
+            margin-left: 270px;
             padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.8);
-            border: 2px solid #444;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        /* Logo con borde */
-        .logo {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 3px solid #888;
-            margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            text-align: center;
+            flex: 1;
         }
 
         h1 {
@@ -49,34 +65,15 @@
             margin-bottom: 20px;
         }
 
-        .button {
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            background: linear-gradient(145deg, #222, #444);
-            color: white;
-            box-shadow: 3px 3px 8px rgba(0,0,0,0.7);
-            border: 1px solid #555;
-            transition: all 0.3s ease;
-        }
-
-        .button:hover {
-            background: #555;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-        }
-
-        /* Submenú */
         .dropdown {
             display: none;
             margin-top: 10px;
+            padding-left: 15px;
         }
 
         .dropdown a {
             display: block;
-            padding: 10px;
+            padding: 8px;
             background: #222;
             border-radius: 5px;
             margin: 5px 0;
@@ -91,60 +88,52 @@
             box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
         }
 
-        /* Animación de aparición */
-        .fadeIn {
-            animation: fadeIn 1s ease-in-out;
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            font-size: 16px;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            h1 { font-size: 1.8rem; }
-            .button { font-size: 16px; }
-            .logo {
-                width: 120px;
-                height: 120px;
+            .sidebar {
+                width: 100px;
             }
-            .container {
-                padding: 20px;
+            .sidebar a, .sidebar button {
+                font-size: 12px;
+                padding: 8px;
             }
-        }
-
-        /* Estilos para el botón desplegable */
-        button:focus {
-            outline: none;
+            .dropdown a {
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container fadeIn">
-        <!-- Logo de la Legión de Hierro -->
-        <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Legión de Hierro" class="logo">
-
-        <h1>Project Reality - Stats y Repeticiones</h1>
-        
-        <!-- Botón del Visualizador 2D -->
-        <a href="realitytracker" class="button">Visualizador de PR 2D</a>
-        
-        <!-- Botón de Guías con submenú -->
-        <button class="button" onclick="toggleDropdown('guidesDropdown')">Guías</button>
+    <div class="sidebar">
+        <input type="text" id="search" placeholder="Buscar gráfico..." oninput="filterLinks()">
+        <a href="realitytracker">Visualizador de PR 2D</a>
+        <button onclick="toggleDropdown('guidesDropdown')">Guías</button>
         <div class="dropdown" id="guidesDropdown">
             <a href="guides/general.html">Guía General</a>
             <a href="guides/roles.html">Roles</a>
             <a href="guides/maps.html">Mapas</a>
         </div>
-
-        <!-- Botón de Gráficos con submenú -->
-        <button class="button" onclick="toggleDropdown('chartsDropdown')">Gráficos (Ver Clanes)</button>
+        <button onclick="toggleDropdown('chartsDropdown')">Gráficos</button>
         <div class="dropdown" id="chartsDropdown">
             <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a>
-            <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
+            <div class="dropdown" id="ldhSubDropdown">
+                <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
+            </div>
             <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a>
-            <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
+            <div class="dropdown" id="fiSubDropdown">
+                <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
+            </div>
             <a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a>
             <a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a>
             <a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a>
@@ -153,11 +142,36 @@
         </div>
     </div>
 
+    <div class="container">
+        <h1>Project Reality - Stats y Repeticiones</h1>
+    </div>
+
     <script>
         // Función para manejar el menú desplegable
         function toggleDropdown(id) {
             $("#" + id).slideToggle();
         }
+
+        // Manejo de submenús
+        $("#chartsDropdown").on("click", "a", function (e) {
+            if ($(this).text() === "LDH") {
+                $("#ldhSubDropdown").slideToggle();
+                e.preventDefault();
+            } else if ($(this).text() === "FI") {
+                $("#fiSubDropdown").slideToggle();
+                e.preventDefault();
+            }
+        });
+
+        // Filtro de enlaces
+        function filterLinks() {
+            const query = $("#search").val().toLowerCase();
+            $(".dropdown a").each(function () {
+                const text = $(this).text().toLowerCase();
+                $(this).toggle(text.includes(query));
+            });
+        }
     </script>
 </body>
 </html>
+
