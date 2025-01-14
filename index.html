@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legión de Hierro - Portal de Estadísticas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
         /* Estilo general con tema militar oscuro */
         body {
@@ -13,6 +15,12 @@
             color: #ddd;
             background: #0a0a0a;
             line-height: 1.6;
+        }
+
+        /* Estilo de los títulos con una fuente militar y elegante */
+        h1, h2, h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            letter-spacing: 1px;
         }
 
         /* Encabezado con tema oscuro y detalles militares */
@@ -39,7 +47,6 @@
             font-size: 2rem;
             font-weight: bold;
             color: #ff9900;
-            letter-spacing: 1px;
         }
 
         nav {
@@ -72,9 +79,8 @@
         }
 
         .hero h1 {
-            font-size: 3rem;
+            font-size: 4rem;
             color: #ff9900;
-            text-transform: uppercase;
         }
 
         .hero p {
@@ -82,14 +88,14 @@
             color: #ccc;
         }
 
-        /* Sección de Actualizaciones */
-        .updates, .resources {
+        /* Sección de Actualizaciones y Guías */
+        .updates, .resources, .guides {
             padding: 60px 20px;
             text-align: center;
             background: #121212;
         }
 
-        .updates h2, .resources h2 {
+        .updates h2, .resources h2, .guides h2 {
             font-size: 2.5rem;
             margin-bottom: 20px;
             color: #ff9900;
@@ -109,15 +115,15 @@
             border-left: 5px solid #ff9900;
         }
 
-        /* Gráficos Interactivos */
-        .resource-grid {
+        /* Gráficos Interactivos y Guías */
+        .resource-grid, .guide-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             padding-top: 20px;
         }
 
-        .resource-item {
+        .resource-item, .guide-item {
             background: #1e1e1e;
             padding: 20px;
             border-radius: 10px;
@@ -125,12 +131,12 @@
             border: 1px solid #333;
         }
 
-        .resource-item:hover {
+        .resource-item:hover, .guide-item:hover {
             transform: scale(1.1);
             box-shadow: 0 0 15px rgba(255, 153, 0, 0.8);
         }
 
-        .resource-item a {
+        .resource-item a, .guide-item a {
             color: #ff9900;
             font-size: 1.2rem;
             text-decoration: none;
@@ -164,6 +170,7 @@
         <nav>
             <a href="#novedades">Novedades</a>
             <a href="#graficos">Gráficos</a>
+            <a href="#guias">Guías</a>
             <a href="https://luccabruno3z.github.io/realitytracker/">Visualizador 2D</a>
         </nav>
     </header>
@@ -194,9 +201,18 @@
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a></div>
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a></div>
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a></div>
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a></div>
+        </div>
+    </section>
+
+    <!-- Guías -->
+    <section class="guides" id="guias">
+        <h2>Guías de Project Reality</h2>
+        <div class="guide-grid">
+            <div class="guide-item"><a href="#">Guía de Kits Básicos</a></div>
+            <div class="guide-item"><a href="#">Guía Avanzada de Infantería</a></div>
+            <div class="guide-item"><a href="#">Guía de Vehículos Blindados</a></div>
+            <div class="guide-item"><a href="#">Guía de Coordinación en Escuadra</a></div>
         </div>
     </section>
 
