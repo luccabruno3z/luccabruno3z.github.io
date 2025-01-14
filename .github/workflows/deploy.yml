@@ -1,0 +1,30 @@
+name: Deploy GitHub Pages with Submodules
+
+on:
+  push:
+    branches:
+      - main  # Cambia 'main' si usas otra rama
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive  # Clona los submódulos
+
+    - name: Build and deploy
+      run: |
+        mkdir public
+        cp -r * public/
+        touch public/.nojekyll
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        cd public
+        git init
+        git checkout -b gh-pages
+        git add .
+        git commit -m "Deploy GitHub Pages"
+        git push --force --quiet "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
