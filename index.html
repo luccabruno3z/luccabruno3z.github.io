@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Reality - Portal</title>
     <style>
-        /* Estilo general */
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
@@ -14,7 +13,6 @@
             background: #121212;
         }
 
-        /* Encabezado */
         header {
             background: #1e1e1e;
             padding: 15px 20px;
@@ -62,7 +60,6 @@
             color: #121212;
         }
 
-        /* Hero Section */
         .hero {
             height: 80vh;
             display: flex;
@@ -76,11 +73,6 @@
             font-size: 3rem;
             margin-bottom: 10px;
             color: #ff9900;
-        }
-
-        .hero p {
-            font-size: 1.2rem;
-            color: #f4f4f4;
         }
 
         .hero button {
@@ -99,44 +91,30 @@
             transform: scale(1.1);
         }
 
-        /* Sección de Novedades */
-        .updates {
+        .section {
             padding: 50px 20px;
             background: #1e1e1e;
             text-align: center;
         }
 
-        .updates h2 {
+        .section h2 {
             margin-bottom: 20px;
             font-size: 2rem;
             color: #ff9900;
         }
 
-        .updates ul {
+        .section ul {
             list-style: none;
             padding: 0;
         }
 
-        .updates ul li {
+        .section ul li {
             background: #292929;
             margin: 10px auto;
             padding: 15px;
             border-radius: 5px;
             text-align: left;
             max-width: 800px;
-        }
-
-        /* Gráficos y Recursos */
-        .resources {
-            padding: 50px 20px;
-            background: #121212;
-        }
-
-        .resources h2 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 2rem;
-            color: #ff9900;
         }
 
         .resource-grid {
@@ -165,7 +143,6 @@
             font-weight: bold;
         }
 
-        /* Pie de página */
         footer {
             background: #1e1e1e;
             padding: 20px;
@@ -184,39 +161,38 @@
     </style>
 </head>
 <body>
-    <!-- Encabezado -->
     <header>
         <div class="logo">
             <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Logo LDH">
-            <span>Project Reality</span>
+            <span>Legion de Hierro - Portal</span>
         </div>
         <nav>
             <a href="#novedades">Novedades</a>
             <a href="#graficos">Gráficos</a>
+            <a href="#guias">Guías</a>
             <a href="#contacto">Contacto</a>
         </nav>
     </header>
 
-    <!-- Hero Section -->
     <section class="hero">
         <div>
-            <h1>Bienvenido a Project Reality</h1>
-            <p>Explora estadísticas, gráficos y novedades del juego.</p>
-            <button>Comienza Ahora</button>
+            <h1>Bienvenido a la Legión de Hierro</h1>
+            <p>Explora estadísticas, gráficos y herramientas del juego Project Reality.</p>
+            <a href="https://luccabruno3z.github.io/realitytracker/">
+                <button>🎯 Visualizador 2D</button>
+            </a>
         </div>
     </section>
 
-    <!-- Sección de Novedades -->
-    <section class="updates" id="novedades">
+    <section class="section" id="novedades">
         <h2>Novedades</h2>
         <ul>
-            <li>Se agregó una nueva guía sobre roles.</li>
-            <li>Actualización de gráficos interactivos.</li>
-            <li>Se mejoraron las mecánicas de juego en la última versión.</li>
+            <li>🚀 Nuevo visualizador 2D de PR disponible.</li>
+            <li>📊 Actualización de gráficos interactivos.</li>
+            <li>🌍 Nuevos mapas añadidos con temáticas modernas.</li>
         </ul>
     </section>
 
-    <!-- Sección de Gráficos y Recursos -->
     <section class="resources" id="graficos">
         <h2>Gráficos Interactivos</h2>
         <div class="resource-grid">
@@ -225,14 +201,19 @@
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">Gráfico FI</a></div>
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">Gráfico FI-R</a></div>
             <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">Gráfico 141</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">Gráfico R-LDH</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">Gráfico E-LAM</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">Gráfico 300</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">Gráfico All Players</a></div>
+            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">Gráfico General</a></div>
         </div>
     </section>
 
-    <!-- Pie de página -->
+    <section class="section" id="guias">
+        <h2>📖 Guías</h2>
+        <ul>
+            <li><a href="https://www.realitymod.com/manual/pr_manual.pdf" target="_blank">Manual Oficial de Project Reality</a></li>
+            <li><a href="https://www.realitymod.com/forum" target="_blank">Foro Oficial de Project Reality</a></li>
+            <li><a href="https://luccabruno3z.github.io/guias/guia_basica.html" target="_blank">Guía Básica de la LDH</a></li>
+        </ul>
+    </section>
+
     <footer id="contacto">
         <p>&copy; 2025 Project Reality | <a href="#">Política de Privacidad</a></p>
         <p>Contacto: <a href="mailto:info@projectreality.com">info@projectreality.com</a></p>
