@@ -15,12 +15,31 @@
             background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
             color: white;
             display: flex;
+            flex-direction: column;
             height: 100vh;
+        }
+
+        #toggleSidebar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: #222;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+            transition: background 0.3s;
+        }
+
+        #toggleSidebar:hover {
+            background: #555;
         }
 
         .sidebar {
             position: fixed;
-            left: 0;
+            left: -250px; /* Oculta inicialmente */
             top: 0;
             width: 250px;
             height: 100vh;
@@ -30,6 +49,11 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar.open {
+            left: 0; /* Mostrar la barra lateral */
         }
 
         .sidebar a, .sidebar button {
@@ -38,7 +62,6 @@
             border-radius: 5px;
             text-decoration: none;
             color: white;
-            transition: 0.3s;
             background: linear-gradient(145deg, #222, #444);
             border: 1px solid #555;
             box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
@@ -51,44 +74,12 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
 
-        .container {
-            margin-left: 270px;
-            padding: 40px;
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-        }
-
-        .logo {
-            flex: 1;
-            text-align: center;
-        }
-
-        .logo img {
-            max-width: 150px;
-            margin: 0 auto 20px auto;
-            display: block;
-        }
-
-        .content {
-            flex: 2;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
-        }
-
         .dropdown {
             display: none;
             margin-top: 10px;
             padding-left: 15px;
+            max-height: 300px; /* Limita la altura del menú */
+            overflow-y: auto; /* Habilita el desplazamiento vertical */
         }
 
         .dropdown a {
@@ -100,7 +91,6 @@
             color: white;
             text-decoration: none;
             border: 1px solid #555;
-            transition: 0.3s;
         }
 
         .dropdown a:hover {
@@ -117,39 +107,40 @@
             font-size: 16px;
         }
 
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100px;
-            }
-            .sidebar a, .sidebar button {
-                font-size: 12px;
-                padding: 8px;
-            }
-            .dropdown a {
-                font-size: 14px;
-            }
-            h1 {
-                font-size: 1.8rem;
-            }
-            .logo img {
-                max-width: 120px;
-            }
-            .container {
-                flex-direction: column;
-            }
+        .container {
+            margin-left: 270px;
+            padding: 40px;
         }
 
-        /* Animaciones suaves */
-        a, button {
-            transition: background 0.3s, transform 0.2s;
+        .updates {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
-        a:hover, button:hover {
-            transform: scale(1.05);
+        .updates h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #555;
+            padding-bottom: 5px;
+        }
+
+        .updates ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .updates ul li {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
+    <button id="toggleSidebar">☰</button>
     <div class="sidebar">
         <input type="text" id="search" placeholder="Buscar gráfico..." oninput="filterLinks()">
         <a href="realitytracker">Visualizador de PR 2D</a>
@@ -174,29 +165,31 @@
     </div>
 
     <div class="container">
-        <div class="logo">
-            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
-        </div>
-        <div class="content">
-            <h1>Project Reality - Stats y Repeticiones</h1>
-            <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
+        <h1>Project Reality - Stats y Repeticiones</h1>
+        <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
+        <div class="updates">
+            <h2>Nuevas novedades</h2>
             <ul>
-                <li>Consulta las guías para entender roles y mapas.</li>
-                <li>Explora gráficos como LDH, FI, y más.</li>
-                <li>Descubre patrones y estadísticas de todos los jugadores.</li>
+                <li>[Fecha] Nueva guía agregada: "Roles"</li>
+                <li>[Fecha] Se han actualizado los gráficos "LDH" y "FI-R"</li>
+                <li>[Fecha] Cambios en las mecánicas del juego Project Reality</li>
             </ul>
         </div>
     </div>
 
     <script>
+        // Función para mostrar/ocultar la barra lateral
+        const toggleSidebarButton = document.getElementById("toggleSidebar");
+        const sidebar = document.querySelector(".sidebar");
+
+        toggleSidebarButton.addEventListener("click", () => {
+            sidebar.classList.toggle("open");
+        });
+
         // Función para manejar el menú desplegable
         function toggleDropdown(id) {
             const dropdown = document.getElementById(id);
-            if (dropdown.style.display === "none" || dropdown.style.display === "") {
-                dropdown.style.display = "block";
-            } else {
-                dropdown.style.display = "none";
-            }
+            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
         }
 
         // Filtro de enlaces
@@ -211,3 +204,4 @@
     </script>
 </body>
 </html>
+
