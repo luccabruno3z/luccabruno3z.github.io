@@ -47,6 +47,12 @@ GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/clan_averages.json"
 
+GITHUB_INDEX = "https://luccabruno3z.github.io"
+
+@bot.command()
+async def pagina(ctx):
+    await ctx.send(f"[Aquí tienes la pagina de la LDH!]({GITHUB_INDEX})")
+
 @bot.command()
 async def graficoldh(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la LDH!]({GITHUB_GRAPH_LDH})")
