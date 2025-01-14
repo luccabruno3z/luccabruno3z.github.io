@@ -33,12 +33,11 @@ jobs:
         git config --global user.name "luccabruno3z"
         git config --global user.email "luccabruno96@gmail.com"
 
-        # Cambia al directorio 'public'
+               # Cambia al directorio 'public'
         cd public
 
-        # Inicializa el repositorio y cambia a la rama gh-pages
-        git init
-        git checkout -b gh-pages
+        # Inicializa el repositorio con la rama 'gh-pages'
+        git init --initial-branch=gh-pages
 
         # Agrega, comitea y empuja los archivos
         git add .
