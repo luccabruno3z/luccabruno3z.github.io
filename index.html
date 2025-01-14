@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Estilo general con temática oscura y militar */
+        /* Estilo general */
         body {
             font-family: 'Verdana', sans-serif;
             margin: 0;
@@ -15,7 +15,7 @@
             background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
             color: white;
             display: flex;
-            height: 100vh;
+            min-height: 100vh;
         }
 
         .sidebar {
@@ -23,7 +23,8 @@
             left: 0;
             top: 0;
             width: 250px;
-            height: 100vh;
+            height: 100%;
+            overflow-y: auto;
             background: rgba(0, 0, 0, 0.85);
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.8);
@@ -54,28 +55,8 @@
         .container {
             margin-left: 270px;
             padding: 40px;
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-        }
-
-        .logo {
             flex: 1;
-            text-align: center;
-        }
-
-        .logo img {
-            max-width: 150px;
-            margin: 0 auto 20px auto;
-            display: block;
-        }
-
-        .content {
-            flex: 2;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
         }
 
         h1 {
@@ -85,27 +66,14 @@
             margin-bottom: 20px;
         }
 
-        .dropdown {
-            display: none;
-            margin-top: 10px;
-            padding-left: 15px;
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        .dropdown a {
-            display: block;
-            padding: 8px;
-            background: #222;
-            border-radius: 5px;
-            margin: 5px 0;
-            color: white;
-            text-decoration: none;
-            border: 1px solid #555;
-            transition: 0.3s;
-        }
-
-        .dropdown a:hover {
-            background: #007bff;
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
+        .logo-container img {
+            max-width: 100px;
+            height: auto;
         }
 
         input[type="text"] {
@@ -117,6 +85,23 @@
             font-size: 16px;
         }
 
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 10px 0;
+        }
+
+        .info {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 width: 100px;
@@ -125,27 +110,9 @@
                 font-size: 12px;
                 padding: 8px;
             }
-            .dropdown a {
-                font-size: 14px;
-            }
             h1 {
                 font-size: 1.8rem;
             }
-            .logo img {
-                max-width: 120px;
-            }
-            .container {
-                flex-direction: column;
-            }
-        }
-
-        /* Animaciones suaves */
-        a, button {
-            transition: background 0.3s, transform 0.2s;
-        }
-
-        a:hover, button:hover {
-            transform: scale(1.05);
         }
     </style>
 </head>
@@ -154,31 +121,31 @@
         <input type="text" id="search" placeholder="Buscar gráfico..." oninput="filterLinks()">
         <a href="realitytracker">Visualizador de PR 2D</a>
         <button onclick="toggleDropdown('guidesDropdown')">Guías</button>
-        <div class="dropdown" id="guidesDropdown">
+        <div id="guidesDropdown" class="dropdown">
             <a href="guides/general.html">Guía General</a>
             <a href="guides/roles.html">Roles</a>
             <a href="guides/maps.html">Mapas</a>
         </div>
         <button onclick="toggleDropdown('chartsDropdown')">Gráficos</button>
-        <div class="dropdown" id="chartsDropdown">
-            <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a>
-            <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
-            <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a>
-            <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
-            <a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a>
-            <a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a>
-            <a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a>
-            <a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a>
-            <a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a>
-        </div>
+        <ul id="chartsDropdown" class="dropdown">
+            <li><a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a></li>
+            <li><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a></li>
+        </ul>
     </div>
 
     <div class="container">
-        <div class="logo">
-            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
+        <div class="logo-container">
+            <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Logo LDH">
         </div>
-        <div class="content">
-            <h1>Project Reality - Stats y Repeticiones</h1>
+        <h1>Project Reality - Stats y Repeticiones</h1>
+        <div class="info">
             <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
             <ul>
                 <li>Consulta las guías para entender roles y mapas.</li>
@@ -192,10 +159,8 @@
         // Función para manejar el menú desplegable
         function toggleDropdown(id) {
             const dropdown = document.getElementById(id);
-            if (dropdown.style.display === "none" || dropdown.style.display === "") {
-                dropdown.style.display = "block";
-            } else {
-                dropdown.style.display = "none";
+            if (dropdown) {
+                dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
             }
         }
 
@@ -205,7 +170,7 @@
             const links = document.querySelectorAll(".dropdown a");
             links.forEach(link => {
                 const text = link.textContent.toLowerCase();
-                link.style.display = text.includes(query) ? "block" : "none";
+                link.style.display = text.includes(query) ? 'block' : 'none';
             });
         }
     </script>
