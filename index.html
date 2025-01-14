@@ -263,15 +263,15 @@
         <h2>Síguenos en nuestras redes sociales</h2>
         <div class="social-buttons">
             <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
-                <img src="luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/YouTube_icon_%282013-2017%29.png" alt="YouTube">
                 Youtube
             </a>
             <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
-                <img src="luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
                 Tiktok Grozny
             </a>
             <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
-                <img src="luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/Tiktok-logo-icon.png" alt="Tiktok">
                 Tiktok Doc
             </a>
         </div>
@@ -317,15 +317,21 @@
                     return response.json();
                 })
                 .then(data => {
-                    const player = data.find(p => p.name.toLowerCase() === playerName);
+                    const player = data.find(p => p.Player.toLowerCase() === playerName);
                     const resultsContainer = document.getElementById('search-results');
                     resultsContainer.innerHTML = '';
                     if (player) {
                         const playerStats = `
-                            <h3>Estadísticas de ${player.name}</h3>
-                            <p>Puntos: ${player.points}</p>
-                            <p>Asistencias: ${player.assists}</p>
-                            <p>Rebotes: ${player.rebounds}</p>
+                            <h3>Estadísticas de ${player.Player}</h3>
+                            <p>Clan: ${player.Clan}</p>
+                            <p>Puntuación Total: ${player["Total Score"]}</p>
+                            <p>Muertes Totales: ${player["Total Deaths"]}</p>
+                            <p>Asistencias Totales: ${player["Total Kills"]}</p>
+                            <p>Rondas Jugadas: ${player.Rounds}</p>
+                            <p>K/D Ratio: ${player["K/D Ratio"]}</p>
+                            <p>Puntos por Ronda: ${player["Score per Round"]}</p>
+                            <p>Muertes por Ronda: ${player["Kills per Round"]}</p>
+                            <p>Performance Score: ${player["Performance Score"]}</p>
                         `;
                         resultsContainer.innerHTML = playerStats;
                     } else {
