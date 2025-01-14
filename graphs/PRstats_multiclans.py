@@ -9,6 +9,10 @@ from sklearn.preprocessing import MinMaxScaler
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
+# Crear carpeta 'graphs' si no existe
+output_dir = "graphs"
+os.makedirs(output_dir, exist_ok=True)
+
 # URLs de clanes
 clan_urls = {
     "LDH": "https://prstats.realitymod.com/clan/11204/ldh",
@@ -95,10 +99,10 @@ fig_general = px.scatter(
     color="Performance Score",
     title="Desempeño General de Todos los Jugadores (Basado en Performance Score)"
 )
-fig_general.write_html("all_players_interactive_chart.html")
+fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"))
 
 # Guardar archivos JSON y gráficos individuales
-df_general.to_json("all_players_clusters.json", orient="records", lines=False)
+df_general.to_json(os.path.join(output_dir, "all_players_clusters.json"), orient="records", lines=False)
 
 # Calcular y guardar promedios por clan
 clan_averages = df_general.groupby("Clan")[[
@@ -112,7 +116,7 @@ clan_averages = df_general.groupby("Clan")[[
     "K/D Ratio"
 ]].mean().reset_index()
 
-clan_averages.to_json("clan_averages.json", orient="records", lines=False)
+clan_averages.to_json(os.path.join(output_dir, "clan_averages.json"), orient="records", lines=False)
 
 # Guardar datos individuales de cada clan
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -121,7 +125,7 @@ for clan_name in clan_urls.keys():
     df_clan = df_general[df_general["Clan"] == clan_name]
     if not df_clan.empty:
         df_clan["Last Updated"] = timestamp
-        df_clan.to_json(f"{clan_name}_players.json", orient="records", lines=False)
+        df_clan.to_json(os.path.join(output_dir, f"{clan_name}_players.json"), orient="records", lines=False)
         
         # Gráfico interactivo individual por clan
         fig_clan = px.scatter(
@@ -133,7 +137,7 @@ for clan_name in clan_urls.keys():
             color="Performance Score",
             title=f"Gráfico Interactivo del Clan {clan_name}"
         )
-        fig_clan.write_html(f"{clan_name}_interactive_chart.html")
+        fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
 
 print("Actualización completada exitosamente usando Performance Score.")
 
