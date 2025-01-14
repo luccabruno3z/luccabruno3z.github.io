@@ -3,140 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Reality - Stats y Repeticiones</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Project Reality - Portal</title>
     <style>
-        /* Estilo general con temática oscura y militar */
+        /* Estilo general */
         body {
-            font-family: 'Verdana', sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+            color: #f4f4f4;
+            background: #121212;
         }
 
-        #toggleSidebar {
+        /* Encabezado */
+        header {
+            background: #1e1e1e;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             position: fixed;
-            top: 10px;
-            left: 10px;
-            background: #222;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
+            width: 100%;
+            top: 0;
             z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff9900;
+        }
+
+        nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #f4f4f4;
+            padding: 10px 15px;
+            border-radius: 5px;
             transition: background 0.3s;
         }
 
-        #toggleSidebar:hover {
-            background: #555;
+        nav a:hover {
+            background: #ff9900;
+            color: #121212;
         }
 
-        .sidebar {
-            position: fixed;
-            left: -250px; /* Oculta inicialmente */
-            top: 0;
-            width: 250px;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.85);
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            transition: left 0.3s ease;
-        }
-
-        .sidebar.open {
-            left: 0; /* Mostrar la barra lateral */
-        }
-
-        .sidebar a, .sidebar button {
-            text-align: left;
-            padding: 10px;
-            border-radius: 5px;
-            text-decoration: none;
-            color: white;
-            background: linear-gradient(145deg, #222, #444);
-            border: 1px solid #555;
-            box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.7);
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .sidebar a:hover, .sidebar button:hover {
-            background: #555;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-        }
-
-        .dropdown {
-            display: none;
-            margin-top: 10px;
-            padding-left: 15px;
-            max-height: 300px; /* Limita la altura del menú */
-            overflow-y: auto; /* Habilita el desplazamiento vertical */
-        }
-
-        .dropdown a {
-            display: block;
-            padding: 8px;
-            background: #222;
-            border-radius: 5px;
-            margin: 5px 0;
-            color: white;
-            text-decoration: none;
-            border: 1px solid #555;
-        }
-
-        .dropdown a:hover {
-            background: #007bff;
-            box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
-        }
-
-        .search-bar {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        /* Hero Section */
+        .hero {
+            height: 80vh;
             display: flex;
             justify-content: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            align-items: center;
+            background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') center/cover no-repeat;
+            text-align: center;
         }
 
-        .search-bar input[type="text"] {
-            width: 60%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #555;
-            font-size: 16px;
-            color: white;
-            background: #222;
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #ff9900;
         }
 
-        .container {
-            margin-left: 270px;
-            padding: 40px;
+        .hero p {
+            font-size: 1.2rem;
+            color: #f4f4f4;
         }
 
-        .updates {
+        .hero button {
             margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            font-size: 1rem;
+            background: #ff9900;
+            color: #121212;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .hero button:hover {
+            transform: scale(1.1);
+        }
+
+        /* Sección de Novedades */
+        .updates {
+            padding: 50px 20px;
+            background: #1e1e1e;
+            text-align: center;
         }
 
         .updates h2 {
-            font-size: 1.8rem;
-            margin-bottom: 10px;
-            border-bottom: 2px solid #555;
-            padding-bottom: 5px;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: #ff9900;
         }
 
         .updates ul {
@@ -145,75 +108,116 @@
         }
 
         .updates ul li {
-            margin-bottom: 10px;
-            font-size: 1.2rem;
-            line-height: 1.5;
+            background: #292929;
+            margin: 10px auto;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: left;
+            max-width: 800px;
+        }
+
+        /* Gráficos y Recursos */
+        .resources {
+            padding: 50px 20px;
+            background: #121212;
+        }
+
+        .resources h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: #ff9900;
+        }
+
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .resource-item {
+            background: #292929;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .resource-item:hover {
+            transform: scale(1.05);
+        }
+
+        .resource-item a {
+            text-decoration: none;
+            color: #ff9900;
+            font-weight: bold;
+        }
+
+        /* Pie de página */
+        footer {
+            background: #1e1e1e;
+            padding: 20px;
+            text-align: center;
+            color: #f4f4f4;
+        }
+
+        footer a {
+            color: #ff9900;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <button id="toggleSidebar">☰</button>
-    <div class="sidebar">
-        <a href="realitytracker">Visualizador de PR 2D</a>
-        <button onclick="toggleDropdown('guidesDropdown')">Guías</button>
-        <div class="dropdown" id="guidesDropdown">
-            <a href="guides/general.html">Guía General</a>
-            <a href="guides/roles.html">Roles</a>
-            <a href="guides/maps.html">Mapas</a>
+    <!-- Encabezado -->
+    <header>
+        <div class="logo">Project Reality</div>
+        <nav>
+            <a href="#novedades">Novedades</a>
+            <a href="#graficos">Gráficos</a>
+            <a href="#contacto">Contacto</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div>
+            <h1>Bienvenido a Project Reality</h1>
+            <p>Explora estadísticas, gráficos y novedades del juego.</p>
+            <button>Comienza Ahora</button>
         </div>
-        <button onclick="toggleDropdown('chartsDropdown')">Gráficos</button>
-        <div class="dropdown" id="chartsDropdown">
-            <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a>
-            <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
-            <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a>
-            <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
-            <a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a>
-            <a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a>
-            <a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a>
-            <a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a>
-            <a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a>
+    </section>
+
+    <!-- Sección de Novedades -->
+    <section class="updates" id="novedades">
+        <h2>Novedades</h2>
+        <ul>
+            <li>Se agregó una nueva guía sobre roles.</li>
+            <li>Actualización de gráficos interactivos.</li>
+            <li>Se mejoraron las mecánicas de juego en la última versión.</li>
+        </ul>
+    </section>
+
+    <!-- Sección de Gráficos y Recursos -->
+    <section class="resources" id="graficos">
+        <h2>Gráficos Interactivos</h2>
+        <div class="resource-grid">
+            <div class="resource-item"><a href="#">Gráfico LDH</a></div>
+            <div class="resource-item"><a href="#">Gráfico FI</a></div>
+            <div class="resource-item"><a href="#">Gráfico SAE</a></div>
+            <div class="resource-item"><a href="#">Gráfico 300</a></div>
         </div>
-    </div>
+    </section>
 
-    <div class="search-bar">
-        <input type="text" id="search" placeholder="Buscar gráficos o contenido..." oninput="filterLinks()">
-    </div>
-
-    <div class="container">
-        <h1>Project Reality - Stats y Repeticiones</h1>
-        <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
-        <div class="updates">
-            <h2>Nuevas novedades</h2>
-            <ul>
-                <li>[Fecha] Nueva guía agregada: "Roles"</li>
-                <li>[Fecha] Se han actualizado los gráficos "LDH" y "FI-R"</li>
-                <li>[Fecha] Cambios en las mecánicas del juego Project Reality</li>
-            </ul>
-        </div>
-    </div>
-
-    <script>
-        const toggleSidebarButton = document.getElementById("toggleSidebar");
-        const sidebar = document.querySelector(".sidebar");
-
-        toggleSidebarButton.addEventListener("click", () => {
-            sidebar.classList.toggle("open");
-        });
-
-        function toggleDropdown(id) {
-            const dropdown = document.getElementById(id);
-            dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-        }
-
-        function filterLinks() {
-            const query = document.getElementById("search").value.toLowerCase();
-            const links = document.querySelectorAll(".dropdown a");
-            links.forEach(link => {
-                const text = link.textContent.toLowerCase();
-                link.style.display = text.includes(query) ? "block" : "none";
-            });
-        }
-    </script>
+    <!-- Pie de página -->
+    <footer id="contacto">
+        <p>&copy; 2025 Project Reality | <a href="#">Política de Privacidad</a></p>
+        <p>Contacto: <a href="mailto:info@projectreality.com">info@projectreality.com</a></p>
+    </footer>
 </body>
 </html>
-
