@@ -23,16 +23,16 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix="-", intents=intents)
 
 # URLs de los recursos
-GITHUB_GRAPH_LDH = "https://luccabruno3z.github.io/LDH_interactive_chart.html"
-GITHUB_GRAPH_SAE = "https://luccabruno3z.github.io/SAE_interactive_chart.html"
-GITHUB_GRAPH_FI = "https://luccabruno3z.github.io/FI_interactive_chart.html"
-GITHUB_GRAPH_FI_R = "https://luccabruno3z.github.io/FI-R_interactive_chart.html"
-GITHUB_GRAPH_141 = "https://luccabruno3z.github.io/141_interactive_chart.html"
-GITHUB_GRAPH_R_LDH = "https://luccabruno3z.github.io/R-LDH_interactive_chart.html"
-GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/WD_interactive_chart.html"
-GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/300_interactive_chart.html"
-GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/E-LAM_interactive_chart.html"
-GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/all_players_interactive_chart.html"
+GITHUB_GRAPH_LDH = "https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html"
+GITHUB_GRAPH_SAE = "https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html"
+GITHUB_GRAPH_FI = "https://luccabruno3z.github.io/graphs/FI_interactive_chart.html"
+GITHUB_GRAPH_FI_R = "https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html"
+GITHUB_GRAPH_141 = "https://luccabruno3z.github.io/graphs/141_interactive_chart.html"
+GITHUB_GRAPH_R_LDH = "https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html"
+GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/graphs/WD_interactive_chart.html"
+GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/graphs/300_interactive_chart.html"
+GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html"
+GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/LDH_players.json"
 GITHUB_JSON_SAE = "https://luccabruno3z.github.io/SAE_players.json"
