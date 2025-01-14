@@ -24,7 +24,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Ejecutar script de actualización
-      run: python PRstats_multiclans.py
+      run: python graphs/PRstats_multiclans.py
 
     - name: Configurar credenciales de Git
       run: |
