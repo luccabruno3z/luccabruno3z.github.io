@@ -143,6 +143,31 @@
             font-weight: bold;
         }
 
+        /* Estilos para los botones de redes sociales */
+        .social-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .social-button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        /* Estilos para el formulario de búsqueda */
+        .search-form {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .search-results {
+            margin-top: 20px;
+            text-align: center;
+        }
+
         /* Pie de página */
         footer {
             text-align: center;
@@ -207,6 +232,27 @@
         </div>
     </section>
 
+    <!-- Redes Sociales -->
+    <section class="social-section">
+        <h2>Síguenos en nuestras redes sociales</h2>
+        <div class="social-buttons">
+            <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">Youtube</a>
+            <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">Tiktok 1</a>
+            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">Tiktok 2</a>
+        </div>
+    </section>
+
+    <!-- Estadísticas de Jugadores -->
+    <section class="stats-section">
+        <h2>Buscar Estadísticas de Jugadores</h2>
+        <form class="search-form" id="search-form">
+            <label for="player-name">Nombre del Jugador:</label>
+            <input type="text" id="player-name" name="player-name" required>
+            <button type="submit">Buscar</button>
+        </form>
+        <div class="search-results" id="search-results"></div>
+    </section>
+
     <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
@@ -223,5 +269,31 @@
         <p>Legión de Hierro | <a href="mailto:luccabruno96@gmail.com">Contacto</a></p>
         <p>© 2025 - Todos los derechos reservados.</p>
     </footer>
+
+    <script>
+        document.getElementById('search-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const playerName = document.getElementById('player-name').value;
+            fetch('graphs/all_players_clusters.json')
+                .then(response => response.json())
+                .then(data => {
+                    const player = data.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+                    const resultsContainer = document.getElementById('search-results');
+                    resultsContainer.innerHTML = '';
+                    if (player) {
+                        const playerStats = `
+                            <h3>Estadísticas de ${player.name}</h3>
+                            <p>Puntos: ${player.points}</p>
+                            <p>Asistencias: ${player.assists}</p>
+                            <p>Rebotes: ${player.rebounds}</p>
+                        `;
+                        resultsContainer.innerHTML = playerStats;
+                    } else {
+                        resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
+                    }
+                })
+                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+        });
+    </script>
 </body>
 </html>
