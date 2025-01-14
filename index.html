@@ -170,6 +170,7 @@
         .search-form {
             margin-top: 20px;
             text-align: center;
+            position: relative;
         }
         .search-form input {
             padding: 10px;
@@ -177,6 +178,7 @@
             border: 1px solid #fff;
             background: #333;
             color: #fff;
+            width: 300px;
         }
         .search-form button {
             padding: 10px 20px;
@@ -189,9 +191,55 @@
         .search-form button:hover {
             background: #ddd;
         }
+        .suggestions {
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .suggestion-item:hover {
+            background: #444;
+        }
         .search-results {
             margin-top: 20px;
             text-align: center;
+        }
+        .stats-box {
+            background: #333;
+            border: 1px solid #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .stats-box h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .stats-box p {
+            font-family: 'Arial', sans-serif;
+            font-size: 1rem;
+            color: #ddd;
+            margin: 5px 0;
         }
 
         /* Pie de página */
@@ -283,6 +331,7 @@
         <form class="search-form" id="search-form">
             <label for="player-name">Nombre del Jugador:</label>
             <input type="text" id="player-name" name="player-name" required>
+            <div class="suggestions" id="suggestions"></div>
             <button type="submit">Buscar</button>
         </form>
         <div class="search-results" id="search-results"></div>
@@ -306,22 +355,53 @@
     </footer>
 
     <script>
-        document.getElementById('search-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const playerName = document.getElementById('player-name').value.trim().toLowerCase();
+        document.addEventListener('DOMContentLoaded', function() {
+            const playerNameInput = document.getElementById('player-name');
+            const suggestionsContainer = document.getElementById('suggestions');
+            let playersData = [];
+
+            // Fetch the players data from the JSON file
             fetch('graphs/all_players_clusters.json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
-                    const player = data.find(p => p.Player.toLowerCase() === playerName);
-                    const resultsContainer = document.getElementById('search-results');
-                    resultsContainer.innerHTML = '';
-                    if (player) {
-                        const playerStats = `
+                    playersData = data;
+                })
+                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+
+            // Add event listener for input changes
+            playerNameInput.addEventListener('input', function() {
+                const query = playerNameInput.value.trim().toLowerCase();
+                suggestionsContainer.innerHTML = '';
+
+                if (query.length > 0) {
+                    const filteredPlayers = playersData.filter(player =>
+                        player.Player.toLowerCase().includes(query)
+                    );
+
+                    filteredPlayers.forEach(player => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+                        suggestionItem.textContent = player.Player;
+                        suggestionItem.addEventListener('click', function() {
+                            playerNameInput.value = player.Player;
+                            suggestionsContainer.innerHTML = '';
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                }
+            });
+
+            // Add event listener for form submission
+            document.getElementById('search-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const playerName = playerNameInput.value.trim().toLowerCase();
+                const player = playersData.find(p => p.Player.toLowerCase() === playerName);
+                const resultsContainer = document.getElementById('search-results');
+                resultsContainer.innerHTML = '';
+
+                if (player) {
+                    const playerStats = `
+                        <div class="stats-box">
                             <h3>Estadísticas de ${player.Player}</h3>
                             <p>Clan: ${player.Clan}</p>
                             <p>Puntuación Total: ${player["Total Score"]}</p>
@@ -332,16 +412,13 @@
                             <p>Puntos por Ronda: ${player["Score per Round"]}</p>
                             <p>Muertes por Ronda: ${player["Kills per Round"]}</p>
                             <p>Performance Score: ${player["Performance Score"]}</p>
-                        `;
-                        resultsContainer.innerHTML = playerStats;
-                    } else {
-                        resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Error al cargar el archivo JSON:', error);
-                    document.getElementById('search-results').innerHTML = '<p>Error al cargar las estadísticas. Por favor, inténtalo de nuevo más tarde.</p>';
-                });
+                        </div>
+                    `;
+                    resultsContainer.innerHTML = playerStats;
+                } else {
+                    resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
+                }
+            });
         });
     </script>
 </body>
