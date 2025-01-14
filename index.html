@@ -255,6 +255,13 @@
             color: #fff;
         }
 
+        .clan-logo {
+            display: block;
+            margin: 0 auto;
+            max-width: 100px;
+            margin-bottom: 20px;
+        }
+
         /* Pie de página */
         footer {
             text-align: center;
@@ -448,8 +455,10 @@
                 resultsContainer.innerHTML = '';
 
                 if (player) {
+                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
                     const playerStats = `
                         <div class="stats-box">
+                            ${clanLogo}
                             <h3>Estadísticas de ${player.Player}</h3>
                             <p><strong>Clan:</strong> ${player.Clan}</p>
                             <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
