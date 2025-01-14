@@ -15,7 +15,8 @@
             background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
             color: white;
             display: flex;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         .sidebar {
@@ -49,12 +50,12 @@
         .sidebar a:hover, .sidebar button:hover {
             background: #555;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            transform: scale(1.05);
         }
 
         .container {
             margin-left: 270px;
             padding: 40px;
-            text-align: center;
             flex: 1;
         }
 
@@ -63,6 +64,13 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .logo img {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+            display: block;
         }
 
         .dropdown {
@@ -95,6 +103,28 @@
             border-radius: 5px;
             border: 1px solid #555;
             font-size: 16px;
+        }
+
+        .info, .examples {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .examples .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .examples .example-item {
+            background: #222;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #555;
         }
 
         @media (max-width: 768px) {
@@ -143,7 +173,29 @@
     </div>
 
     <div class="container">
+        <div class="logo">
+            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
+        </div>
         <h1>Project Reality - Stats y Repeticiones</h1>
+
+        <section class="info">
+            <h2>Últimas Noticias</h2>
+            <p>Explora las novedades y actualizaciones recientes de Project Reality.</p>
+        </section>
+
+        <section class="examples">
+            <h2>Ejemplos Destacados</h2>
+            <div class="example-grid">
+                <div class="example-item">
+                    <h3>Guías de Roles</h3>
+                    <p>Aprende a jugar como un profesional con nuestras guías detalladas.</p>
+                </div>
+                <div class="example-item">
+                    <h3>Estadísticas Interactivas</h3>
+                    <p>Revisa gráficos interactivos y analiza el rendimiento en el juego.</p>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -154,12 +206,10 @@
 
         // Manejo de submenús
         $("#chartsDropdown").on("click", "a", function (e) {
-            if ($(this).text() === "LDH") {
-                $("#ldhSubDropdown").slideToggle();
-                e.preventDefault();
-            } else if ($(this).text() === "FI") {
-                $("#fiSubDropdown").slideToggle();
-                e.preventDefault();
+            const text = $(this).text();
+            if (text === "LDH" || text === "FI") {
+                $(this).siblings(".dropdown").slideToggle();
+                e.preventDefault(); // Prevenir navegación solo para abrir submenús
             }
         });
 
