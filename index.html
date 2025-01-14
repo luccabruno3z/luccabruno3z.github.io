@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Project Reality - Stats y Repeticiones</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         /* Estilo general con temática oscura y militar */
@@ -98,13 +97,26 @@
             box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
         }
 
-        input[type="text"] {
+        .search-bar {
             width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .search-bar input[type="text"] {
+            width: 60%;
             padding: 10px;
-            margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid #555;
             font-size: 16px;
+            color: white;
+            background: #222;
         }
 
         .container {
@@ -142,7 +154,6 @@
 <body>
     <button id="toggleSidebar">☰</button>
     <div class="sidebar">
-        <input type="text" id="search" placeholder="Buscar gráfico..." oninput="filterLinks()">
         <a href="realitytracker">Visualizador de PR 2D</a>
         <button onclick="toggleDropdown('guidesDropdown')">Guías</button>
         <div class="dropdown" id="guidesDropdown">
@@ -164,22 +175,24 @@
         </div>
     </div>
 
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Buscar gráficos o contenido..." oninput="filterLinks()">
+    </div>
+
     <div class="container">
         <h1>Project Reality - Stats y Repeticiones</h1>
         <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
         <div class="updates">
             <h2>Nuevas novedades</h2>
             <ul>
-                <li>[En proceso] GUIAS - Visualizador 2D</li>
-                <li>[14/01/2025] Se creó la pagina</li>
-                <li>[08/01/2025] Se agregan graficos de clanes externos a la LDH</li>
-                <li>[07/01/2025] Funciona el bot de discord</li>
+                <li>[Fecha] Nueva guía agregada: "Roles"</li>
+                <li>[Fecha] Se han actualizado los gráficos "LDH" y "FI-R"</li>
+                <li>[Fecha] Cambios en las mecánicas del juego Project Reality</li>
             </ul>
         </div>
     </div>
 
     <script>
-        // Función para mostrar/ocultar la barra lateral
         const toggleSidebarButton = document.getElementById("toggleSidebar");
         const sidebar = document.querySelector(".sidebar");
 
@@ -187,13 +200,11 @@
             sidebar.classList.toggle("open");
         });
 
-        // Función para manejar el menú desplegable
         function toggleDropdown(id) {
             const dropdown = document.getElementById(id);
             dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
         }
 
-        // Filtro de enlaces
         function filterLinks() {
             const query = document.getElementById("search").value.toLowerCase();
             const links = document.querySelectorAll(".dropdown a");
