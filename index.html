@@ -15,8 +15,7 @@
             background: url('https://www.toptal.com/designers/subtlepatterns/uploads/dark_mosaic.png') repeat;
             color: white;
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+            height: 100vh;
         }
 
         .sidebar {
@@ -50,12 +49,12 @@
         .sidebar a:hover, .sidebar button:hover {
             background: #555;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
-            transform: scale(1.05);
         }
 
         .container {
             margin-left: 270px;
             padding: 40px;
+            text-align: center;
             flex: 1;
         }
 
@@ -64,7 +63,6 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 20px;
-            text-align: center;
         }
 
         .logo img {
@@ -105,6 +103,7 @@
             font-size: 16px;
         }
 
+        /* Secciones adicionales */
         .info, .examples {
             background: rgba(0, 0, 0, 0.7);
             padding: 20px;
@@ -127,6 +126,7 @@
             border: 1px solid #555;
         }
 
+        /* Estilos para móviles */
         @media (max-width: 768px) {
             .sidebar {
                 width: 100px;
@@ -141,7 +141,23 @@
             h1 {
                 font-size: 1.8rem;
             }
+            .logo img {
+                max-width: 120px;
+            }
+            .container {
+                padding: 20px;
+            }
         }
+
+        /* Animaciones suaves */
+        a, button {
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        a:hover, button:hover {
+            transform: scale(1.05);
+        }
+
     </style>
 </head>
 <body>
@@ -174,7 +190,7 @@
 
     <div class="container">
         <div class="logo">
-            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
+            <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH" />
         </div>
         <h1>Project Reality - Stats y Repeticiones</h1>
 
