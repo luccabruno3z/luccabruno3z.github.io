@@ -54,8 +54,28 @@
         .container {
             margin-left: 270px;
             padding: 40px;
-            text-align: center;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+        }
+
+        .logo {
             flex: 1;
+            text-align: center;
+        }
+
+        .logo img {
+            max-width: 150px;
+            margin: 0 auto 20px auto;
+            display: block;
+        }
+
+        .content {
+            flex: 2;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
         }
 
         h1 {
@@ -63,12 +83,6 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 20px;
-        }
-
-        .logo img {
-            max-width: 150px;
-            margin: 0 auto 20px auto;
-            display: block;
         }
 
         .dropdown {
@@ -120,6 +134,9 @@
             .logo img {
                 max-width: 120px;
             }
+            .container {
+                flex-direction: column;
+            }
         }
 
         /* Animaciones suaves */
@@ -144,14 +161,10 @@
         </div>
         <button onclick="toggleDropdown('chartsDropdown')">Gráficos</button>
         <div class="dropdown" id="chartsDropdown">
-            <a href="#" onclick="toggleDropdown('ldhSubDropdown'); return false;">LDH</a>
-            <div class="dropdown" id="ldhSubDropdown">
-                <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
-            </div>
-            <a href="#" onclick="toggleDropdown('fiSubDropdown'); return false;">FI</a>
-            <div class="dropdown" id="fiSubDropdown">
-                <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
-            </div>
+            <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a>
+            <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a>
+            <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a>
+            <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a>
             <a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a>
             <a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a>
             <a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a>
@@ -164,7 +177,15 @@
         <div class="logo">
             <img src="https://luccabruno3z.github.io/logos/logo_LDH.png" alt="Logo LDH">
         </div>
-        <h1>Project Reality - Stats y Repeticiones</h1>
+        <div class="content">
+            <h1>Project Reality - Stats y Repeticiones</h1>
+            <p>Explora las estadísticas y gráficos interactivos de Project Reality. Haz clic en los enlaces de la barra lateral para acceder a los gráficos y guías detalladas.</p>
+            <ul>
+                <li>Consulta las guías para entender roles y mapas.</li>
+                <li>Explora gráficos como LDH, FI, y más.</li>
+                <li>Descubre patrones y estadísticas de todos los jugadores.</li>
+            </ul>
+        </div>
     </div>
 
     <script>
