@@ -17,14 +17,25 @@ jobs:
 
     - name: Build and deploy
       run: |
-        mkdir public
-        cp -r * public/
+        # Crea una carpeta temporal para el despliegue
+        mkdir -p public
+
+        # Copia solo los archivos que no sean 'public'
+        find . -mindepth 1 -not -path './public/*' -exec cp -r {} public/ \;
+
+        # Asegúrate de que no se use Jekyll
         touch public/.nojekyll
+
+        # Configura git para hacer el commit en la rama gh-pages
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
+
+        # Cambia al directorio public y configura un nuevo repositorio
         cd public
         git init
         git checkout -b gh-pages
+
+        # Agrega, comitea y empuja los cambios
         git add .
         git commit -m "Deploy GitHub Pages"
         git push --force --quiet "https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages
