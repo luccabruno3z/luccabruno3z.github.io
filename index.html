@@ -21,7 +21,6 @@
             text-align: center;
         }
 
-        /* Contenedor principal */
         .container {
             background: rgba(0, 0, 0, 0.85);
             padding: 40px;
@@ -30,7 +29,6 @@
             border: 2px solid #444;
         }
 
-        /* Estilo para el logo */
         .logo {
             width: 150px;
             height: 150px;
@@ -47,7 +45,6 @@
             margin-bottom: 20px;
         }
 
-        /* Botones con efecto militar */
         .button {
             padding: 15px 30px;
             margin: 10px;
@@ -67,7 +64,6 @@
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
         }
 
-        /* Dropdown estilizado */
         .dropdown {
             display: none;
             margin-top: 10px;
@@ -90,7 +86,6 @@
             box-shadow: 0 0 10px rgba(0, 123, 255, 0.8);
         }
 
-        /* Animación de aparición */
         .fadeIn {
             animation: fadeIn 1s ease-in-out;
         }
@@ -100,7 +95,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             h1 { font-size: 1.8rem; }
             .button { font-size: 16px; }
@@ -110,16 +104,24 @@
 <body>
     <div class="container fadeIn">
         <!-- Logo de la Legión de Hierro -->
-        <img src="https://luccabruno3z.github.io/logo_ldh.png" alt="Legión de Hierro" class="logo">
+        <img src="https://media.discordapp.net/attachments/1286060623586656370/1328579134388961280/Logo.png?format=webp&quality=lossless" alt="Legión de Hierro" class="logo">
 
         <h1>Project Reality - Stats y Repeticiones</h1>
         
         <!-- Botón del Visualizador 2D -->
         <a href="heatmap/index.html" class="button">Visualizador de PR 2D</a>
         
+        <!-- Botón de Guías con submenú -->
+        <button class="button" onclick="toggleDropdown('guidesDropdown')">Guías</button>
+        <div class="dropdown" id="guidesDropdown">
+            <a href="guides/general.html">Guía General</a>
+            <a href="guides/roles.html">Roles</a>
+            <a href="guides/maps.html">Mapas</a>
+        </div>
+
         <!-- Botón de Gráficos con submenú -->
-        <button class="button" onclick="toggleDropdown()">Gráficos (Ver Clanes)</button>
-        <div class="dropdown" id="dropdownMenu">
+        <button class="button" onclick="toggleDropdown('chartsDropdown')">Gráficos (Ver Clanes)</button>
+        <div class="dropdown" id="chartsDropdown">
             <a href="https://luccabruno3z.github.io/LDH_interactive_chart.html">LDH</a>
             <a href="https://luccabruno3z.github.io/R-LDH_interactive_chart.html">R-LDH</a>
             <a href="https://luccabruno3z.github.io/FI_interactive_chart.html">FI</a>
@@ -134,8 +136,8 @@
 
     <script>
         // Función para manejar el menú desplegable
-        function toggleDropdown() {
-            $("#dropdownMenu").slideToggle();
+        function toggleDropdown(id) {
+            $("#" + id).slideToggle();
         }
     </script>
 </body>
