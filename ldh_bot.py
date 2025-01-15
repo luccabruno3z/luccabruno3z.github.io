@@ -132,13 +132,17 @@ async def estadisticas(ctx, jugador: str = None):
         else:
             color = discord.Color.red()
 
+        # Obtener imagen del clan
+        clan = jugador_encontrado.get("Clan", "N/A")
+        clan_image_url = f"https://luccabruno3z.github.io/clans/{clan}.png"
+
         # Crear embed con el ranking incluido
         embed = discord.Embed(
             title=f"📊 Estadísticas de {jugador}",
             description=f"**Ranking Global:** #{ranking}",
             color=color
         )
-        embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Icono de gráfico
+        embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
         embed.add_field(name="💥 K/D Ratio", value=f"{jugador_encontrado['K/D Ratio']:.2f}", inline=True)
         embed.add_field(name="🎯 Score per Round", value=f"{jugador_encontrado['Score per Round']:.2f}", inline=True)
         embed.add_field(name="🔫 Kills per Round", value=f"{jugador_encontrado.get('Kills per Round', 'N/A')}", inline=True)
@@ -146,7 +150,10 @@ async def estadisticas(ctx, jugador: str = None):
         embed.add_field(name="🎮 Rounds Jugados", value=jugador_encontrado.get("Rounds", "N/A"), inline=True)
         embed.add_field(name="☠️ Total Kills", value=jugador_encontrado.get("Total Kills", "N/A"), inline=True)
         embed.add_field(name="🏆 Total Score", value=jugador_encontrado.get("Total Score", "N/A"), inline=True)
-        
+        embed.add_field(name="🎖️ Clan", value=clan, inline=True)
+        embed.add_field(name="💀 Total Muertes", value=jugador_encontrado.get("Total Deaths", "N/A"), inline=True)
+        embed.add_field(name="📉 Tasa de Muertes", value=f"{jugador_encontrado.get('Deaths per Round', 'N/A')}", inline=True)
+
         # Pie de actualización
         embed.set_footer(text="📅 Datos actualizados recientemente.")
 
@@ -341,7 +348,10 @@ async def ayuda(ctx):
             "  🌟 **Performance Score**\n"
             "  🎮 **Rounds Jugados**\n"
             "  ☠️ **Total Kills**\n"
-            "  🏆 **Total Score**\n\n"
+            "  🏆 **Total Score**\n"
+            "  🎖️ **Clan**\n"
+            "  💀 **Total Muertes**\n"
+            "  📉 **Tasa de Muertes**\n\n"
             "`-compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores."
         ),
         inline=False
@@ -357,9 +367,9 @@ async def ayuda(ctx):
             "`-graficofi` - Muestra el gráfico interactivo de la FI.\n"
             "`-graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
             "`-grafico141` - Muestra el gráfico interactivo del 141.\n"
-            "`-graficowd` - Muestra el gráfico interactivo del 141.\n"
-            "`-grafico300` - Muestra el gráfico interactivo del 141.\n"
-            "`-graficoe_lam` - Muestra el gráfico interactivo del 141.\n"
+            "`-graficowd` - Muestra el gráfico interactivo de la WD.\n"
+            "`-grafico300` - Muestra el gráfico interactivo de 300.\n"
+            "`-graficoe_lam` - Muestra el gráfico interactivo de la E-LAM.\n"
             "`-graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
         ),
         inline=False
@@ -369,20 +379,29 @@ async def ayuda(ctx):
     embed.add_field(
         name="🏅 **Rankings y Promedios**",
         value=(
-            "`-top <cantidad de jugadores> <categoría>` - Muestra el top 15 de jugadores según la categoría especificada:\n"
-            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `wd`, `300`, `e-lam`, `r-ldh`.\n"
+            "`-top <cantidad de jugadores> <categoría>` - Muestra el top de jugadores según la categoría especificada:\n"
+            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`.\n"
             "`-promedios` - Muestra los promedios de estadísticas por clan."
+        ),
+        inline=False
+    )
+
+    # Sección: Recursos adicionales
+    embed.add_field(
+        name="📚 **Recursos Adicionales**",
+        value=(
+            "`-guias` - Accede a las guías de la página.\n"
+            "`-visualizador` - Accede al visualizador 2D."
         ),
         inline=False
     )
 
     # Pie de página
     embed.set_footer(
-        text="Usa los comandos con el prefijo `l` para interactuar con el bot. ¡Diviértete!"
+        text="Usa los comandos con el prefijo `-` para interactuar con el bot. ¡Diviértete!"
     )
 
     await ctx.send(embed=embed)
-
 
 # Mensaje al iniciar el bot
 @bot.event
