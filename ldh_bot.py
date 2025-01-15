@@ -161,17 +161,25 @@ async def estadisticas(ctx, jugador: str = None):
         )
         embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
 
-        # Agregar estadísticas con emojis y una mejor visualización
-        embed.add_field(name="💥 K/D Ratio", value=f"{jugador_encontrado['K/D Ratio']:.2f}", inline=True)
-        embed.add_field(name="☠️ Total Kills", value=f"{jugador_encontrado.get('Total Kills', 'N/A')}", inline=True)
-        embed.add_field(name="💀 Total Muertes", value=f"{total_deaths}", inline=True)
-        embed.add_field(name="🏆 Total Score", value=f"{jugador_encontrado.get('Total Score', 'N/A')}", inline=True)
-        embed.add_field(name="🎮 Rounds Jugados", value=f"{jugador_encontrado.get('Rounds', 'N/A')}", inline=True)
-        embed.add_field(name="🔫 Tasa de Kills", value=f"{jugador_encontrado.get('Kills per Round', 'N/A')}", inline=True)
-        embed.add_field(name="📉 Tasa de Muertes", value=f"{deaths_per_round:.2f}", inline=True)
-        embed.add_field(name="🎯 Tasa de Score", value=f"{jugador_encontrado['Score per Round']:.2f}", inline=True)
-        embed.add_field(name="🌟 Performance Score", value=f"{performance_score:.2f}", inline=True)
-        embed.add_field(name="🎖️ Clan", value=f"{clan}", inline=True)
+        # Agregar estadísticas agrupadas
+        embed.add_field(name="📊 Datos Totales", value=(
+            f"💥 **K/D Ratio**: {jugador_encontrado['K/D Ratio']:.2f}\n"
+            f"☠️ **Total Kills**: {jugador_encontrado.get('Total Kills', 'N/A')}\n"
+            f"🏆 **Total Score**: {jugador_encontrado.get('Total Score', 'N/A')}\n"
+            f"💀 **Total Muertes**: {total_deaths}\n"
+            f"🎮 **Rounds Jugados**: {jugador_encontrado.get('Rounds', 'N/A')}"
+        ), inline=False)
+
+        embed.add_field(name="📉 Tasas", value=(
+            f"📉 **Tasa de Muertes**: {deaths_per_round:.2f}\n"
+            f"🔫 **Tasa de Kills**: {jugador_encontrado.get('Kills per Round', 'N/A')}\n"
+            f"🎯 **Tasa de Score**: {jugador_encontrado['Score per Round']:.2f}"
+        ), inline=False)
+
+        embed.add_field(name="🌟 Otros", value=(
+            f"🌟 **Performance Score**: {performance_score:.2f}\n"
+            f"🎖️ **Clan**: {clan}"
+        ), inline=False)
 
         # Pie de actualización
         embed.set_footer(text="📅 Datos actualizados recientemente.")
@@ -180,7 +188,6 @@ async def estadisticas(ctx, jugador: str = None):
 
     else:
         await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado en la base de datos.")
-
 @bot.command()
 async def tips(ctx, kit: str = None):
     """
