@@ -73,6 +73,7 @@ async def graficoldh(ctx):
 async def grafico300(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de 300!]({GITHUB_GRAPH_300})")
 
+
 @bot.command()
 async def graficoe_lam(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la E-LAM!]({GITHUB_GRAPH_E_LAM})")
@@ -330,8 +331,11 @@ async def tips(ctx, kit: str = None):
                 color=discord.Color.red()
             )
 
+                
     embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
     embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
+
+   
 
     await ctx.send(embed=embed)
 
@@ -429,7 +433,7 @@ async def on_ready():
 @bot.command()
 async def hola(ctx):
     await ctx.send('¡Hola! ¿En qué puedo ayudarte?')
-
+    
 @bot.command()
 async def promedios(ctx):
     try:
@@ -474,6 +478,8 @@ async def promedios(ctx):
         await ctx.send(embed=embed)
     else:
         await ctx.send("El formato de los datos no es válido.")
+
+
 @bot.command()
 async def compare(ctx, player1: str, player2: str):
     """
