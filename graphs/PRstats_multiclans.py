@@ -78,15 +78,17 @@ df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
 # Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
-df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round"]] = scaler.fit_transform(
-    df_general[["K/D Ratio", "Score per Round", "Kills per Round"]]
+# Normalizar métricas relevantes para calcular Performance Score
+df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round", "Normalized_Rounds"]] = scaler.fit_transform(
+    df_general[["K/D Ratio", "Score per Round", "Kills per Round", "Rounds"]]
 )
 
-# Calcular Performance Score con pesos ajustados
+# Calcular Performance Score con nuevos pesos
 df_general["Performance Score"] = (
-    0.5 * df_general["Normalized_KD"] +
-    0.3 * df_general["Normalized_Score"] +
-    0.2 * df_general["Normalized_Kills_Per_Round"]
+    0.4 * df_general["Normalized_KD"] +
+    0.2 * df_general["Normalized_Score"] +
+    0.2 * df_general["Normalized_Kills_Per_Round"] +
+    0.2 * df_general["Normalized_Rounds"]
 )
 
 # Crear gráfico general interactivo basado en el Performance Score
