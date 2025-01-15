@@ -85,10 +85,10 @@ df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round", "
 
 # Calcular Performance Score con nuevos pesos
 df_general["Performance Score"] = (
-    0.8 * df_general["Normalized_KD"] +
-    0.6 * df_general["Normalized_Score"] +
-    0.3 * df_general["Normalized_Kills_Per_Round"] -
-    0.3 * df_general["Normalized_Rounds"]
+    1 * df_general["Normalized_KD"] +
+    0.3 * df_general["Normalized_Score"] +
+    0.6 * df_general["Normalized_Kills_Per_Round"] -
+    0.8 * df_general["Normalized_Rounds"]
 )
 
 # Crear gráfico general interactivo basado en el Performance Score
