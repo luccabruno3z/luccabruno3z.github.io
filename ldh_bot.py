@@ -148,6 +148,11 @@ async def estadisticas(ctx, jugador: str = None):
         clan = jugador_encontrado.get("Clan", "N/A")
         clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
 
+        # Calcular la tasa de muertes por ronda
+        total_deaths = jugador_encontrado.get("Total Deaths", 0)
+        rounds_played = jugador_encontrado.get("Rounds", 1)  # Evitar división por cero
+        deaths_per_round = total_deaths / rounds_played if rounds_played > 0 else 0
+
         # Crear embed con el ranking incluido
         embed = discord.Embed(
             title=f"📊 Estadísticas de {jugador}",
@@ -163,8 +168,8 @@ async def estadisticas(ctx, jugador: str = None):
         embed.add_field(name="☠️ Total Kills", value=jugador_encontrado.get("Total Kills", "N/A"), inline=True)
         embed.add_field(name="🏆 Total Score", value=jugador_encontrado.get("Total Score", "N/A"), inline=True)
         embed.add_field(name="🎖️ Clan", value=clan, inline=True)
-        embed.add_field(name="💀 Total Muertes", value=jugador_encontrado.get("Total Deaths", "N/A"), inline=True)
-        embed.add_field(name="📉 Tasa de Muertes", value=f"{jugador_encontrado.get('Deaths per Round', 'N/A')}", inline=True)
+        embed.add_field(name="💀 Total Muertes", value=total_deaths, inline=True)
+        embed.add_field(name="📉 Tasa de Muertes", value=f"{deaths_per_round:.2f}", inline=True)
 
         # Pie de actualización
         embed.set_footer(text="📅 Datos actualizados recientemente.")
