@@ -160,16 +160,24 @@ async def estadisticas(ctx, jugador: str = None):
             color=color
         )
         embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
-        embed.add_field(name="💥 K/D Ratio", value=f"{jugador_encontrado['K/D Ratio']:.2f}", inline=True)
-        embed.add_field(name="🎯 Score per Round", value=f"{jugador_encontrado['Score per Round']:.2f}", inline=True)
-        embed.add_field(name="🔫 Kills per Round", value=f"{jugador_encontrado.get('Kills per Round', 'N/A')}", inline=True)
-        embed.add_field(name="🌟 Performance Score", value=f"{performance_score:.2f}", inline=True)
-        embed.add_field(name="🎮 Rounds Jugados", value=jugador_encontrado.get("Rounds", "N/A"), inline=True)
-        embed.add_field(name="☠️ Total Kills", value=jugador_encontrado.get("Total Kills", "N/A"), inline=True)
-        embed.add_field(name="🏆 Total Score", value=jugador_encontrado.get("Total Score", "N/A"), inline=True)
-        embed.add_field(name="🎖️ Clan", value=clan, inline=True)
-        embed.add_field(name="💀 Total Muertes", value=total_deaths, inline=True)
-        embed.add_field(name="📉 Tasa de Muertes", value=f"{deaths_per_round:.2f}", inline=True)
+
+        # Agregar estadísticas en formato de tabla
+        stats_table = (
+            f"**Estadística** | **Valor**\n"
+            f"----------------|----------------\n"
+            f"💥 **K/D Ratio** | {jugador_encontrado['K/D Ratio']:.2f}\n"
+            f"☠️ **Total Kills** | {jugador_encontrado.get('Total Kills', 'N/A')}\n"
+            f"🏆 **Total Score** | {jugador_encontrado.get('Total Score', 'N/A')}\n"
+            f"💀 **Total Muertes** | {total_deaths}\n"
+            f"📉 **Tasa de Muertes** | {deaths_per_round:.2f}\n"
+            f"🔫 **Tasa de kills** | {jugador_encontrado.get('Kills per Round', 'N/A')}\n"
+            f"🎯 **Tasa de score** | {jugador_encontrado['Score per Round']:.2f}\n"
+            f"🌟 **Performance Score** | {performance_score:.2f}\n"
+            f"🎮 **Rounds Jugados** | {jugador_encontrado.get('Rounds', 'N/A')}\n"
+            f"🎖️ **Clan** | {clan}\n"
+        )
+
+        embed.add_field(name="📊 Estadísticas", value=stats_table, inline=False)
 
         # Pie de actualización
         embed.set_footer(text="📅 Datos actualizados recientemente.")
@@ -355,8 +363,8 @@ async def ayuda(ctx):
         value=(
             "`-estadisticas <jugador>` - Muestra estadísticas detalladas de un jugador, incluyendo:\n"
             "  💥 **K/D Ratio**\n"
-            "  🔫 **Kills per Round**\n"
-            "  🎯 **Score per Round**\n"
+            "  🔫 **Tasa de kills**\n"
+            "  🎯 **Tasa de score**\n"
             "  🌟 **Performance Score**\n"
             "  🎮 **Rounds Jugados**\n"
             "  ☠️ **Total Kills**\n"
