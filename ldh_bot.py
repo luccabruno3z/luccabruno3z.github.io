@@ -474,3 +474,227 @@ async def promedios(ctx):
         await ctx.send(embed=embed)
     else:
         await ctx.send("El formato de los datos no es válido.")
+@bot.command()
+async def compare(ctx, player1: str, player2: str):
+    """
+    Compara las estadísticas de dos jugadores usando el archivo JSON alojado en GitHub Pages.
+    """
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    # Buscar los jugadores en la base de datos
+    p1 = next((p for p in data if p['Player'].lower() == player1.lower()), None)
+    p2 = next((p for p in data if p['Player'].lower() == player2.lower()), None)
+
+    if p1 and p2:
+        # Determinar colores para cada jugador según su Performance Score
+        def determinar_color(performance_score):
+            if performance_score >= 0.85:
+                return discord.Color.gold()
+            elif performance_score >= 0.70:
+                return discord.Color.green()
+            elif performance_score >= 0.50:
+                return discord.Color.blue()
+            elif performance_score >= 0.30:
+                return discord.Color.orange()
+            else:
+                return discord.Color.red()
+
+        color1 = determinar_color(p1.get('Performance Score', 0))
+        color2 = determinar_color(p2.get('Performance Score', 0))
+
+        # Crear embed para la comparación
+        embed = discord.Embed(
+            title=f"🔍 Comparación entre {player1} y {player2}",
+            description="Estadísticas detalladas comparadas:",
+            color=discord.Color.purple()
+        )
+        embed.add_field(
+            name="Estadística",
+            value=(
+                "💥 **K/D Ratio**\n"
+                "🔫 **Kills per Round**\n"
+                "🎯 **Score per Round**\n"
+                "🌟 **Performance Score**\n"
+                "🎮 **Rounds Jugados**\n"
+                "☠️ **Total Kills**\n"
+                "🏆 **Total Score**"
+            ),
+            inline=True
+        )
+        embed.add_field(
+            name=f"🎮 {player1}",
+            value=(
+                f"{p1['K/D Ratio']:.2f}\n"
+                f"{p1.get('Kills per Round', 'N/A')}\n"
+                f"{p1.get('Score per Round', 'N/A'):.2f}\n"
+                f"{p1.get('Performance Score', 'N/A'):.2f}\n"
+                f"{p1.get('Rounds', 'N/A')}\n"
+                f"{p1.get('Total Kills', 'N/A')}\n"
+                f"{p1.get('Total Score', 'N/A')}"
+            ),
+            inline=True
+        )
+        embed.add_field(
+            name=f"🎮 {player2}",
+            value=(
+                f"{p2['K/D Ratio']:.2f}\n"
+                f"{p2.get('Kills per Round', 'N/A')}\n"
+                f"{p2.get('Score per Round', 'N/A'):.2f}\n"
+                f"{p2.get('Performance Score', 'N/A'):.2f}\n"
+                f"{p2.get('Rounds', 'N/A')}\n"
+                f"{p2.get('Total Kills', 'N/A')}\n"
+                f"{p2.get('Total Score', 'N/A')}"
+            ),
+            inline=True
+        )
+
+        # Resolución sobre el mejor jugador
+        if p1['Performance Score'] > p2['Performance Score']:
+            resolution = f"🌟 **{player1}** parece ser mejor que **{player2}**."
+        elif p1['Performance Score'] < p2['Performance Score']:
+            resolution = f"🌟 **{player2}** parece ser mejor que **{player1}**."
+        else:
+            resolution = "🤝 Ambos jugadores tienen un desempeño similar."
+
+        embed.add_field(name="Resolución", value=resolution, inline=False)
+        embed.set_footer(text="📅 Datos actualizados recientemente.")
+
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("⚠️ No se encontraron estadísticas para uno o ambos jugadores.")
+
+
+@bot.command()
+async def top(ctx, cantidad: int = 15, categoria: str = "general"):
+    # Diccionario de categorías válidas y sus URLs correspondientes
+    categorias_validas = {
+        "general": GITHUB_JSON_PLAYERS,
+        "ldh": GITHUB_JSON_LDH,
+        "sae": GITHUB_JSON_SAE,
+        "fi": GITHUB_JSON_FI,
+        "141": GITHUB_JSON_141,
+        "fi-r": GITHUB_JSON_FI_R,
+        "r-ldh": GITHUB_JSON_R_LDH,
+        "e-lam": GITHUB_JSON_E_LAM,
+        "300": GITHUB_JSON_300
+    }
+
+    # Validar la categoría ingresada
+    if categoria.lower() not in categorias_validas:
+        await ctx.send(
+            "❗ **Categoría inválida.** Las categorías válidas son:\n"
+            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`."
+        )
+        return
+
+    # Validar la cantidad de jugadores solicitados
+    if cantidad <= 0:
+        await ctx.send("❗ **La cantidad debe ser mayor a 0.**")
+        return
+
+    # Obtener la URL del archivo JSON según la categoría
+    url_json = categorias_validas[categoria.lower()]
+
+    # Intentar obtener y procesar los datos
+    try:
+        response = requests.get(url_json)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ **Error al conectar con la base de datos.** Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ **Error al procesar los datos del archivo JSON.**")
+        return
+
+    # Ordenar los jugadores por Performance Score
+    jugadores_ordenados = sorted(
+        data, 
+        key=lambda x: x.get("Performance Score", 0), 
+        reverse=True
+    )
+
+    # Limitar al número total de jugadores disponibles
+    cantidad = min(cantidad, len(jugadores_ordenados))
+    top_jugadores = jugadores_ordenados[:cantidad]
+
+    # Crear el embed
+    embed = discord.Embed(
+        title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()})",
+        description=(
+            "Clasificación basada en **Performance Score**.\n"
+            f"Aquí están los mejores {cantidad} jugadores en esta categoría:"
+        ),
+        color=discord.Color.orange()
+    )
+    embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Imagen representativa
+
+    # Agregar los jugadores al embed con formato más limpio
+    jugadores_lista = ""
+    for index, jugador in enumerate(top_jugadores, start=1):
+        nombre = jugador.get("Player", "Desconocido")
+        performance_score = jugador.get("Performance Score", 0)
+        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n"
+
+    embed.add_field(
+        name="🔝 **Ranking**",
+        value=jugadores_lista if jugadores_lista else "No hay jugadores en esta categoría.",
+        inline=False
+    )
+
+    # Agregar pie de página
+    embed.set_footer(text="📅 Datos actualizados recientemente.")
+
+    # Enviar el embed
+    await ctx.send(embed=embed)
+
+
+
+# Manejar errores globalmente
+@bot.event
+async def on_command_error(ctx, error):
+    # Error cuando el comando no existe
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send("❌ **Comando no reconocido.** Usa `-ayuda` para ver la lista de comandos disponibles.")
+    
+    # Error cuando faltan argumentos en un comando
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send(f"❗ Faltan argumentos. Asegúrate de usar el comando correctamente. Ejemplo: `-estadisticas <jugador>`.")
+        
+    # Error cuando un usuario no tiene permisos para usar un comando
+    elif isinstance(error, commands.MissingPermissions):
+        await ctx.send("🚫 No tienes permisos para ejecutar este comando.")
+        
+    # Error si el comando es usado incorrectamente
+    elif isinstance(error, commands.BadArgument):
+        await ctx.send("⚠️ Argumento inválido. Revisa los parámetros del comando.")
+        
+    # Otros errores
+    else:
+        await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
+        print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
+
+
+# Comando para apagar el bot (solo el dueño del bot puede usarlo)
+@bot.command()
+@commands.is_owner()
+async def apagar(ctx):
+    try:
+        await ctx.send("¡Apagando el bot!")
+        await bot.close()
+    except Exception as e:
+        await ctx.send(f"Ocurrió un error al intentar apagar el bot: {e}")
+
+# Ejecutar el bot
+bot.run(TOKEN)
