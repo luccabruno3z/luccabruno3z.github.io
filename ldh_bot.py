@@ -146,7 +146,7 @@ async def estadisticas(ctx, jugador: str = None):
 
         # Obtener imagen del clan
         clan = jugador_encontrado.get("Clan", "N/A")
-        clan_image_url = f"https://luccabruno3z.github.io/clans/{clan}.png"
+        clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
 
         # Crear embed con el ranking incluido
         embed = discord.Embed(
