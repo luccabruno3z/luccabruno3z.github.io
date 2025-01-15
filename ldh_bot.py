@@ -576,8 +576,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         "fi": GITHUB_JSON_FI,
         "141": GITHUB_JSON_141,
         "fi-r": GITHUB_JSON_FI_R,
-        "r-ldh": GITHUB_JSON_R_LDH
-        "e-lam": GITHUB_JSON_E_LAM
+        "r-ldh": GITHUB_JSON_R_LDH,
+        "e-lam": GITHUB_JSON_E_LAM,
         "300": GITHUB_JSON_300
     }
 
