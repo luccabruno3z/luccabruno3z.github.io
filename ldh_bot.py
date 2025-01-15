@@ -49,6 +49,18 @@ GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/graphs/clan_averages.json"
 
 GITHUB_INDEX = "https://luccabruno3z.github.io"
 
+# URL de las guías y el visualizador 2D
+GITHUB_GUIDES = "https://luccabruno3z.github.io/#guias"
+GITHUB_VISUALIZER_2D = "https://luccabruno3z.github.io/realitytracker.github.io/"
+
+@bot.command()
+async def guias(ctx):
+    await ctx.send(f"[Aquí tienes acceso a las guías de la página!]({GITHUB_GUIDES})")
+
+@bot.command()
+async def visualizador(ctx):
+    await ctx.send(f"[Aquí tienes acceso al visualizador 2D!]({GITHUB_VISUALIZER_2D})")
+
 @bot.command()
 async def pagina(ctx):
     await ctx.send(f"[Aquí tienes la pagina de la LDH!]({GITHUB_INDEX})")
@@ -313,11 +325,6 @@ async def tips(ctx, kit: str = None):
 
     await ctx.send(embed=embed)
 
-
-
-
-
-
 @bot.command()
 async def ayuda(ctx):
     embed = discord.Embed(
@@ -570,6 +577,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         "141": GITHUB_JSON_141,
         "fi-r": GITHUB_JSON_FI_R,
         "r-ldh": GITHUB_JSON_R_LDH
+        "e-lam": GITHUB_JSON_E_LAM
+        "300": GITHUB_JSON_300
     }
 
     # Validar la categoría ingresada
