@@ -161,25 +161,25 @@ async def estadisticas(ctx, jugador: str = None):
         )
         embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
 
-        # Agregar estadísticas agrupadas con títulos prominentes
+        # Agregar estadísticas agrupadas en columnas
         embed.add_field(name="**📊 Datos Totales**", value=(
             f"💥 **K/D Ratio**: {jugador_encontrado['K/D Ratio']:.2f}\n"
             f"☠️ **Total Kills**: {jugador_encontrado.get('Total Kills', 'N/A')}\n"
             f"💀 **Total Muertes**: {total_deaths}\n"
-                        f"🏆 **Total Score**: {jugador_encontrado.get('Total Score', 'N/A')}\n"
+            f"🏆 **Total Score**: {jugador_encontrado.get('Total Score', 'N/A')}\n"
             f"🎮 **Rounds Jugados**: {jugador_encontrado.get('Rounds', 'N/A')}"
-        ), inline=False)
+        ), inline=True)
 
         embed.add_field(name="**📉 Tasas**", value=(
             f"🔫 **Tasa de Kills**: {jugador_encontrado.get('Kills per Round', 'N/A')}\n"
             f"📉 **Tasa de Muertes**: {deaths_per_round:.2f}\n"
             f"🎯 **Tasa de Score**: {jugador_encontrado['Score per Round']:.2f}"
-        ), inline=False)
+        ), inline=True)
 
         embed.add_field(name="**🌟 Otros**", value=(
             f"🌟 **Performance Score**: {performance_score:.2f}\n"
             f"🎖️ **Clan**: {clan}"
-        ), inline=False)
+        ), inline=True)
 
         # Pie de actualización
         embed.set_footer(text="📅 Datos actualizados recientemente.")
