@@ -32,6 +32,7 @@ GITHUB_GRAPH_R_LDH = "https://luccabruno3z.github.io/graphs/R-LDH_interactive_ch
 GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/graphs/WD_interactive_chart.html"
 GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/graphs/300_interactive_chart.html"
 GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html"
+GITHUB_GRAPH_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM-LA_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/graphs/LDH_players.json"
@@ -43,6 +44,7 @@ GITHUB_JSON_R_LDH = "https://luccabruno3z.github.io/graphs/R-LDH_players.json"
 GITHUB_JSON_WD = "https://luccabruno3z.github.io/graphs/WD_players.json"
 GITHUB_JSON_300 = "https://luccabruno3z.github.io/graphs/300_players.json"
 GITHUB_JSON_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_players.json"
+GITHUB_JSON_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM-LA_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/graphs/clan_averages.json"
