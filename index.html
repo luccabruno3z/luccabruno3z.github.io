@@ -412,79 +412,79 @@
         <p>© 2025 - Todos los derechos reservados.</p>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const playerNameInput = document.getElementById('player-name');
-            const suggestionsContainer = document.getElementById('suggestions');
-            let playersData = [];
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const playerNameInput = document.getElementById('player-name');
+        const suggestionsContainer = document.getElementById('suggestions');
+        let playersData = [];
 
-            // Fetch the players data from the JSON file
-            fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
-                .then(response => response.json())
-                .then(data => {
-                    playersData = data;
+        // Fetch the players data from the JSON file
+        fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
+            .then(response => response.json())
+            .then(data => {
+                playersData = data;
 
-                    // Ordenar los jugadores por Performance Score
-                    playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
-                })
-                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+                // Ordenar los jugadores por Performance Score
+                playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
+            })
+            .catch(error => console.error('Error al cargar el archivo JSON:', error));
 
-            // Add event listener for input changes
-            playerNameInput.addEventListener('input', function() {
-                const query = playerNameInput.value.trim().toLowerCase();
-                suggestionsContainer.innerHTML = '';
+        // Add event listener for input changes
+        playerNameInput.addEventListener('input', function() {
+            const query = playerNameInput.value.trim();
+            suggestionsContainer.innerHTML = '';
 
-                if (query.length > 0) {
-                    const filteredPlayers = playersData.filter(player =>
-                        player.Player.toLowerCase().includes(query)
-                    );
+            if (query.length > 0) {
+                const filteredPlayers = playersData.filter(player =>
+                    player.Player.includes(query)
+                );
 
-                    filteredPlayers.forEach(player => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.classList.add('suggestion-item');
-                        suggestionItem.textContent = player.Player;
-                        suggestionItem.addEventListener('click', function() {
-                            playerNameInput.value = player.Player;
-                            suggestionsContainer.innerHTML = '';
-                        });
-                        suggestionsContainer.appendChild(suggestionItem);
+                filteredPlayers.forEach(player => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.classList.add('suggestion-item');
+                    suggestionItem.textContent = player.Player;
+                    suggestionItem.addEventListener('click', function() {
+                        playerNameInput.value = player.Player;
+                        suggestionsContainer.innerHTML = '';
                     });
-                }
-            });
-
-            // Add event listener for form submission
-            document.getElementById('search-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const playerName = playerNameInput.value.trim().toLowerCase();
-                const player = playersData.find(p => p.Player.toLowerCase() === playerName);
-                const resultsContainer = document.getElementById('search-results');
-                resultsContainer.innerHTML = '';
-
-                if (player) {
-                    const ranking = playersData.findIndex(p => p.Player.toLowerCase() === playerName) + 1;
-                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
-                    const playerStats = `
-                        <div class="stats-box">
-                            ${clanLogo}
-                            <h3>Estadísticas de ${player.Player}</h3>
-                            <p><strong>Ranking Global:</strong> #${ranking}</p>
-                            <p><strong>Clan:</strong> ${player.Clan}</p>
-                            <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
-                            <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
-                            <p><strong>Asistencias Totales:</strong> ${player["Total Kills"]}</p>
-                            <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
-                            <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"]}</p>
-                            <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"]}</p>
-                            <p><strong>Muertes por Ronda:</strong> ${player["Kills per Round"]}</p>
-                            <p><strong>Performance Score:</strong> ${player["Performance Score"]}</p>
-                        </div>
-                    `;
-                    resultsContainer.innerHTML = playerStats;
-                } else {
-                    resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
-                }
-            });
+                    suggestionsContainer.appendChild(suggestionItem);
+                });
+            }
         });
-    </script>
+
+        // Add event listener for form submission
+        document.getElementById('search-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const playerName = playerNameInput.value.trim();
+            const player = playersData.find(p => p.Player === playerName);
+            const resultsContainer = document.getElementById('search-results');
+            resultsContainer.innerHTML = '';
+
+            if (player) {
+                const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
+                const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
+                const playerStats = `
+                    <div class="stats-box">
+                        ${clanLogo}
+                        <h3>Estadísticas de ${player.Player}</h3>
+                        <p><strong>Ranking Global:</strong> #${ranking}</p>
+                        <p><strong>Clan:</strong> ${player.Clan}</p>
+                        <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
+                        <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
+                        <p><strong>Asistencias Totales:</strong> ${player["Total Kills"]}</p>
+                        <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
+                        <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"]}</p>
+                        <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"]}</p>
+                        <p><strong>Muertes por Ronda:</strong> ${player["Kills per Round"]}</p>
+                        <p><strong>Performance Score:</strong> ${player["Performance Score"]}</p>
+                    </div>
+                `;
+                resultsContainer.innerHTML = playerStats;
+            } else {
+                resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
+            }
+        });
+    });
+</script>
 </body>
 </html>
