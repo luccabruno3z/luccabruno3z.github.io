@@ -127,8 +127,8 @@ async def estadisticas(ctx, jugador: str = None):
     jugadores_ordenados = sorted(data, key=lambda x: x.get("Performance Score", 0), reverse=True)
 
     # Buscar al jugador y su ranking
-    jugador_encontrado = next((entry for entry in jugadores_ordenados if entry["Player"].lower() == jugador.lower()), None)
-    ranking = next((index + 1 for index, entry in enumerate(jugadores_ordenados) if entry["Player"].lower() == jugador.lower()), "N/A")
+    jugador_encontrado = next((entry for entry in jugadores_ordenados if entry["Player"] == jugador), None)
+    ranking = next((index + 1 for index, entry in enumerate(jugadores_ordenados) if entry["Player"] == jugador), "N/A")
 
     if jugador_encontrado:
         # Determinar color del embed basado en Performance Score
@@ -161,23 +161,23 @@ async def estadisticas(ctx, jugador: str = None):
         )
         embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
 
-        # Agregar estadísticas agrupadas en columnas
+        # Agregar estadísticas agrupadas en columnas con más espacio
         embed.add_field(name="**📊 Datos Totales 📊**", value=(
-            f"💥 **K/D Ratio**: {jugador_encontrado['K/D Ratio']:.2f}\n"
-            f"☠️ **Total Kills**: {jugador_encontrado.get('Total Kills', 'N/A')}\n"
-            f"💀 **Total Muertes**: {total_deaths}\n"
-            f"🏆 **Total Score**: {jugador_encontrado.get('Total Score', 'N/A')}\n"
+            f"💥 **K/D Ratio**: {jugador_encontrado['K/D Ratio']:.2f}\n\n"
+            f"☠️ **Total Kills**: {jugador_encontrado.get('Total Kills', 'N/A')}\n\n"
+            f"💀 **Total Muertes**: {total_deaths}\n\n"
+            f"🏆 **Total Score**: {jugador_encontrado.get('Total Score', 'N/A')}\n\n"
             f"🎮 **Rounds Jugados**: {jugador_encontrado.get('Rounds', 'N/A')}"
         ), inline=True)
 
         embed.add_field(name="**📉 Tasas 📉**", value=(
-            f"🔫 **Tasa de Kills**: {jugador_encontrado.get('Kills per Round', 'N/A')}\n"
-            f"📉 **Tasa de Muertes**: {deaths_per_round:.2f}\n"
+            f"🔫 **Tasa de Kills**: {jugador_encontrado.get('Kills per Round', 'N/A')}\n\n"
+            f"📉 **Tasa de Muertes**: {deaths_per_round:.2f}\n\n"
             f"🎯 **Tasa de Score**: {jugador_encontrado['Score per Round']:.2f}"
         ), inline=True)
 
         embed.add_field(name="**🌟 Otros 🌟**", value=(
-            f"🌟 **Performance Score**: {performance_score:.2f}\n"
+            f"🌟 **Performance Score**: {performance_score:.2f}\n\n"
             f"🎖️ **Clan**: {clan}"
         ), inline=True)
 
