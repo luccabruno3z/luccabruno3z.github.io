@@ -78,9 +78,6 @@ df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
 # Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
-# Normalizar métricas relevantes para calcular Performance Score
-# Normalizar métricas relevantes para calcular Performance Score
-scaler = MinMaxScaler()
 df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round", "Normalized_Rounds"]] = scaler.fit_transform(
     df_general[["K/D Ratio", "Score per Round", "Kills per Round", "Rounds"]]
 )
@@ -147,4 +144,3 @@ for clan_name in clan_urls.keys():
         fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
 
 print("Actualización completada exitosamente usando Performance Score.")
-
