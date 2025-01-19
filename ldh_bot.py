@@ -621,8 +621,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         "fi-r": GITHUB_JSON_FI_R,
         "r-ldh": GITHUB_JSON_R_LDH,
         "e-lam": GITHUB_JSON_E_LAM,
-        "300": GITHUB_JSON_300,
-        "rim-la": GITHUB_JSON_RIM_LA
+        "300": GITHUB_JSON_300
     }
 
     # Validar la categoría ingresada
@@ -646,20 +645,28 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         response = requests.get(url_json)
         response.raise_for_status()
         data = response.json()
+        print(f"Datos obtenidos correctamente de {url_json}")
     except requests.exceptions.RequestException as e:
         await ctx.send("❌ **Error al conectar con la base de datos.** Inténtalo más tarde.")
-        print(f"Error: {e}")
+        print(f"Error al conectar con la base de datos: {e}")
         return
     except json.JSONDecodeError:
         await ctx.send("❌ **Error al procesar los datos del archivo JSON.**")
+        print("Error al procesar los datos del archivo JSON.")
         return
 
     # Ordenar los jugadores por Performance Score
-    jugadores_ordenados = sorted(
-        data, 
-        key=lambda x: x.get("Performance Score", 0), 
-        reverse=True
-    )
+    try:
+        jugadores_ordenados = sorted(
+            data, 
+            key=lambda x: x.get("Performance Score", 0), 
+            reverse=True
+        )
+        print("Jugadores ordenados correctamente.")
+    except Exception as e:
+        await ctx.send("❌ **Error al ordenar los jugadores.**")
+        print(f"Error al ordenar los jugadores: {e}")
+        return
 
     # Limitar al número total de jugadores disponibles
     cantidad = min(cantidad, len(jugadores_ordenados))
@@ -696,6 +703,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 
     # Enviar el embed
     await ctx.send(embed=embed)
+    print("Embed enviado correctamente.")
 
 # Manejar errores globalmente
 @bot.event
