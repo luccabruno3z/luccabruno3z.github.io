@@ -690,7 +690,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         performance_score = jugador.get("Performance Score", 0)
         clan = jugador.get("Clan", "N/A")
         clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
-        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}]({clan_image_url})\n"
+        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}](logos/Logo_{clan}.png)\n"
 
     embed.add_field(
         name="🔝 **Ranking**",
