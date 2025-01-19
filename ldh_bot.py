@@ -621,7 +621,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         "fi-r": GITHUB_JSON_FI_R,
         "r-ldh": GITHUB_JSON_R_LDH,
         "e-lam": GITHUB_JSON_E_LAM,
-        "300": GITHUB_JSON_300
+        "300": GITHUB_JSON_300,
+        "rim-la": GITHUB_JSON_RIM_LA
     }
 
     # Validar la categoría ingresada
@@ -695,7 +696,6 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 
     # Enviar el embed
     await ctx.send(embed=embed)
-
 
 # Manejar errores globalmente
 @bot.event
