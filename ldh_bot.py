@@ -621,7 +621,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         "fi-r": GITHUB_JSON_FI_R,
         "r-ldh": GITHUB_JSON_R_LDH,
         "e-lam": GITHUB_JSON_E_LAM,
-        "300": GITHUB_JSON_300
+        "300": GITHUB_JSON_300,
+        "rim-la": GITHUB_JSON_RIM_LA
     }
 
     # Validar la categoría ingresada
@@ -690,7 +691,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         performance_score = jugador.get("Performance Score", 0)
         clan = jugador.get("Clan", "N/A")
         clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
-        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}](https://luccabruno3z.github.io/logos/Logo_{clan}.png)\n"
+        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}](clan_image_url)\n"
 
     embed.add_field(
         name="🔝 **Ranking**",
