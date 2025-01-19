@@ -680,7 +680,9 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
     for index, jugador in enumerate(top_jugadores, start=1):
         nombre = jugador.get("Player", "Desconocido")
         performance_score = jugador.get("Performance Score", 0)
-        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n"
+        clan = jugador.get("Clan", "N/A")
+        clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
+        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}]({clan_image_url})\n"
 
     embed.add_field(
         name="🔝 **Ranking**",
@@ -693,7 +695,6 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 
     # Enviar el embed
     await ctx.send(embed=embed)
-
 
 
 # Manejar errores globalmente
