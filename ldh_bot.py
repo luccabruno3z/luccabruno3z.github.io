@@ -522,8 +522,8 @@ async def compare(ctx, player1: str, player2: str):
         return
 
     # Buscar los jugadores en la base de datos
-    p1 = next((p for p in data if p['Player'].lower() == player1.lower()), None)
-    p2 = next((p for p in data if p['Player'].lower() == player2.lower()), None)
+    p1 = next((p for p in data if p['Player'] == player1), None)
+    p2 = next((p for p in data if p['Player'] == player2), None)
 
     if p1 and p2:
         # Determinar colores para cada jugador según su Performance Score
