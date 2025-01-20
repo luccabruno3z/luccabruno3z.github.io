@@ -57,16 +57,16 @@ GITHUB_VISUALIZER_2D = "https://luccabruno3z.github.io/realitytracker.github.io/
 
 # Diccionario de emojis de clanes personalizados
 CLAN_EMOJIS = {
-    "LDH": ":Logo_LDH:",
-    "SAE": ":Logo_SAE:",
-    "FI": ":Logo_FI:",
-    "FI-R": ":Logo_FI_R:",
-    "141": ":Logo_141:",
-    "R-LDH": ":Logo_R_LDH:",
-    "WD": ":Logo_WD:",
-    "300": ":Logo_300:",
-    "E-LAM": ":Logo_E_LAM:",
-    "RIM-LA": ":Logo_RIM_LA:"
+    "LDH": "<:Logo_LDH:>",  # Asegúrate de que estos nombres coincidan con los nombres de los emojis en tu servidor de Discord
+    "SAE": "<:Logo_SAE:>",
+    "FI": "<:Logo_FI:>",
+    "FI-R": "<:Logo_FI_R:>",
+    "141": "<:Logo_141:>",
+    "R-LDH": "<:Logo_R_LDH:>",
+    "WD": "<:Logo_WD:>",
+    "300": "<:Logo_300:>",
+    "E-LAM": "<:Logo_E_LAM:>",
+    "RIM-LA": "<:Logo_RIM_LA:>"
 }
 
 @bot.command()
