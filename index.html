@@ -267,6 +267,30 @@
             margin-bottom: 20px;
         }
 
+        /* Flex container for aligning chart and stats */
+        .clan-averages-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .clan-averages-chart {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+
+        .clan-averages-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .clan-averages-stats .stats-box {
+            width: calc(100% / 3 - 40px);
+        }
+
         /* Pie de página */
         footer {
             text-align: center;
@@ -315,6 +339,10 @@
 
             .resource-grid, .guide-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .clan-averages-stats .stats-box {
+                width: 100%;
             }
         }
     </style>
@@ -371,9 +399,9 @@
     <!-- Promedios de Clanes -->
     <section class="clan-averages">
         <h2>Promedios de Clanes</h2>
-        <div id="clan-averages-container">
-            <canvas id="clanAveragesChart"></canvas>
-            <div id="clan-averages-results" class="clan-averages-results"></div>
+        <div class="clan-averages-container">
+            <canvas id="clanAveragesChart" class="clan-averages-chart"></canvas>
+            <div id="clan-averages-results" class="clan-averages-stats"></div>
         </div>
     </section>
 
@@ -451,9 +479,9 @@
             <button type="submit">Buscar</button>
         </form>
         <div class="search-results" id="search-results"></div>
+        
     </section>
-
-    <!-- Guías -->
+  <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
         <div class="guide-grid">
@@ -570,24 +598,6 @@
                             scales: {
                                 y: {
                                     beginAtZero: true
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        afterBody: function(context) {
-                                            const index = context[0].dataIndex;
-                                            const clan = data[index];
-                                            return [
-                                                `Promedio K/D: ${clan["K/D Ratio"].toFixed(2)}`,
-                                                `Promedio Score: ${clan["Score per Round"].toFixed(2)}`,
-                                                `Promedio Kills: ${clan["Kills per Round"].toFixed(2)}`
-                                            ];
-                                        }
-                                    }
                                 }
                             }
                         }
