@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="icon" href="logos/favicon.ico" type="image/x-icon"> <!-- Aquí se añade el favicon -->
     <style>
-    <style>
         /* Estilo general con tema militar oscuro */
         body {
             font-family: 'Arial', sans-serif;
@@ -154,6 +153,7 @@
             justify-content: center;
             margin-top: 20px;
         }
+
         .social-button {
             padding: 10px;
             background-color: #666;
@@ -165,10 +165,12 @@
             gap: 10px;
             transition: background 0.3s;
         }
+
         .social-button img {
             width: 20px;
             height: 20px;
         }
+
         .social-button:hover, .social-button:focus {
             background: #555;
             outline: none;
@@ -180,6 +182,7 @@
             text-align: center;
             position: relative;
         }
+
         .search-form input {
             padding: 10px;
             border-radius: 5px;
@@ -188,6 +191,7 @@
             color: #fff;
             width: 300px;
         }
+
         .search-form button {
             padding: 10px 20px;
             border-radius: 5px;
@@ -197,10 +201,12 @@
             cursor: pointer;
             transition: background 0.3s;
         }
+
         .search-form button:hover, .search-form button:focus {
             background: #ddd;
             outline: none;
         }
+
         .suggestions {
             position: absolute;
             top: 40px;
@@ -214,19 +220,23 @@
             overflow-y: auto;
             z-index: 1000;
         }
+
         .suggestion-item {
             padding: 10px;
             cursor: pointer;
             color: #fff;
         }
+
         .suggestion-item:hover, .suggestion-item:focus {
             background: #444;
             outline: none;
         }
+
         .search-results {
             margin-top: 20px;
             text-align: center;
         }
+
         .stats-box {
             background: #222;
             border: 1px solid #fff;
@@ -398,13 +408,37 @@
         <div class="search-results" id="search-results"></div>
     </section>
 
+    <!-- Funcionalidades del Bot -->
+    <section class="bot-features" id="bot-features">
+        <h2>Funcionalidades del Bot LDH</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h3>Promedios de Clanes</h3>
+                <p>Consulta los promedios de estadísticas de cada clan, incluyendo K/D Ratio, puntuación por ronda, y más.</p>
+                <p>Comando: <code>-promedios</code></p>
+            </div>
+            <div class="feature-item">
+                <h3>Top Jugadores</h3>
+                <p>Obtén el top de jugadores según diferentes categorías y métricas.</p>
+                <p>Comando: <code>-top &lt;cantidad&gt; &lt;categoría&gt; &lt;métrica&gt;</code></p>
+                <p>Ejemplo: <code>-top 10 ldh performance</code></p>
+            </div>
+            <div class="feature-item">
+                <h3>Comparar Jugadores</h3>
+                <p>Compara las estadísticas de dos jugadores o clanes.</p>
+                <p>Comando: <code>-compare &lt;jugador1&gt; &lt;jugador2&gt;</code></p>
+                <p>Ejemplo: <code>-compare W4RR10R Grozny</code></p>
+            </div>
+        </div>
+    </section>
+
     <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
         <div class="guide-grid">
             <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
+            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div[...]
             <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
         </div>
     </section>
@@ -442,52 +476,52 @@
                         player.Player.includes(query)
                     );
 
-                    filteredPlayers.forEach(player => {
-                        const suggestionItem = document.createElement('div');
-                        suggestionItem.classList.add('suggestion-item');
-                        suggestionItem.textContent = player.Player;
-                        suggestionItem.addEventListener('click', function() {
-                            playerNameInput.value = player.Player;
-                            suggestionsContainer.innerHTML = '';
-                        });
-                        suggestionsContainer.appendChild(suggestionItem);
-                    });
-                }
+                   filteredPlayers.forEach(player => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.classList.add('suggestion-item');
+                suggestionItem.textContent = player.Player;
+                suggestionItem.addEventListener('click', function() {
+                    playerNameInput.value = player.Player;
+                    suggestionsContainer.innerHTML = '';
+                });
+                suggestionsContainer.appendChild(suggestionItem);
             });
+        }
+    });
 
-            // Add event listener for form submission
-            document.getElementById('search-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const playerName = playerNameInput.value.trim();
-                const player = playersData.find(p => p.Player === playerName);
-                const resultsContainer = document.getElementById('search-results');
-                resultsContainer.innerHTML = '';
+    // Add event listener for form submission
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const playerName = playerNameInput.value.trim();
+        const player = playersData.find(p => p.Player === playerName);
+        const resultsContainer = document.getElementById('search-results');
+        resultsContainer.innerHTML = '';
 
-                if (player) {
-                    const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
-                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
-                    const playerStats = `
-                        <div class="stats-box">
-                            ${clanLogo}
-                            <h3>Estadísticas de ${player.Player}</h3>
-                            <p><strong>Ranking Global:</strong> #${ranking}</p>
-                            <p><strong>Clan:</strong> ${player.Clan}</p>
-                            <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
-                            <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
-                            <p><strong>Asesinatos Totales:</strong> ${player["Total Kills"]}</p>
-                            <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
-                            <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"]}</p>
-                            <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"]}</p>
-                            <p><strong>Asesinatos por Ronda:</strong> ${player["Kills per Round"]}</p>
-                            <p><strong>Performance Score:</strong> ${player["Performance Score"]}</p>
-                        </div>
-                    `;
-                    resultsContainer.innerHTML = playerStats;
-                } else {
-                    resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
-                }
-            });
-        });
-    </script>
+        if (player) {
+            const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
+            const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
+            const playerStats = `
+                <div class="stats-box">
+                    ${clanLogo}
+                    <h3>Estadísticas de ${player.Player}</h3>
+                    <p><strong>Ranking Global:</strong> #${ranking}</p>
+                    <p><strong>Clan:</strong> ${player.Clan}</p>
+                    <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
+                    <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
+                    <p><strong>Asesinatos Totales:</strong> ${player["Total Kills"]}</p>
+                    <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
+                    <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"]}</p>
+                    <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"]}</p>
+                    <p><strong>Asesinatos por Ronda:</strong> ${player["Kills per Round"]}</p>
+                    <p><strong>Performance Score:</strong> ${player["Performance Score"]}</p>
+                </div>
+            `;
+            resultsContainer.innerHTML = playerStats;
+        } else {
+            resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
+        }
+    });
+});
+</script>
 </body>
 </html>
