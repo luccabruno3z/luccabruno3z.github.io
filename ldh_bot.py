@@ -143,11 +143,15 @@ async def estadisticas(ctx, jugador: str = None):
     # Ordenar por Performance Score y obtener el ranking general
     jugadores_ordenados = sorted(data, key=lambda x: x.get("Performance Score", 0), reverse=True)
 
-    # Buscar al jugador y su ranking
+    # Buscar al jugador y su ranking global
     jugador_encontrado = next((entry for entry in jugadores_ordenados if entry["Player"] == jugador), None)
-    ranking = next((index + 1 for index, entry in enumerate(jugadores_ordenados) if entry["Player"] == jugador), "N/A")
+    ranking_global = next((index + 1 for index, entry in enumerate(jugadores_ordenados) if entry["Player"] == jugador), "N/A")
 
     if jugador_encontrado:
+        # Filtrar jugadores del mismo clan
+        jugadores_clan = [entry for entry in jugadores_ordenados if entry.get("Clan") == jugador_encontrado.get("Clan")]
+        ranking_clan = next((index + 1 for index, entry in enumerate(jugadores_clan) if entry["Player"] == jugador), "N/A")
+
         # Determinar color del embed basado en Performance Score
         performance_score = jugador_encontrado.get('Performance Score', 0)
         if performance_score >= 0.85:
@@ -173,7 +177,8 @@ async def estadisticas(ctx, jugador: str = None):
         # Crear embed con el ranking incluido
         embed = discord.Embed(
             title=f"📊 Estadísticas de {jugador}",
-            description=f"**Ranking Global:** #{ranking}",
+            description=(f"**Ranking Global:** #{ranking_global}\n"
+                         f"**Ranking en el Clan:** #{ranking_clan}"),
             color=color
         )
         embed.set_thumbnail(url=clan_image_url)  # Imagen del clan
