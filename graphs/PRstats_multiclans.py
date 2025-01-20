@@ -74,8 +74,8 @@ df_general["K/D Ratio"] = df_general["Total Kills"] / df_general["Total Deaths"]
 df_general["Score per Round"] = df_general["Total Score"] / df_general["Rounds"]
 df_general["Kills per Round"] = df_general["Total Kills"] / df_general["Rounds"]
 
-# Reemplazar infinitos y valores erróneos
-df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
+# Penalización proporcional por pocas rondas jugadas
+df_general["Performance Score"] *= df_general["Rounds"].apply(lambda x: 0.2 if x < 10 else (x / 50 + 0.2) if x < 50 else 1)
 
 # Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
