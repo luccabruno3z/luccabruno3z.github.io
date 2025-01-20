@@ -74,8 +74,9 @@ df_general["K/D Ratio"] = df_general["Total Kills"] / df_general["Total Deaths"]
 df_general["Score per Round"] = df_general["Total Score"] / df_general["Rounds"]
 df_general["Kills per Round"] = df_general["Total Kills"] / df_general["Rounds"]
 
-# Penalización proporcional por pocas rondas jugadas
-df_general["Performance Score"] *= df_general["Rounds"].apply(lambda x: 0.2 if x < 10 else (x / 50 + 0.2) if x < 50 else 1)
+# Reemplazar infinitos y valores erróneos
+df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
+
 
 # Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
@@ -91,8 +92,8 @@ df_general["Performance Score"] = (
     0.2 * df_general["Normalized_Rounds"]
 )
 
-# Penalización por pocas rondas jugadas
-df_general.loc[df_general["Rounds"] < 10, "Performance Score"] *= 0.5
+# Penalización proporcional por pocas rondas jugadas
+df_general["Performance Score"] *= df_general["Rounds"].apply(lambda x: 0.2 if x < 10 else (x / 50 + 0.2) if x < 50 else 1)
 
 # Crear gráfico general interactivo basado en el Performance Score
 fig_general = px.scatter(
