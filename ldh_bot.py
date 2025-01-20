@@ -55,6 +55,20 @@ GITHUB_INDEX = "https://luccabruno3z.github.io"
 GITHUB_GUIDES = "https://luccabruno3z.github.io/#guias"
 GITHUB_VISUALIZER_2D = "https://luccabruno3z.github.io/realitytracker.github.io/"
 
+# Diccionario de emojis de clanes personalizados
+CLAN_EMOJIS = {
+    "LDH": ":Logo_LDH:",
+    "SAE": ":Logo_SAE:",
+    "FI": ":Logo_FI:",
+    "FI-R": ":Logo_FI_R:",
+    "141": ":Logo_141:",
+    "R-LDH": ":Logo_R_LDH:",
+    "WD": ":Logo_WD:",
+    "300": ":Logo_300:",
+    "E-LAM": ":Logo_E_LAM:",
+    "RIM-LA": ":Logo_RIM_LA:"
+}
+
 @bot.command()
 async def guias(ctx):
     await ctx.send(f"[Aquí tienes acceso a las guías de la página!]({GITHUB_GUIDES})")
@@ -690,7 +704,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         nombre = jugador.get("Player", "Desconocido")
         performance_score = jugador.get("Performance Score", 0)
         clan = jugador.get("Clan", "N/A")
-        clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
+        clan_emoji = CLAN_EMOJIS.get(clan, "")
+        
         jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}](clan_image_url)\n"
 
     embed.add_field(
