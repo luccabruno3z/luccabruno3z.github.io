@@ -720,7 +720,6 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
     # Enviar el embed
     await ctx.send(embed=embed)
     print("Embed enviado correctamente.")
-
 # Manejar errores globalmente
 @bot.event
 async def on_command_error(ctx, error):
