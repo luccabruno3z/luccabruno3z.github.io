@@ -545,14 +545,19 @@ async def promedios(ctx):
 
 
 @bot.command()
-async def compare(ctx, player1: str, player2: str):
+async def compare(ctx, entity1: str, entity2: str):
     """
-    Compara las estadísticas de dos jugadores usando el archivo JSON alojado en GitHub Pages.
+    Compara las estadísticas de dos jugadores o clanes usando los archivos JSON alojados en GitHub Pages.
     """
     try:
-        response = requests.get(GITHUB_JSON_PLAYERS)
-        response.raise_for_status()
-        data = response.json()
+        response_players = requests.get(GITHUB_JSON_PLAYERS)
+        response_players.raise_for_status()
+        data_players = response_players.json()
+        
+        response_clans = requests.get(GITHUB_JSON_CLANS)
+        response_clans.raise_for_status()
+        data_clans = response_clans.json()
+        
     except requests.exceptions.RequestException as e:
         await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
         print(f"Error: {e}")
@@ -561,12 +566,15 @@ async def compare(ctx, player1: str, player2: str):
         await ctx.send("❌ Error al procesar los datos del archivo JSON.")
         return
 
-    # Buscar los jugadores en la base de datos
-    p1 = next((p for p in data if p['Player'] == player1), None)
-    p2 = next((p for p in data if p['Player'] == player2), None)
+    # Buscar los jugadores o clanes en la base de datos
+    p1 = next((p for p in data_players if p['Player'].lower() == entity1.lower()), None)
+    p2 = next((p for p in data_players if p['Player'].lower() == entity2.lower()), None)
+    
+    c1 = next((c for c in data_clans if c['Clan'].lower() == entity1.lower()), None)
+    c2 = next((c for c in data_clans if c['Clan'].lower() == entity2.lower()), None)
 
     if p1 and p2:
-        # Determinar colores para cada jugador según su Performance Score
+        # Comparar jugadores
         def determinar_color(performance_score):
             if performance_score >= 0.85:
                 return discord.Color.gold()
@@ -582,9 +590,8 @@ async def compare(ctx, player1: str, player2: str):
         color1 = determinar_color(p1.get('Performance Score', 0))
         color2 = determinar_color(p2.get('Performance Score', 0))
 
-        # Crear embed para la comparación
         embed = discord.Embed(
-            title=f"🔍 Comparación entre {player1} y {player2}",
+            title=f"🔍 Comparación entre {entity1} y {entity2}",
             description="Estadísticas detalladas comparadas:",
             color=discord.Color.purple()
         )
@@ -602,7 +609,7 @@ async def compare(ctx, player1: str, player2: str):
             inline=True
         )
         embed.add_field(
-            name=f"🎮 {player1}",
+            name=f"🎮 {entity1}",
             value=(
                 f"{p1['K/D Ratio']:.2f}\n"
                 f"{p1.get('Kills per Round', 'N/A')}\n"
@@ -615,7 +622,7 @@ async def compare(ctx, player1: str, player2: str):
             inline=True
         )
         embed.add_field(
-            name=f"🎮 {player2}",
+            name=f"🎮 {entity2}",
             value=(
                 f"{p2['K/D Ratio']:.2f}\n"
                 f"{p2.get('Kills per Round', 'N/A')}\n"
@@ -628,11 +635,10 @@ async def compare(ctx, player1: str, player2: str):
             inline=True
         )
 
-        # Resolución sobre el mejor jugador
         if p1['Performance Score'] > p2['Performance Score']:
-            resolution = f"🌟 **{player1}** parece ser mejor que **{player2}**."
+            resolution = f"🌟 **{entity1}** parece ser mejor que **{entity2}**."
         elif p1['Performance Score'] < p2['Performance Score']:
-            resolution = f"🌟 **{player2}** parece ser mejor que **{player1}**."
+            resolution = f"🌟 **{entity2}** parece ser mejor que **{entity1}**."
         else:
             resolution = "🤝 Ambos jugadores tienen un desempeño similar."
 
@@ -640,8 +646,69 @@ async def compare(ctx, player1: str, player2: str):
         embed.set_footer(text="📅 Datos actualizados recientemente.")
 
         await ctx.send(embed=embed)
+
+    elif c1 and c2:
+        # Comparar clanes usando valores totales
+        def obtener_total_clan(clan):
+            total_kills = clan.get('Total Kills', 0)
+            total_deaths = clan.get('Total Deaths', 0)
+            total_score = clan.get('Total Score', 0)
+            total_rounds = clan.get('Total Rounds', 0)
+            return total_kills, total_deaths, total_score, total_rounds
+
+        kills1, deaths1, score1, rounds1 = obtener_total_clan(c1)
+        kills2, deaths2, score2, rounds2 = obtener_total_clan(c2)
+
+        embed = discord.Embed(
+            title=f"🔍 Comparación entre los clanes {entity1} y {entity2}",
+            description="Totales de estadísticas comparadas:",
+            color=discord.Color.gold()
+        )
+        embed.add_field(
+            name="Estadística",
+            value=(
+                "☠️ **Total Kills**\n"
+                "💀 **Total Deaths**\n"
+                "🏆 **Total Score**\n"
+                "🎮 **Total Rounds**"
+            ),
+            inline=True
+        )
+        embed.add_field(
+            name=f"🏅 {entity1}",
+            value=(
+                f"{kills1}\n"
+                f"{deaths1}\n"
+                f"{score1}\n"
+                f"{rounds1}"
+            ),
+            inline=True
+        )
+        embed.add_field(
+            name=f"🏅 {entity2}",
+            value=(
+                f"{kills2}\n"
+                f"{deaths2}\n"
+                f"{score2}\n"
+                f"{rounds2}"
+            ),
+            inline=True
+        )
+
+        if score1 > score2:
+            resolution = f"🌟 **{entity1}** parece ser mejor que **{entity2}**."
+        elif score1 < score2:
+            resolution = f"🌟 **{entity2}** parece ser mejor que **{entity1}**."
+        else:
+            resolution = "🤝 Ambos clanes tienen un desempeño similar."
+
+        embed.add_field(name="Resolución", value=resolution, inline=False)
+        embed.set_footer(text="📅 Datos actualizados recientemente.")
+
+        await ctx.send(embed=embed)
+
     else:
-        await ctx.send("⚠️ No se encontraron estadísticas para uno o ambos jugadores.")
+        await ctx.send("⚠️ No se encontraron estadísticas para uno o ambas entidades (jugadores o clanes).")
 
 
 @bot.command()
