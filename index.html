@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="icon" href="logos/favicon.ico" type="image/x-icon">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluimos Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Estilo general con tema militar oscuro */
         body {
@@ -371,8 +371,10 @@
     <!-- Promedios de Clanes -->
     <section class="clan-averages">
         <h2>Promedios de Clanes</h2>
-        <canvas id="clanAveragesChart"></canvas>
-        <div id="clan-averages-results" class="clan-averages-results"></div>
+        <div id="clan-averages-container">
+            <canvas id="clanAveragesChart"></canvas>
+            <div id="clan-averages-results" class="clan-averages-results"></div>
+        </div>
     </section>
 
     <!-- Top Players -->
@@ -568,6 +570,24 @@
                             scales: {
                                 y: {
                                     beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        afterBody: function(context) {
+                                            const index = context[0].dataIndex;
+                                            const clan = data[index];
+                                            return [
+                                                `Promedio K/D: ${clan["K/D Ratio"].toFixed(2)}`,
+                                                `Promedio Score: ${clan["Score per Round"].toFixed(2)}`,
+                                                `Promedio Kills: ${clan["Kills per Round"].toFixed(2)}`
+                                            ];
+                                        }
+                                    }
                                 }
                             }
                         }
