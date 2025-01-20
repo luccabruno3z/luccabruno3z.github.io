@@ -394,7 +394,8 @@ async def ayuda(ctx):
             "  🏆 **Total Score**\n"
             "  🎖️ **Clan**\n"
             "  💀 **Total Muertes**\n"
-            "  📉 **Tasa de Muertes**\n\n"
+            "  📉 **Tasa de Muertes**\n"
+            "  🏅 **Ranking en el Clan**\n\n"
             "`-compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores."
         ),
         inline=False
@@ -422,8 +423,9 @@ async def ayuda(ctx):
     embed.add_field(
         name="🏅 **Rankings y Promedios**",
         value=(
-            "`-top <cantidad de jugadores> <categoría>` - Muestra el top de jugadores según la categoría especificada:\n"
-            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`.\n"
+            "`-top <cantidad de jugadores> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada:\n"
+            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`.\n"
+            "  Métricas: `Performance Score`, `K/D Ratio`, `Total Kills`, `Total Deaths`, `Rounds`.\n"
             "`-promedios` - Muestra los promedios de estadísticas por clan."
         ),
         inline=False
