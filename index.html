@@ -406,6 +406,11 @@
             <button type="submit">Buscar</button>
         </form>
         <div class="search-results" id="search-results"></div>
+        <div class="actions">
+            <button id="compare-button">Comparar Jugadores</button>
+            <button id="top-button">Ver Top Jugadores</button>
+            <button id="averages-button">Ver Promedios de Clanes</button>
+        </div>
     </section>
 
     <!-- Funcionalidades del Bot -->
@@ -450,33 +455,36 @@
     </footer>
 
 <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const playerNameInput = document.getElementById('player-name');
-            const suggestionsContainer = document.getElementById('suggestions');
-            let playersData = [];
+document.addEventListener('DOMContentLoaded', function() {
+    const playerNameInput = document.getElementById('player-name');
+    const suggestionsContainer = document.getElementById('suggestions');
+    const compareButton = document.getElementById('compare-button');
+    const topButton = document.getElementById('top-button');
+    const averagesButton = document.getElementById('averages-button');
+    let playersData = [];
 
-            // Fetch the players data from the JSON file
-            fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
-                .then(response => response.json())
-                .then(data => {
-                    playersData = data;
+    // Fetch the players data from the JSON file
+    fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
+        .then(response => response.json())
+        .then(data => {
+            playersData = data;
 
-                    // Ordenar los jugadores por Performance Score
-                    playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
-                })
-                .catch(error => console.error('Error al cargar el archivo JSON:', error));
+// Ordenar los jugadores por Performance Score
+        playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
+    })
+    .catch(error => console.error('Error al cargar el archivo JSON:', error));
 
-            // Add event listener for input changes
-            playerNameInput.addEventListener('input', function() {
-                const query = playerNameInput.value.trim();
-                suggestionsContainer.innerHTML = '';
+    // Add event listener for input changes
+    playerNameInput.addEventListener('input', function() {
+        const query = playerNameInput.value.trim();
+        suggestionsContainer.innerHTML = '';
 
-                if (query.length > 0) {
-                    const filteredPlayers = playersData.filter(player =>
-                        player.Player.includes(query)
-                    );
+        if (query.length > 0) {
+            const filteredPlayers = playersData.filter(player =>
+                player.Player.includes(query)
+            );
 
-                   filteredPlayers.forEach(player => {
+            filteredPlayers.forEach(player => {
                 const suggestionItem = document.createElement('div');
                 suggestionItem.classList.add('suggestion-item');
                 suggestionItem.textContent = player.Player;
@@ -520,6 +528,48 @@
         } else {
             resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
         }
+    });
+
+    // Add event listener for compare button
+    compareButton.addEventListener('click', function() {
+        const player1 = prompt("Ingrese el nombre del primer jugador:");
+        const player2 = prompt("Ingrese el nombre del segundo jugador:");
+        if (player1 && player2) {
+            const p1 = playersData.find(p => p.Player === player1);
+            const p2 = playersData.find(p => p.Player === player2);
+            
+            if (p1 && p2) {
+                const compareResultsContainer = document.getElementById('search-results');
+                const comparison = `
+                    <div class="stats-box">
+                        <h3>Comparación entre ${p1.Player} y ${p2.Player}</h3>
+                        <p><strong>${p1.Player}:</strong> ${p1["Performance Score"]}</p>
+                        <p><strong>${p2.Player}:</strong> ${p2["Performance Score"]}</p>
+                    </div>
+                `;
+                compareResultsContainer.innerHTML = comparison;
+            } else {
+                alert("Uno o ambos jugadores no fueron encontrados.");
+            }
+        }
+    });
+
+    // Add event listener for top button
+    topButton.addEventListener('click', function() {
+        const topCount = prompt("Ingrese la cantidad de jugadores para el top:");
+        const topCategory = prompt("Ingrese la categoría (general, ldh, sae, fi, 141, fi-r, r-ldh, e-lam, 300, rim-la):");
+        const topMetric = prompt("Ingrese la métrica (performance, kd, kills, deaths, rounds):");
+        
+        // Aquí se podría agregar la lógica para filtrar y mostrar el top de jugadores según la categoría y métrica especificada.
+        // Para simplicidad, aquí solo mostramos un mensaje.
+        alert(`Mostrar top ${topCount} jugadores en la categoría ${topCategory} por la métrica ${topMetric}.`);
+    });
+
+    // Add event listener for averages button
+    averagesButton.addEventListener('click', function() {
+        // Aquí se podría agregar la lógica para mostrar los promedios de clanes.
+        // Para simplicidad, aquí solo mostramos un mensaje.
+        alert("Mostrar promedios de clanes.");
     });
 });
 </script>
