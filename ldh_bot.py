@@ -425,7 +425,7 @@ async def ayuda(ctx):
         value=(
             "`-top <cantidad de jugadores> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada:\n"
             "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`.\n"
-            "  Métricas: `Performance Score`, `K/D Ratio`, `Total Kills`, `Total Deaths`, `Rounds`.\n"
+            "  Métricas: `Performance`, `KD`, `Kills`, `Deaths`, `Rounds`.\n"
             "`-promedios` - Muestra los promedios de estadísticas por clan."
         ),
         inline=False
@@ -634,11 +634,11 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         return
 
     # Validar la métrica ingresada
-    metricas_validas = ["PerformanceScore", "KDRatio", "TotalKills", "TotalDeaths", "Rounds"]
+    metricas_validas = ["Performance", "KD", "Kills", "Deaths", "Rounds"]
     if metrica not in metricas_validas:
         await ctx.send(
             "❗ **Métrica inválida.** Las métricas válidas son:\n"
-            "`PerformanceScore`, `KDRatio`, `TotalKills`, `TotalDeaths`, `Rounds`."
+            "`Performance`, `KD`, `Kills`, `Deaths`, `Rounds`."
         )
         return
 
@@ -660,11 +660,21 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         print("Error al procesar los datos del archivo JSON.")
         return
 
+    # Ensure the metric key matches the JSON data structure
+    metric_key_mapping = {
+        "Performance": "Performance Score",
+        "KD": "K/D Ratio",
+        "Kills": "Total Kills",
+        "Deaths": "Total Deaths",
+        "Rounds": "Rounds"
+    }
+    metric_key = metric_key_mapping.get(metrica, metrica)
+
     # Ordenar los jugadores por la métrica seleccionada
     try:
         jugadores_ordenados = sorted(
             data, 
-            key=lambda x: x.get(metrica, 0), 
+            key=lambda x: x.get(metric_key, 0), 
             reverse=True
         )
         print("Jugadores ordenados correctamente.")
@@ -692,7 +702,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
     jugadores_lista = ""
     for index, jugador in enumerate(top_jugadores, start=1):
         nombre = jugador.get("Player", "Desconocido")
-        valor_metrica = jugador.get(metrica, 0)
+        valor_metrica = jugador.get(metric_key, 0)
         clan = jugador.get("Clan", "N/A")
         clan_emoji = CLAN_EMOJIS.get(clan, "")
 
@@ -710,7 +720,6 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
     # Enviar el embed
     await ctx.send(embed=embed)
     print("Embed enviado correctamente.")
-
 # Manejar errores globalmente
 @bot.event
 async def on_command_error(ctx, error):
