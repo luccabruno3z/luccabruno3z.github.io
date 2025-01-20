@@ -6,7 +6,7 @@
     <title>Legión de Hierro - Estadísticas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link rel="icon" href="logos/favicon.ico" type="image/x-icon"> <!-- Aquí se añade el favicon -->
+    <link rel="icon" href="logos/favicon.ico" type="image/x-icon">
     <style>
         /* Estilo general con tema militar oscuro */
         body {
@@ -92,13 +92,13 @@
         }
 
         /* Sección de Actualizaciones y Guías */
-        .updates, .resources, .guides {
+        .updates, .resources, .guides, .clan-averages, .top-players, .compare-section {
             padding: 60px 20px;
             text-align: center;
             background: #1a1a1a;
         }
 
-        .updates h2, .resources h2, .guides h2 {
+        .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2 {
             font-size: 2.5rem;
             margin-bottom: 20px;
             color: #fff;
@@ -307,7 +307,7 @@
                 font-size: 1rem;
             }
 
-            .updates h2, .resources h2, .guides h2 {
+            .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2 {
                 font-size: 2rem;
             }
 
@@ -366,6 +366,57 @@
         </div>
     </section>
 
+    <!-- Promedios de Clanes -->
+    <section class="clan-averages">
+        <h2>Promedios de Clanes</h2>
+        <div id="clan-averages-results"></div>
+    </section>
+
+    <!-- Top Players -->
+    <section class="top-players">
+        <h2>Top Jugadores</h2>
+        <form id="top-players-form">
+            <label for="category">Categoría:</label>
+            <select id="category" name="category">
+                <option value="general">General</option>
+                <option value="ldh">LDH</option>
+                <option value="sae">SAE</option>
+                <option value="fi">FI</option>
+                <option value="141">141</option>
+                <option value="fi-r">FI-R</option>
+                <option value="r-ldh">R-LDH</option>
+                <option value="e-lam">E-LAM</option>
+                <option value="300">300</option>
+                <option value="rim-la">RIM-LA</option>
+            </select>
+            <label for="metric">Métrica:</label>
+            <select id="metric" name="metric">
+                <option value="performance">Performance Score</option>
+                <option value="kd">K/D Ratio</option>
+                <option value="kills">Total Kills</option>
+                <option value="deaths">Total Deaths</option>
+                <option value="rounds">Rounds</option>
+            </select>
+            <label for="top-number">Cantidad:</label>
+            <input type="number" id="top-number" name="top-number" min="1" value="10">
+            <button type="submit">Ver Top</button>
+        </form>
+        <div id="top-players-results"></div>
+    </section>
+
+    <!-- Comparar Jugadores o Clanes -->
+    <section class="compare-section">
+        <h2>Comparar Jugadores o Clanes</h2>
+        <form id="compare-form">
+            <label for="entity1">Entidad 1:</label>
+            <input type="text" id="entity1" name="entity1" required>
+            <label for="entity2">Entidad 2:</label>
+            <input type="text" id="entity2" name="entity2" required>
+            <button type="submit">Comparar</button>
+        </form>
+        <div id="compare-results"></div>
+    </section>
+
     <!-- Redes Sociales -->
     <section class="social-section">
         <h2>Síguenos en nuestras redes sociales</h2>
@@ -406,7 +457,7 @@
             <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
         </div>
-    </section>
+</section>
 
     <!-- Pie de Página -->
     <footer>
@@ -462,7 +513,7 @@
                 const resultsContainer = document.getElementById('search-results');
                 resultsContainer.innerHTML = '';
 
-if (player) {
+                if (player) {
                     const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
                     const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
                     const playerStats = `
@@ -485,6 +536,110 @@ if (player) {
                 } else {
                     resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
                 }
+            });
+
+            // Fetch and display clan averages
+            fetch('https://luccabruno3z.github.io/graphs/clan_averages.json')
+                .then(response => response.json())
+                .then(data => {
+                    const averagesContainer = document.getElementById('clan-averages-results');
+                    averagesContainer.innerHTML = '';
+
+                    data.forEach(clan => {
+                        const clanAverage = `
+                            <div class="stats-box">
+                                <h3>${clan.Clan}</h3>
+                                <p><strong>Promedio K/D:</strong> ${clan["K/D Ratio"].toFixed(2)}</p>
+                                <p><strong>Promedio Score:</strong> ${clan["Score per Round"].toFixed(2)}</p>
+                                <p><strong>Promedio Kills:</strong> ${clan["Kills per Round"].toFixed(2)}</p>
+                                <p><strong>Performance Score:</strong> ${clan["Performance Score"].toFixed(2)}</p>
+                            </div>
+                        `;
+                        averagesContainer.innerHTML += clanAverage;
+                    });
+                })
+                .catch(error => console.error('Error al cargar el archivo JSON de promedios:', error));
+
+            // Handle top players form submission
+            document.getElementById('top-players-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const category = document.getElementById('category').value;
+                const metric = document.getElementById('metric').value;
+                const topNumber = document.getElementById('top-number').value;
+                const url = `https://luccabruno3z.github.io/graphs/${category}_players.json`;
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        const topPlayersContainer = document.getElementById('top-players-results');
+                        topPlayersContainer.innerHTML = '';
+
+                        const metricKeyMapping = {
+                            "performance": "Performance Score",
+                            "kd": "K/D Ratio",
+                            "kills": "Total Kills",
+                            "deaths": "Total Deaths",
+                            "rounds": "Rounds"
+                        };
+                        const metricKey = metricKeyMapping[metric];
+
+                        // Ordenar los jugadores por la métrica seleccionada
+                        const sortedPlayers = data.sort((a, b) => b[metricKey] - a[metricKey]).slice(0, topNumber);
+
+                        sortedPlayers.forEach((player, index) => {
+                            const topPlayer = `
+                                <div class="stats-box">
+                                    <h3>#${index + 1} - ${player.Player}</h3>
+                                    <p><strong>Clan:</strong> ${player.Clan}</p>
+                                    <p><strong>${metricKey}:</strong> ${player[metricKey].toFixed(2)}</p>
+                                </div>
+                            `;
+                            topPlayersContainer.innerHTML += topPlayer;
+                        });
+                    })
+                    .catch(error => console.error('Error al cargar el archivo JSON para top players:', error));
+            });
+
+            // Handle compare form submission
+            document.getElementById('compare-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const entity1 = document.getElementById('entity1').value.trim();
+                const entity2 = document.getElementById('entity2').value.trim();
+
+                fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        const player1 = data.find(p => p.Player.toLowerCase() === entity1.toLowerCase());
+                        const player2 = data.find(p => p.Player.toLowerCase() === entity2.toLowerCase());
+
+                        const compareContainer = document.getElementById('compare-results');
+                        compareContainer.innerHTML = '';
+
+                        if (player1 && player2) {
+                            const compareStats = `
+                                <div class="stats-box">
+                                    <h3>Comparación entre ${player1.Player} y ${player2.Player}</h3>
+                                    <p><strong>${player1.Player} (Clan ${player1.Clan}):</strong></p>
+                                    <p>K/D Ratio: ${player1["K/D Ratio"].toFixed(2)}</p>
+                                    <p>Performance Score: ${player1["Performance Score"].toFixed(2)}</p>
+                                    <p>Total Kills: ${player1["Total Kills"]}</p>
+                                    <p>Total Deaths: ${player1["Total Deaths"]}</p>
+                                    <p>Rounds: ${player1.Rounds}</p>
+                                    <hr>
+                                    <p><strong>${player2.Player} (Clan ${player2.Clan}):</strong></p>
+                                    <p>K/D Ratio: ${player2["K/D Ratio"].toFixed(2)}</p>
+                                    <p>Performance Score: ${player2["Performance Score"].toFixed(2)}</p>
+                                    <p>Total Kills: ${player2["Total Kills"]}</p>
+                                    <p>Total Deaths: ${player2["Total Deaths"]}</p>
+                                    <p>Rounds: ${player2.Rounds}</p>
+                                </div>
+                            `;
+                            compareContainer.innerHTML = compareStats;
+                        } else {
+                            compareContainer.innerHTML = '<p>Uno o ambos jugadores no fueron encontrados.</p>';
+                        }
+                    })
+                    .catch(error => console.error('Error al cargar el archivo JSON para comparación:', error));
             });
         });
     </script>
