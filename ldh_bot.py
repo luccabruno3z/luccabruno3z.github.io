@@ -605,7 +605,7 @@ async def compare(ctx, player1: str, player2: str):
 
 
 @bot.command()
-async def top(ctx, cantidad: int = 50, categoria: str = "general", metrica: str = "PerformanceScore"):
+async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "´performance"):
     # Diccionario de categorías válidas y sus URLs correspondientes
     categorias_validas = {
         "general": GITHUB_JSON_PLAYERS,
@@ -638,8 +638,7 @@ async def top(ctx, cantidad: int = 50, categoria: str = "general", metrica: str 
     if metrica not in metricas_validas:
         await ctx.send(
             "❗ **Métrica inválida.** Las métricas válidas son:\n"
-            "`performance`, `kd`, `kills`, `deaths`, `rounds`.\n"
-            "`-top <cantidad de jugadores> <categoría> <métrica>`"
+            "`performance`, `kd`, `kills`, `deaths`, `rounds`."
         )
         return
 
@@ -721,6 +720,7 @@ async def top(ctx, cantidad: int = 50, categoria: str = "general", metrica: str 
     # Enviar el embed
     await ctx.send(embed=embed)
     print("Embed enviado correctamente.")
+
 # Manejar errores globalmente
 @bot.event
 async def on_command_error(ctx, error):
