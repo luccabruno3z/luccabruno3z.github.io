@@ -174,20 +174,21 @@
         }
 
         /* Estilos para el formulario de búsqueda */
-        .search-form {
+        .search-form, .top-players-form, .compare-form {
             margin-top: 20px;
             text-align: center;
             position: relative;
         }
-        .search-form input {
+        .search-form input, .top-players-form input, .compare-form input, .top-players-form select {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #fff;
             background: #333;
             color: #fff;
             width: 300px;
+            margin: 5px;
         }
-        .search-form button {
+        .search-form button, .top-players-form button, .compare-form button {
             padding: 10px 20px;
             border-radius: 5px;
             border: none;
@@ -196,7 +197,7 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-        .search-form button:hover, .search-form button:focus {
+        .search-form button:hover, .search-form button:focus, .top-players-form button:hover, .top-players-form button:focus, .compare-form button:hover, .compare-form button:focus {
             background: #ddd;
             outline: none;
         }
@@ -222,7 +223,7 @@
             background: #444;
             outline: none;
         }
-        .search-results {
+        .search-results, .clan-averages-results, .top-players-results, .compare-results {
             margin-top: 20px;
             text-align: center;
         }
@@ -369,13 +370,13 @@
     <!-- Promedios de Clanes -->
     <section class="clan-averages">
         <h2>Promedios de Clanes</h2>
-        <div id="clan-averages-results"></div>
+        <div id="clan-averages-results" class="clan-averages-results"></div>
     </section>
 
     <!-- Top Players -->
     <section class="top-players">
         <h2>Top Jugadores</h2>
-        <form id="top-players-form">
+        <form id="top-players-form" class="top-players-form">
             <label for="category">Categoría:</label>
             <select id="category" name="category">
                 <option value="general">General</option>
@@ -401,20 +402,20 @@
             <input type="number" id="top-number" name="top-number" min="1" value="10">
             <button type="submit">Ver Top</button>
         </form>
-        <div id="top-players-results"></div>
+        <div id="top-players-results" class="top-players-results"></div>
     </section>
 
     <!-- Comparar Jugadores o Clanes -->
     <section class="compare-section">
         <h2>Comparar Jugadores o Clanes</h2>
-        <form id="compare-form">
+        <form id="compare-form" class="compare-form">
             <label for="entity1">Entidad 1:</label>
             <input type="text" id="entity1" name="entity1" required>
             <label for="entity2">Entidad 2:</label>
             <input type="text" id="entity2" name="entity2" required>
             <button type="submit">Comparar</button>
         </form>
-        <div id="compare-results"></div>
+        <div id="compare-results" class="compare-results"></div>
     </section>
 
     <!-- Redes Sociales -->
@@ -454,10 +455,10 @@
         <div class="guide-grid">
             <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
+        <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
         </div>
-</section>
+    </section>
 
     <!-- Pie de Página -->
     <footer>
