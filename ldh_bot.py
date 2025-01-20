@@ -554,10 +554,6 @@ async def compare(ctx, entity1: str, entity2: str):
         response_players.raise_for_status()
         data_players = response_players.json()
         
-        response_clans = requests.get(GITHUB_JSON_CLANS)
-        response_clans.raise_for_status()
-        data_clans = response_clans.json()
-        
     except requests.exceptions.RequestException as e:
         await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
         print(f"Error: {e}")
@@ -566,13 +562,10 @@ async def compare(ctx, entity1: str, entity2: str):
         await ctx.send("❌ Error al procesar los datos del archivo JSON.")
         return
 
-    # Buscar los jugadores o clanes en la base de datos
+    # Buscar los jugadores en la base de datos
     p1 = next((p for p in data_players if p['Player'].lower() == entity1.lower()), None)
     p2 = next((p for p in data_players if p['Player'].lower() == entity2.lower()), None)
     
-    c1 = next((c for c in data_clans if c['Clan'].lower() == entity1.lower()), None)
-    c2 = next((c for c in data_clans if c['Clan'].lower() == entity2.lower()), None)
-
     if p1 and p2:
         # Comparar jugadores
         def determinar_color(performance_score):
@@ -647,17 +640,23 @@ async def compare(ctx, entity1: str, entity2: str):
 
         await ctx.send(embed=embed)
 
-    elif c1 and c2:
-        # Comparar clanes usando valores totales
-        def obtener_total_clan(clan):
-            total_kills = clan.get('Total Kills', 0)
-            total_deaths = clan.get('Total Deaths', 0)
-            total_score = clan.get('Total Score', 0)
-            total_rounds = clan.get('Total Rounds', 0)
+    else:
+        # Comparar clanes sumando estadísticas de sus miembros
+        def sumar_estadisticas(clan_name):
+            total_kills = 0
+            total_deaths = 0
+            total_score = 0
+            total_rounds = 0
+            for player in data_players:
+                if player.get('Clan', '').lower() == clan_name.lower():
+                    total_kills += player.get('Total Kills', 0)
+                    total_deaths += player.get('Total Deaths', 0)
+                    total_score += player.get('Total Score', 0)
+                    total_rounds += player.get('Rounds', 0)
             return total_kills, total_deaths, total_score, total_rounds
 
-        kills1, deaths1, score1, rounds1 = obtener_total_clan(c1)
-        kills2, deaths2, score2, rounds2 = obtener_total_clan(c2)
+        kills1, deaths1, score1, rounds1 = sumar_estadisticas(entity1)
+        kills2, deaths2, score2, rounds2 = sumar_estadisticas(entity2)
 
         embed = discord.Embed(
             title=f"🔍 Comparación entre los clanes {entity1} y {entity2}",
@@ -706,9 +705,6 @@ async def compare(ctx, entity1: str, entity2: str):
         embed.set_footer(text="📅 Datos actualizados recientemente.")
 
         await ctx.send(embed=embed)
-
-    else:
-        await ctx.send("⚠️ No se encontraron estadísticas para uno o ambas entidades (jugadores o clanes).")
 
 
 @bot.command()
