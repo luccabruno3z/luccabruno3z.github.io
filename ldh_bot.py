@@ -425,7 +425,7 @@ async def ayuda(ctx):
         value=(
             "`-top <cantidad de jugadores> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada:\n"
             "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`.\n"
-            "  Métricas: `Performance`, `KD`, `Kills`, `Deaths`, `Rounds`.\n"
+            "  Métricas: `performance`, `kd`, `kills`, `deaths`, `rounds`.\n"
             "`-promedios` - Muestra los promedios de estadísticas por clan."
         ),
         inline=False
@@ -634,11 +634,12 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         return
 
     # Validar la métrica ingresada
-    metricas_validas = ["Performance", "KD", "Kills", "Deaths", "Rounds"]
+    metricas_validas = ["performance", "kd", "kills", "deaths", "rounds"]
     if metrica not in metricas_validas:
         await ctx.send(
             "❗ **Métrica inválida.** Las métricas válidas son:\n"
-            "`Performance`, `KD`, `Kills`, `Deaths`, `Rounds`."
+            "`performance`, `kd`, `kills`, `deaths`, `rounds`.\n"
+            "`-top <cantidad de jugadores> <categoría> <métrica>`"
         )
         return
 
@@ -662,11 +663,11 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
 
     # Ensure the metric key matches the JSON data structure
     metric_key_mapping = {
-        "Performance": "Performance Score",
-        "KD": "K/D Ratio",
-        "Kills": "Total Kills",
-        "Deaths": "Total Deaths",
-        "Rounds": "Rounds"
+        "performance": "Performance Score",
+        "kd": "K/D Ratio",
+        "kills": "Total Kills",
+        "deaths": "Total Deaths",
+        "rounds": "Rounds"
     }
     metric_key = metric_key_mapping.get(metrica, metrica)
 
