@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="icon" href="logos/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Incluimos Chart.js -->
     <style>
         /* Estilo general con tema militar oscuro */
         body {
@@ -370,6 +371,7 @@
     <!-- Promedios de Clanes -->
     <section class="clan-averages">
         <h2>Promedios de Clanes</h2>
+        <canvas id="clanAveragesChart"></canvas>
         <div id="clan-averages-results" class="clan-averages-results"></div>
     </section>
 
@@ -455,7 +457,7 @@
         <div class="guide-grid">
             <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
-        <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
+            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
         </div>
     </section>
@@ -545,6 +547,31 @@
                 .then(data => {
                     const averagesContainer = document.getElementById('clan-averages-results');
                     averagesContainer.innerHTML = '';
+
+                    const clanNames = data.map(clan => clan.Clan);
+                    const performanceScores = data.map(clan => clan["Performance Score"]);
+
+                    const ctx = document.getElementById('clanAveragesChart').getContext('2d');
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: clanNames,
+                            datasets: [{
+                                label: 'Performance Score',
+                                data: performanceScores,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
 
                     data.forEach(clan => {
                         const clanAverage = `
