@@ -605,7 +605,7 @@ async def compare(ctx, player1: str, player2: str):
 
 
 @bot.command()
-async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "´performance"):
+async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "performance"):
     # Diccionario de categorías válidas y sus URLs correspondientes
     categorias_validas = {
         "general": GITHUB_JSON_PLAYERS,
