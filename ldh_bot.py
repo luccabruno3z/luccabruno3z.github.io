@@ -68,7 +68,7 @@ CLAN_EMOJIS = {
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
     "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>"
 }
-
+KD = "K/D Ratio"
 @bot.command()
 async def guias(ctx):
     await ctx.send(f"[Aquí tienes acceso a las guías de la página!]({GITHUB_GUIDES})")
@@ -605,7 +605,7 @@ async def compare(ctx, player1: str, player2: str):
 
 
 @bot.command()
-async def top(ctx, cantidad: int = 15, categoria: str = "general"):
+async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "Performance Score"):
     # Diccionario de categorías válidas y sus URLs correspondientes
     categorias_validas = {
         "general": GITHUB_JSON_PLAYERS,
@@ -633,6 +633,15 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         await ctx.send("❗ **La cantidad debe ser mayor a 0.**")
         return
 
+    # Validar la métrica ingresada
+    metricas_validas = ["Performance Score", "KD", "Total Kills", "Total Deaths", "Rounds"]
+    if metrica not in metricas_validas:
+        await ctx.send(
+            "❗ **Métrica inválida.** Las métricas válidas son:\n"
+            "`Performance Score`, `K/D Ratio`, `Total Kills`, `Total Deaths`, `Rounds`."
+        )
+        return
+
     # Obtener la URL del archivo JSON según la categoría
     url_json = categorias_validas[categoria.lower()]
 
@@ -651,11 +660,11 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         print("Error al procesar los datos del archivo JSON.")
         return
 
-    # Ordenar los jugadores por Performance Score
+    # Ordenar los jugadores por la métrica seleccionada
     try:
         jugadores_ordenados = sorted(
             data, 
-            key=lambda x: x.get("Performance Score", 0), 
+            key=lambda x: x.get(metrica, 0), 
             reverse=True
         )
         print("Jugadores ordenados correctamente.")
@@ -670,9 +679,9 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 
     # Crear el embed
     embed = discord.Embed(
-        title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()})",
+        title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()} - {metrica})",
         description=(
-            "Clasificación basada en **Performance Score**.\n"
+            f"Clasificación basada en **{metrica}**.\n"
             f"Aquí están los mejores {cantidad} jugadores en esta categoría:"
         ),
         color=discord.Color.orange()
@@ -683,11 +692,11 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
     jugadores_lista = ""
     for index, jugador in enumerate(top_jugadores, start=1):
         nombre = jugador.get("Player", "Desconocido")
-        performance_score = jugador.get("Performance Score", 0)
+        valor_metrica = jugador.get(metrica, 0)
         clan = jugador.get("Clan", "N/A")
         clan_emoji = CLAN_EMOJIS.get(clan, "")
 
-        jugadores_lista += f"**#{index}** - {clan_emoji} {nombre} (🌟 {performance_score:.2f})\n"
+        jugadores_lista += f"**#{index}** - {clan_emoji} {nombre} ({valor_metrica:.2f})\n"
 
     embed.add_field(
         name="🔝 **Ranking**",
@@ -697,6 +706,10 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
 
     # Agregar pie de página
     embed.set_footer(text="📅 Datos actualizados recientemente.")
+
+    # Enviar el embed
+    await ctx.send(embed=embed)
+    print("Embed enviado correctamente.")
 
     # Enviar el embed
     await ctx.send(embed=embed)
