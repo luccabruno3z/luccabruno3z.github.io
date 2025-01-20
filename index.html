@@ -153,7 +153,6 @@
             justify-content: center;
             margin-top: 20px;
         }
-
         .social-button {
             padding: 10px;
             background-color: #666;
@@ -165,12 +164,10 @@
             gap: 10px;
             transition: background 0.3s;
         }
-
         .social-button img {
             width: 20px;
             height: 20px;
         }
-
         .social-button:hover, .social-button:focus {
             background: #555;
             outline: none;
@@ -182,7 +179,6 @@
             text-align: center;
             position: relative;
         }
-
         .search-form input {
             padding: 10px;
             border-radius: 5px;
@@ -191,7 +187,6 @@
             color: #fff;
             width: 300px;
         }
-
         .search-form button {
             padding: 10px 20px;
             border-radius: 5px;
@@ -201,12 +196,10 @@
             cursor: pointer;
             transition: background 0.3s;
         }
-
         .search-form button:hover, .search-form button:focus {
             background: #ddd;
             outline: none;
         }
-
         .suggestions {
             position: absolute;
             top: 40px;
@@ -220,23 +213,19 @@
             overflow-y: auto;
             z-index: 1000;
         }
-
         .suggestion-item {
             padding: 10px;
             cursor: pointer;
             color: #fff;
         }
-
         .suggestion-item:hover, .suggestion-item:focus {
             background: #444;
             outline: none;
         }
-
         .search-results {
             margin-top: 20px;
             text-align: center;
         }
-
         .stats-box {
             background: #222;
             border: 1px solid #fff;
@@ -353,10 +342,10 @@
     <section class="updates" id="novedades">
         <h2>Novedades</h2>
         <ul>
-            <li>[...] Implementando mapa de calor 2D.</li>
             <li>✔️ Implementado visualizador 2D.</li>
-            <li>✔️ Implementadas guias de combate.</li>
-            <li>✔️ Añadido apartado de redes y estadisticas.</li>
+            <li>✔️ Implementadas guías de combate.</li>
+            <li>✔️ Añadido apartado de redes y estadísticas.</li>
+            <li>✔️ Actualización de datos de jugadores y clanes.</li>
         </ul>
     </section>
 
@@ -406,35 +395,6 @@
             <button type="submit">Buscar</button>
         </form>
         <div class="search-results" id="search-results"></div>
-        <div class="actions">
-            <button id="compare-button">Comparar Jugadores</button>
-            <button id="top-button">Ver Top Jugadores</button>
-            <button id="averages-button">Ver Promedios de Clanes</button>
-        </div>
-    </section>
-
-    <!-- Funcionalidades del Bot -->
-    <section class="bot-features" id="bot-features">
-        <h2>Funcionalidades del Bot LDH</h2>
-        <div class="feature-grid">
-            <div class="feature-item">
-                <h3>Promedios de Clanes</h3>
-                <p>Consulta los promedios de estadísticas de cada clan, incluyendo K/D Ratio, puntuación por ronda, y más.</p>
-                <p>Comando: <code>-promedios</code></p>
-            </div>
-            <div class="feature-item">
-                <h3>Top Jugadores</h3>
-                <p>Obtén el top de jugadores según diferentes categorías y métricas.</p>
-                <p>Comando: <code>-top &lt;cantidad&gt; &lt;categoría&gt; &lt;métrica&gt;</code></p>
-                <p>Ejemplo: <code>-top 10 ldh performance</code></p>
-            </div>
-            <div class="feature-item">
-                <h3>Comparar Jugadores</h3>
-                <p>Compara las estadísticas de dos jugadores o clanes.</p>
-                <p>Comando: <code>-compare &lt;jugador1&gt; &lt;jugador2&gt;</code></p>
-                <p>Ejemplo: <code>-compare W4RR10R Grozny</code></p>
-            </div>
-        </div>
     </section>
 
     <!-- Guías -->
@@ -443,7 +403,7 @@
         <div class="guide-grid">
             <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div[...]
+            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
             <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
         </div>
     </section>
@@ -454,124 +414,79 @@
         <p>© 2025 - Todos los derechos reservados.</p>
     </footer>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const playerNameInput = document.getElementById('player-name');
-    const suggestionsContainer = document.getElementById('suggestions');
-    const compareButton = document.getElementById('compare-button');
-    const topButton = document.getElementById('top-button');
-    const averagesButton = document.getElementById('averages-button');
-    let playersData = [];
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playerNameInput = document.getElementById('player-name');
+            const suggestionsContainer = document.getElementById('suggestions');
+            let playersData = [];
 
-    // Fetch the players data from the JSON file
-    fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
-        .then(response => response.json())
-        .then(data => {
-            playersData = data;
+            // Fetch the players data from the JSON file
+            fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
+                .then(response => response.json())
+                .then(data => {
+                    playersData = data;
 
-// Ordenar los jugadores por Performance Score
-        playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
-    })
-    .catch(error => console.error('Error al cargar el archivo JSON:', error));
+                    // Ordenar los jugadores por Performance Score
+                    playersData.sort((a, b) => b["Performance Score"] - a["Performance Score"]);
+                })
+                .catch(error => console.error('Error al cargar el archivo JSON:', error));
 
-    // Add event listener for input changes
-    playerNameInput.addEventListener('input', function() {
-        const query = playerNameInput.value.trim();
-        suggestionsContainer.innerHTML = '';
+            // Add event listener for input changes
+            playerNameInput.addEventListener('input', function() {
+                const query = playerNameInput.value.trim();
+                suggestionsContainer.innerHTML = '';
 
-        if (query.length > 0) {
-            const filteredPlayers = playersData.filter(player =>
-                player.Player.includes(query)
-            );
+                if (query.length > 0) {
+                    const filteredPlayers = playersData.filter(player =>
+                        player.Player.includes(query)
+                    );
 
-            filteredPlayers.forEach(player => {
-                const suggestionItem = document.createElement('div');
-                suggestionItem.classList.add('suggestion-item');
-                suggestionItem.textContent = player.Player;
-                suggestionItem.addEventListener('click', function() {
-                    playerNameInput.value = player.Player;
-                    suggestionsContainer.innerHTML = '';
-                });
-                suggestionsContainer.appendChild(suggestionItem);
+                    filteredPlayers.forEach(player => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+                        suggestionItem.textContent = player.Player;
+                        suggestionItem.addEventListener('click', function() {
+                            playerNameInput.value = player.Player;
+                            suggestionsContainer.innerHTML = '';
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                }
             });
-        }
-    });
 
-    // Add event listener for form submission
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const playerName = playerNameInput.value.trim();
-        const player = playersData.find(p => p.Player === playerName);
-        const resultsContainer = document.getElementById('search-results');
-        resultsContainer.innerHTML = '';
+            // Add event listener for form submission
+            document.getElementById('search-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const playerName = playerNameInput.value.trim();
+                const player = playersData.find(p => p.Player === playerName);
+                const resultsContainer = document.getElementById('search-results');
+                resultsContainer.innerHTML = '';
 
-        if (player) {
-            const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
-            const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
-            const playerStats = `
-                <div class="stats-box">
-                    ${clanLogo}
-                    <h3>Estadísticas de ${player.Player}</h3>
-                    <p><strong>Ranking Global:</strong> #${ranking}</p>
-                    <p><strong>Clan:</strong> ${player.Clan}</p>
-                    <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
-                    <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
-                    <p><strong>Asesinatos Totales:</strong> ${player["Total Kills"]}</p>
-                    <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
-                    <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"]}</p>
-                    <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"]}</p>
-                    <p><strong>Asesinatos por Ronda:</strong> ${player["Kills per Round"]}</p>
-                    <p><strong>Performance Score:</strong> ${player["Performance Score"]}</p>
-                </div>
-            `;
-            resultsContainer.innerHTML = playerStats;
-        } else {
-            resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
-        }
-    });
-
-    // Add event listener for compare button
-    compareButton.addEventListener('click', function() {
-        const player1 = prompt("Ingrese el nombre del primer jugador:");
-        const player2 = prompt("Ingrese el nombre del segundo jugador:");
-        if (player1 && player2) {
-            const p1 = playersData.find(p => p.Player === player1);
-            const p2 = playersData.find(p => p.Player === player2);
-            
-            if (p1 && p2) {
-                const compareResultsContainer = document.getElementById('search-results');
-                const comparison = `
-                    <div class="stats-box">
-                        <h3>Comparación entre ${p1.Player} y ${p2.Player}</h3>
-                        <p><strong>${p1.Player}:</strong> ${p1["Performance Score"]}</p>
-                        <p><strong>${p2.Player}:</strong> ${p2["Performance Score"]}</p>
-                    </div>
-                `;
-                compareResultsContainer.innerHTML = comparison;
-            } else {
-                alert("Uno o ambos jugadores no fueron encontrados.");
-            }
-        }
-    });
-
-    // Add event listener for top button
-    topButton.addEventListener('click', function() {
-        const topCount = prompt("Ingrese la cantidad de jugadores para el top:");
-        const topCategory = prompt("Ingrese la categoría (general, ldh, sae, fi, 141, fi-r, r-ldh, e-lam, 300, rim-la):");
-        const topMetric = prompt("Ingrese la métrica (performance, kd, kills, deaths, rounds):");
-        
-        // Aquí se podría agregar la lógica para filtrar y mostrar el top de jugadores según la categoría y métrica especificada.
-        // Para simplicidad, aquí solo mostramos un mensaje.
-        alert(`Mostrar top ${topCount} jugadores en la categoría ${topCategory} por la métrica ${topMetric}.`);
-    });
-
-    // Add event listener for averages button
-    averagesButton.addEventListener('click', function() {
-        // Aquí se podría agregar la lógica para mostrar los promedios de clanes.
-        // Para simplicidad, aquí solo mostramos un mensaje.
-        alert("Mostrar promedios de clanes.");
-    });
-});
-</script>
+if (player) {
+                    const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
+                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
+                    const playerStats = `
+                        <div class="stats-box">
+                            ${clanLogo}
+                            <h3>Estadísticas de ${player.Player}</h3>
+                            <p><strong>Ranking Global:</strong> #${ranking}</p>
+                            <p><strong>Clan:</strong> ${player.Clan}</p>
+                            <p><strong>Puntuación Total:</strong> ${player["Total Score"]}</p>
+                            <p><strong>Muertes Totales:</strong> ${player["Total Deaths"]}</p>
+                            <p><strong>Asesinatos Totales:</strong> ${player["Total Kills"]}</p>
+                            <p><strong>Rondas Jugadas:</strong> ${player.Rounds}</p>
+                            <p><strong>K/D Ratio:</strong> ${player["K/D Ratio"].toFixed(2)}</p>
+                            <p><strong>Puntos por Ronda:</strong> ${player["Score per Round"].toFixed(2)}</p>
+                            <p><strong>Asesinatos por Ronda:</strong> ${player["Kills per Round"].toFixed(2)}</p>
+                            <p><strong>Performance Score:</strong> ${player["Performance Score"].toFixed(2)}</p>
+                        </div>
+                    `;
+                    resultsContainer.innerHTML = playerStats;
+                } else {
+                    resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
