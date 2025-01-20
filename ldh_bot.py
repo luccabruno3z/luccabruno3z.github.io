@@ -55,18 +55,18 @@ GITHUB_INDEX = "https://luccabruno3z.github.io"
 GITHUB_GUIDES = "https://luccabruno3z.github.io/#guias"
 GITHUB_VISUALIZER_2D = "https://luccabruno3z.github.io/realitytracker.github.io/"
 
-# Diccionario de emojis de clanes personalizados
+# Diccionario de emojis de clanes personalizados con IDs
 CLAN_EMOJIS = {
-    "LDH": "<:Logo_LDH:>",  # Asegúrate de que estos nombres coincidan con los nombres de los emojis en tu servidor de Discord
-    "SAE": "<:Logo_SAE:>",
-    "FI": "<:Logo_FI:>",
-    "FI-R": "<:Logo_FI_R:>",
-    "141": "<:Logo_141:>",
-    "R-LDH": "<:Logo_R_LDH:>",
-    "WD": "<:Logo_WD:>",
-    "300": "<:Logo_300:>",
-    "E-LAM": "<:Logo_E_LAM:>",
-    "RIM-LA": "<:Logo_RIM_LA:>"
+    "LDH": "<:Logo_LDH:1330790515251216424>",  # Reemplaza emoji_id1 con el ID del emoji
+    "SAE": "<:Logo_SAE:1330790573061312542>",
+    "FI": "<:Logo_FI:1330790559601659924>",
+    "FI-R": "<:Logo_FI:1330790559601659924>",
+    "141": "<:Logo_141:emoji_id5>",
+    "R-LDH": "<:Logo_LDH:1330790515251216424>",
+    "WD": "<:Logo_WD:emoji_id7>",
+    "300": "<:Logo_300:1330790501460213770>",
+    "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
+    "RIM-LA": "<:Logo_RIM_LA:1330790529214185472>"
 }
 
 @bot.command()
