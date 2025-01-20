@@ -643,7 +643,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
     if categoria.lower() not in categorias_validas:
         await ctx.send(
             "❗ **Categoría inválida.** Las categorías válidas son:\n"
-            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`."
+            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`."
         )
         return
 
@@ -705,8 +705,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
         performance_score = jugador.get("Performance Score", 0)
         clan = jugador.get("Clan", "N/A")
         clan_emoji = CLAN_EMOJIS.get(clan, "")
-        
-        jugadores_lista += f"**#{index}** - {nombre} (🌟 {performance_score:.2f})\n![{clan}](clan_image_url)\n"
+
+        jugadores_lista += f"**#{index}** - {clan_emoji} {nombre} (🌟 {performance_score:.2f})\n"
 
     embed.add_field(
         name="🔝 **Ranking**",
