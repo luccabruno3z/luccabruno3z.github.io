@@ -60,13 +60,13 @@ CLAN_EMOJIS = {
     "LDH": "<:Logo_LDH:1330790515251216424>",  # Reemplaza emoji_id1 con el ID del emoji
     "SAE": "<:Logo_SAE:1330790573061312542>",
     "FI": "<:Logo_FI:1330790559601659924>",
-    "FI-R": "<:Logo_FI:1330790559601659924>",
+    "FI_R": "<:Logo_FI:1330790559601659924>",
     "141": "<:Logo_141:emoji_id5>",
-    "R-LDH": "<:Logo_LDH:1330790515251216424>",
+    "R_LDH": "<:Logo_LDH:1330790515251216424>",
     "WD": "<:Logo_WD:emoji_id7>",
     "300": "<:Logo_300:1330790501460213770>",
-    "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
-    "RIM-LA": "<:Logo_RIM_LA:1330790529214185472>"
+    "E_LAM": "<:Logo_E_LAM:1330790544263217243>",
+    "RIM_LA": "<:Logo_RIM_LA:1330790529214185472>"
 }
 
 @bot.command()
