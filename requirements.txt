@@ -6,5 +6,5 @@ beautifulsoup4
 requests
 python-dotenv
 discord
-matplotlib.pyplot
+matplotlib
 io
