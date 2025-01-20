@@ -472,11 +472,11 @@
                 <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Grozny
             </a>
-<a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
+            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
                 <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Doc
             </a>
-        </div>
+</div>
     </section>
 
     <!-- Estadísticas de Jugadores -->
@@ -606,10 +606,6 @@
                                 hoverBorderColor: 'rgba(0, 255, 255, 1)',
                                 borderRadius: 5,
                                 barThickness: 30,
-                                shadowOffsetX: 3,
-                                shadowOffsetY: 3,
-                                shadowBlur: 10,
-                                shadowColor: 'rgba(0, 255, 255, 0.5)',
                             }]
                         },
                         options: {
@@ -660,11 +656,16 @@
                 event.preventDefault();
                 const category = document.getElementById('category').value;
                 const metric = document.getElementById('metric').value;
-                const topNumber = document.getElementById('top-number').value;
-                const url = `https://luccabruno3z.github.io/graphs/${category}_players.json`;
+                const topNumber = parseInt(document.getElementById('top-number').value);
+                const url = 'https://luccabruno3z.github.io/graphs/all_players_clusters.json';
 
                 fetch(url)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         const topPlayersContainer = document.getElementById('top-players-results');
                         topPlayersContainer.innerHTML = '';
@@ -678,8 +679,11 @@
                         };
                         const metricKey = metricKeyMapping[metric];
 
+                        // Filtrar los jugadores por categoría seleccionada
+                        const filteredPlayers = data.filter(player => category === "general" || player.Clan.toLowerCase() === category.toLowerCase());
+
                         // Ordenar los jugadores por la métrica seleccionada
-                        const sortedPlayers = data.sort((a, b) => b[metricKey] - a[metricKey]).slice(0, topNumber);
+                        const sortedPlayers = filteredPlayers.sort((a, b) => b[metricKey] - a[metricKey]).slice(0, topNumber);
 
                         sortedPlayers.forEach((player, index) => {
                             const topPlayer = `
@@ -692,7 +696,11 @@
                             topPlayersContainer.innerHTML += topPlayer;
                         });
                     })
-                    .catch(error => console.error('Error al cargar el archivo JSON para top players:', error));
+                    .catch(error => {
+                        console.error('Error al cargar el archivo JSON para top players:', error);
+                        const topPlayersContainer = document.getElementById('top-players-results');
+                        topPlayersContainer.innerHTML = `<p>Error al cargar los datos: ${error.message}</p>`;
+                    });
             });
 
             // Handle compare form submission
