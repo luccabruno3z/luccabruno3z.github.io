@@ -66,7 +66,7 @@ CLAN_EMOJIS = {
     "WD": "<:Logo_WD:emoji_id7>",
     "300": "<:Logo_300:1330790501460213770>",
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
-    "RIM-LA": "<:Logo_RIM_LA:1330790529214185472>"
+    "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>"
 }
 
 @bot.command()
@@ -617,7 +617,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
     if categoria.lower() not in categorias_validas:
         await ctx.send(
             "❗ **Categoría inválida.** Las categorías válidas son:\n"
-            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`."
+            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`."
         )
         return
 
