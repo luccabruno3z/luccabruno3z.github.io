@@ -122,32 +122,6 @@ async def graficowd(ctx):
 async def grafico(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de los usuarios!]({GITHUB_GRAPH_PLAYERS})")
 
-import os
-from dotenv import load_dotenv
-import json
-import discord
-from discord.ext import commands
-import requests
-import random
-
-# Solo cargar .env si está en local
-if os.path.exists(".env"):
-    load_dotenv()
-
-TOKEN = os.getenv("DISCORD_TOKEN")
-
-# Validación del token
-if not TOKEN:
-    raise ValueError("El token del bot no está definido en las variables de entorno")
-else:
-    print("Token detectado correctamente")
-
-# Configurar permisos del bot (acceso total)
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix="-", intents=intents)
-
-# URLs de los recursos
-GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_clusters.json"
 
 @bot.command()
 async def estadisticas(ctx, jugador: str = None):
@@ -720,7 +694,6 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general"):
     # Enviar el embed
     await ctx.send(embed=embed)
     print("Embed enviado correctamente.")
-
 # Manejar errores globalmente
 @bot.event
 async def on_command_error(ctx, error):
