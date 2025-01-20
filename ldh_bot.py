@@ -5,6 +5,8 @@ import discord
 from discord.ext import commands
 import requests
 import random
+import matplotlib.pyplot as plt
+import io
 
 # Solo cargar .env si está en local
 if os.path.exists(".env"):
@@ -478,6 +480,13 @@ async def promedios(ctx):
             description="Promedios calculados para cada clan:",
             color=discord.Color.blue()
         )
+        
+        # Variables para el gráfico
+        clan_names = []
+        kd_ratios = []
+        score_per_rounds = []
+        kills_per_rounds = []
+
         for clan_data in data:
             clan_name = clan_data.get("Clan", "Desconocido")
             kd_ratio = clan_data.get('K/D Ratio')
@@ -489,6 +498,12 @@ async def promedios(ctx):
             score_per_round_str = f"{float(score_per_round):.2f}" if isinstance(score_per_round, (int, float)) else "N/A"
             kills_per_round_str = f"{float(kills_per_round):.2f}" if isinstance(kills_per_round, (int, float)) else "N/A"
 
+            # Agregar datos a las listas
+            clan_names.append(clan_name)
+            kd_ratios.append(float(kd_ratio) if kd_ratio_str != "N/A" else 0)
+            score_per_rounds.append(float(score_per_round) if score_per_round_str != "N/A" else 0)
+            kills_per_rounds.append(float(kills_per_round) if kills_per_round_str != "N/A" else 0)
+
             # Formato más estético
             embed.add_field(
                 name=f"🏅 {clan_name}",
@@ -499,7 +514,32 @@ async def promedios(ctx):
                 ),
                 inline=False
             )
-        await ctx.send(embed=embed)
+        
+        # Crear el gráfico de barras
+        fig, ax = plt.subplots(figsize=(10, 6))
+        bar_width = 0.2
+        index = range(len(clan_names))
+        
+        bar1 = plt.bar(index, kd_ratios, bar_width, label='K/D Ratio')
+        bar2 = plt.bar([i + bar_width for i in index], score_per_rounds, bar_width, label='Score per Round')
+        bar3 = plt.bar([i + bar_width * 2 for i in index], kills_per_rounds, bar_width, label='Kills per Round')
+        
+        plt.xlabel('Clanes')
+        plt.ylabel('Promedios')
+        plt.title('Promedios de Clanes')
+        plt.xticks([i + bar_width for i in index], clan_names)
+        plt.legend()
+        
+        # Guardar el gráfico en un buffer de bytes
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        
+        # Adjuntar el gráfico al mensaje
+        file = discord.File(buf, filename="promedios_clanes.png")
+        embed.set_image(url="attachment://promedios_clanes.png")
+        
+        await ctx.send(embed=embed, file=file)
     else:
         await ctx.send("El formato de los datos no es válido.")
 
