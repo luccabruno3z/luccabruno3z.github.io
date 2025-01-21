@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 import os
-import json  # Asegúrate de importar la librería json
+import json  # Importar la librería json
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 
