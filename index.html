@@ -481,18 +481,57 @@
         </div>
     </section>
 
-    <!-- Estadísticas de Jugadores -->
-    <section class="stats-section">
-        <h2>Buscar Estadísticas de Jugadores</h2>
-        <form class="search-form" id="search-form">
-            <label for="player-name">Nombre del Jugador:</label>
-            <input type="text" id="player-name" name="player-name" required>
-            <div class="suggestions" id="suggestions"></div>
-            <button type="submit">Buscar</button>
-        </form>
-        <div class="search-results" id="search-results"></div>
-    </section>
+<!-- Estadísticas de Jugadores -->
+<section class="stats-section">
+    <h2>Buscar Estadísticas de Jugadores</h2>
+    <form class="search-form" id="search-form">
+        <label for="player-name">Nombre del Jugador:</label>
+        <input type="text" id="player-name" name="player-name" required>
+        <div class="suggestions" id="suggestions"></div>
+        <button type="submit">Buscar</button>
+    </form>
+    <div class="search-results" id="search-results"></div>
+    <div id="performance-history-chart" style="width: 100%; max-width: 800px; margin: 20px auto;"></div>
+</section>
 
+<!-- Add this script to fetch and display the performance history chart -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    function fetchPerformanceHistory(playerName) {
+        fetch(`graphs/${playerName}_history.json`)
+            .then(response => response.json())
+            .then(data => {
+                const dates = data.map(entry => entry.Date);
+                const scores = data.map(entry => entry["Performance Score"]);
+
+                const trace = {
+                    x: dates,
+                    y: scores,
+                    mode: 'lines+markers',
+                    type: 'scatter'
+                };
+
+                const layout = {
+                    title: `Performance Score Histórico de ${playerName}`,
+                    xaxis: { title: 'Fecha' },
+                    yaxis: { title: 'Performance Score' }
+                };
+
+                Plotly.newPlot('performance-history-chart', [trace], layout);
+            })
+            .catch(error => {
+                console.error('Error al cargar el historial de performance:', error);
+                document.getElementById('performance-history-chart').innerHTML = '<p>No se encontró historial de performance para este jugador.</p>';
+            });
+    }
+
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const playerName = document.getElementById('player-name').value.trim();
+        fetchPerformanceHistory(playerName);
+    });
+</script>
+    
     <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
