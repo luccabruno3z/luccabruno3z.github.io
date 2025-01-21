@@ -274,8 +274,6 @@
             margin: 0 auto;
             max-width: 150px;
             margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #00FFFF;
         }
 
         /* Flex container for aligning chart and stats */
@@ -432,7 +430,7 @@
                 <option value="r-ldh">R-LDH</option>
                 <option value="e-lam">E-LAM</option>
                 <option value="300">300</option>
-                <option value="rim:la">RIM:LA</option>
+                <option value="rim-la">RIM-LA</option>
             </select>
             <label for="metric">Métrica:</label>
             <select id="metric" name="metric">
@@ -474,7 +472,7 @@
                 <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Grozny
             </a>
-            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
+<a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
                 <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Doc
             </a>
@@ -482,56 +480,17 @@
     </section>
 
 <!-- Estadísticas de Jugadores -->
-<section class="stats-section">
-    <h2>Buscar Estadísticas de Jugadores</h2>
-    <form class="search-form" id="search-form">
-        <label for="player-name">Nombre del Jugador:</label>
-        <input type="text" id="player-name" name="player-name" required>
-        <div class="suggestions" id="suggestions"></div>
-        <button type="submit">Buscar</button>
-    </form>
-    <div class="search-results" id="search-results"></div>
-    <div id="performance-history-chart" style="width: 100%; max-width: 800px; margin: 20px auto;"></div>
-</section>
+    <section class="stats-section">
+        <h2>Buscar Estadísticas de Jugadores</h2>
+        <form class="search-form" id="search-form">
+            <label for="player-name">Nombre del Jugador:</label>
+            <input type="text" id="player-name" name="player-name" required>
+            <div class="suggestions" id="suggestions"></div>
+            <button type="submit">Buscar</button>
+        </form>
+        <div class="search-results" id="search-results"></div>
+    </section>
 
-<!-- Add this script to fetch and display the performance history chart -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-<script>
-    function fetchPerformanceHistory(playerName) {
-        fetch(`graphs/${playerName}_history.json`)
-            .then(response => response.json())
-            .then(data => {
-                const dates = data.map(entry => entry.Date);
-                const scores = data.map(entry => entry["Performance Score"]);
-
-                const trace = {
-                    x: dates,
-                    y: scores,
-                    mode: 'lines+markers',
-                    type: 'scatter'
-                };
-
-                const layout = {
-                    title: `Performance Score Histórico de ${playerName}`,
-                    xaxis: { title: 'Fecha' },
-                    yaxis: { title: 'Performance Score' }
-                };
-
-                Plotly.newPlot('performance-history-chart', [trace], layout);
-            })
-            .catch(error => {
-                console.error('Error al cargar el historial de performance:', error);
-                document.getElementById('performance-history-chart').innerHTML = '<p>No se encontró historial de performance para este jugador.</p>';
-            });
-    }
-
-    document.getElementById('search-form').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const playerName = document.getElementById('player-name').value.trim();
-        fetchPerformanceHistory(playerName);
-    });
-</script>
-    
     <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
@@ -617,176 +576,50 @@
                         </div>
                     `;
                     resultsContainer.innerHTML = playerStats;
+
+                    // Buscar y mostrar historial del jugador
+                    buscarHistorialJugador(playerName)
+                        .then(historyData => {
+                            if (historyData) {
+                                const historyContainer = document.createElement('div');
+                                historyContainer.classList.add('stats-box');
+                                historyContainer.innerHTML = '<h3>Historial de Performance Score</h3>';
+                                historyData.forEach(entry => {
+                                    const historyEntry = document.createElement('p');
+                                    historyEntry.textContent = `Fecha: ${entry.Date}, Performance Score: ${entry["Performance Score"]}`;
+                                    historyContainer.appendChild(historyEntry);
+                                });
+                                resultsContainer.appendChild(historyContainer);
+                            }
+                        })
+                        .catch(error => console.error('Error al cargar el historial de performance:', error));
                 } else {
                     resultsContainer.innerHTML = '<p>Jugador no encontrado.</p>';
                 }
             });
 
-            // Fetch and display clan averages
-            fetch('https://luccabruno3z.github.io/graphs/clan_averages.json')
-                .then(response => response.json())
-                .then(data => {
-                    const averagesContainer = document.getElementById('clan-averages-results');
-                    averagesContainer.innerHTML = '';
+            // Función para buscar el historial del jugador
+            function buscarHistorialJugador(nombreJugador) {
+                const nombreNormalizado = normalizarNombre(nombreJugador);
+                const url = `https://luccabruno3z.github.io/graphs/history/${nombreNormalizado}_history.json`;
 
-                    const clanNames = data.map(clan => clan.Clan);
-                    const performanceScores = data.map(clan => clan["Performance Score"]);
-
-                    const ctx = document.getElementById('clanAveragesChart').getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: clanNames,
-                            datasets: [{
-                                label: 'Performance Score',
-                                data: performanceScores,
-                                backgroundColor: 'rgba(0, 255, 255, 0.5)',
-                                borderColor: 'rgba(0, 255, 255, 0.8)',
-                                borderWidth: 1,
-                                hoverBackgroundColor: 'rgba(0, 255, 255, 0.8)',
-                                hoverBorderColor: 'rgba(0, 255, 255, 1)',
-                                borderRadius: 5,
-                                barThickness: 30,
-                            }]
-                        },
-                        options: {
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    },
-                                    ticks: {
-                                        color: '#fff'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.1)'
-                                    },
-                                    ticks: {
-                                        color: '#fff'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                legend: {
-                                    display: false
-                                }
-                            }
-                        }
-                    });
-
-                    data.forEach(clan => {
-                        const clanAverage = `
-                            <div class="stats-box">
-                                <h3>${clan.Clan}</h3>
-                                <p><strong>Promedio K/D:</strong> ${clan["K/D Ratio"].toFixed(2)}</p>
-                                <p><strong>Promedio Score:</strong> ${clan["Score per Round"].toFixed(2)}</p>
-                                <p><strong>Promedio Kills:</strong> ${clan["Kills per Round"].toFixed(2)}</p>
-                                <p><strong>Performance Score:</strong> ${clan["Performance Score"].toFixed(2)}</p>
-                            </div>
-                        `;
-                        averagesContainer.innerHTML += clanAverage;
-                    });
-                })
-                .catch(error => console.error('Error al cargar el archivo JSON de promedios:', error));
-
-            // Handle top players form submission
-            document.getElementById('top-players-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const category = document.getElementById('category').value;
-                const metric = document.getElementById('metric').value;
-                const topNumber = parseInt(document.getElementById('top-number').value);
-                const url = 'https://luccabruno3z.github.io/graphs/all_players_clusters.json';
-
-                fetch(url)
+                return fetch(url)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network response was not ok ' + response.statusText);
+                            throw new Error('Historial no encontrado');
                         }
                         return response.json();
                     })
-                    .then(data => {
-                        const topPlayersContainer = document.getElementById('top-players-results');
-                        topPlayersContainer.innerHTML = '';
-
-                        const metricKeyMapping = {
-                            "performance": "Performance Score",
-                            "kd": "K/D Ratio",
-                            "kills": "Total Kills",
-                            "deaths": "Total Deaths",
-                            "rounds": "Rounds"
-                        };
-                        const metricKey = metricKeyMapping[metric];
-
-                        // Filtrar los jugadores por categoría seleccionada
-                        const filteredPlayers = data.filter(player => category === "general" || player.Clan.toLowerCase() === category.toLowerCase());
-
-                        // Ordenar los jugadores por la métrica seleccionada
-                        const sortedPlayers = filteredPlayers.sort((a, b) => b[metricKey] - a[metricKey]).slice(0, topNumber);
-
-                        sortedPlayers.forEach((player, index) => {
-                            const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo">`;
-                            const topPlayer = `
-                                <div class="stats-box">
-                                    ${clanLogo}
-                                    <h3>#${index + 1} - ${player.Player}</h3>
-                                    <p><strong>Clan:</strong> ${player.Clan}</p>
-                                    <p><strong>${metricKey}:</strong> ${player[metricKey].toFixed(2)}</p>
-                                </div>
-                            `;
-                            topPlayersContainer.innerHTML += topPlayer;
-                        });
-                    })
                     .catch(error => {
-                        console.error('Error al cargar el archivo JSON para top players:', error);
-                        const topPlayersContainer = document.getElementById('top-players-results');
-                        topPlayersContainer.innerHTML = `<p>Error al cargar los datos: ${error.message}</p>`;
+                        console.error('Error al cargar el archivo JSON:', error);
+                        return null;
                     });
-            });
+            }
 
-            // Handle compare form submission
-            document.getElementById('compare-form').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const entity1 = document.getElementById('entity1').value.trim();
-                const entity2 = document.getElementById('entity2').value.trim();
-
-                fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
-                    .then(response => response.json())
-                    .then(data => {
-                        const player1 = data.find(p => p.Player.toLowerCase() === entity1.toLowerCase());
-                        const player2 = data.find(p => p.Player.toLowerCase() === entity2.toLowerCase());
-
-                        const compareContainer = document.getElementById('compare-results');
-                        compareContainer.innerHTML = '';
-
-                        if (player1 && player2) {
-                            const compareStats = `
-                                <div class="stats-box">
-                                    <h3>Comparación entre ${player1.Player} y ${player2.Player}</h3>
-                                    <p><strong>${player1.Player} (Clan ${player1.Clan}):</strong></p>
-                                    <p>K/D Ratio: ${player1["K/D Ratio"].toFixed(2)}</p>
-                                    <p>Performance Score: ${player1["Performance Score"].toFixed(2)}</p>
-                                    <p>Total Kills: ${player1["Total Kills"]}</p>
-                                    <p>Total Deaths: ${player1["Total Deaths"]}</p>
-                                    <p>Rounds: ${player1.Rounds}</p>
-                                    <hr>
-                                    <p><strong>${player2.Player} (Clan ${player2.Clan}):</strong></p>
-                                    <p>K/D Ratio: ${player2["K/D Ratio"].toFixed(2)}</p>
-                                    <p>Performance Score: ${player2["Performance Score"].toFixed(2)}</p>
-                                    <p>Total Kills: ${player2["Total Kills"]}</p>
-                                    <p>Total Deaths: ${player2["Total Deaths"]}</p>
-                                    <p>Rounds: ${player2.Rounds}</p>
-                                </div>
-                            `;
-                            compareContainer.innerHTML = compareStats;
-                        } else {
-                            compareContainer.innerHTML = '<p>Uno o ambos jugadores no fueron encontrados.</p>';
-                        }
-                    })
-                    .catch(error => console.error('Error al cargar el archivo JSON para comparación:', error));
-            });
+            // Función para normalizar el nombre del jugador
+            function normalizarNombre(nombre) {
+                return nombre.replace(/[^a-zA-Z0-9_-]/g, '_');
+            }
         });
     </script>
 </body>
