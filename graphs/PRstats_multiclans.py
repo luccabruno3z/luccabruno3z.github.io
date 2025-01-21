@@ -103,7 +103,13 @@ fig_general = px.scatter(
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Performance Score",
     title="Desempeño General de Todos los Jugadores (Basado en Performance Score)",
-    template="plotly_dark"  # Plantilla oscura
+    template="plotly_dark",  # Plantilla oscura
+    labels={
+        "K/D Ratio": "K/D Ratio",
+        "Score per Round": "Puntuación por Ronda",
+        "Kills per Round": "Asesinatos por Ronda",
+        "Performance Score": "Puntuación de Desempeño"
+    }
 )
 
 # Personalización de colores y estilo
@@ -112,8 +118,16 @@ fig_general.update_layout(
     font=dict(color="#00FFFF", family="Roboto"),
     paper_bgcolor="#121212",
     plot_bgcolor="#121212",
-    xaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
-    yaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+    xaxis=dict(
+        gridcolor="rgba(255, 255, 255, 0.1)",
+        title_font=dict(size=18, color="#00FFFF", family="Roboto"),
+        tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
+    ),
+    yaxis=dict(
+        gridcolor="rgba(255, 255, 255, 0.1)",
+        title_font=dict(size=18, color="#00FFFF", family="Roboto"),
+        tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
+    ),
     coloraxis_colorbar=dict(
         title="Performance Score",
         title_font=dict(size=16, color="#00FFFF", family="Roboto"),
@@ -121,6 +135,22 @@ fig_general.update_layout(
         bgcolor="#121212"
     )
 )
+
+# Añadir anotaciones para destacar puntos específicos (por ejemplo, los jugadores con mayor Performance Score)
+top_players = df_general.nlargest(3, "Performance Score")
+for i, row in top_players.iterrows():
+    fig_general.add_annotation(
+        x=row["K/D Ratio"],
+        y=row["Score per Round"],
+        text=f"Top Player: {row['Player']}",
+        showarrow=True,
+        arrowhead=1,
+        ax=-10,
+        ay=-10,
+        font=dict(color="#FFFFFF", size=12, family="Roboto"),
+        bgcolor="#00FFFF"
+    )
+
 fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"))
 
 # Guardar archivos JSON y gráficos individuales
@@ -158,7 +188,13 @@ for clan_name in clan_urls.keys():
             hover_name="Player", 
             color="Performance Score",
             title=f"Gráfico Interactivo del Clan {clan_name}",
-            template="plotly_dark"  # Plantilla oscura
+            template="plotly_dark",  # Plantilla oscura
+            labels={
+                "K/D Ratio": "K/D Ratio",
+                "Score per Round": "Puntuación por Ronda",
+                "Kills per Round": "Asesinatos por Ronda",
+                "Performance Score": "Puntuación de Desempeño"
+            }
         )
         
         # Personalización de colores y estilo
@@ -167,8 +203,16 @@ for clan_name in clan_urls.keys():
             font=dict(color="#00FFFF", family="Roboto"),
             paper_bgcolor="#121212",
             plot_bgcolor="#121212",
-            xaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
-            yaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+            xaxis=dict(
+                gridcolor="rgba(255, 255, 255, 0.1)",
+                title_font=dict(size=18, color="#00FFFF", family="Roboto"),
+                tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
+            ),
+            yaxis=dict(
+                gridcolor="rgba(255, 255, 255, 0.1)",
+                title_font=dict(size=18, color="#00FFFF", family="Roboto"),
+                tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
+            ),
             coloraxis_colorbar=dict(
                 title="Performance Score",
                 title_font=dict(size=16, color="#00FFFF", family="Roboto"),
@@ -176,13 +220,32 @@ for clan_name in clan_urls.keys():
                 bgcolor="#121212"
             )
         )
+
+        # Añadir anotaciones para destacar puntos específicos en gráficos individuales
+        top_clan_players = df_clan.nlargest(3, "Performance Score")
+        for i, row in top_clan_players.iterrows():
+            fig_clan.add_annotation(
+                x=row["K/D Ratio"],
+                y=row["Score per Round"],
+                text=f"Top Player: {row['Player']}",
+                showarrow=True,
+                arrowhead=1,
+                ax=-10,
+                ay=-10,
+                font=dict(color="#FFFFFF", size=12, family="Roboto"),
+                bgcolor="#00FFFF"
+            )
+
         fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
 
-# Agregar botón de "regresar"
+# Agregar botón de "regresar" con ícono
 html_button = '''
 <div style="position: absolute; top: 20px; left: 20px;">
-    <a href="https://luccabruno3z.github.io" style="padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">Regresar</a>
+    <a href="https://luccabruno3z.github.io" style="padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">
+        <i class="fas fa-arrow-left"></i>
+    </a>
 </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 '''
 
 with open(os.path.join(output_dir, "all_players_interactive_chart.html"), "a") as file:
