@@ -4,14 +4,14 @@ import pandas as pd
 import plotly.express as px
 import numpy as np
 import os
-import json  # Importar la librería json
+import json
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 import re
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
-# Crear carpeta 'graphs' si no existe
+# Crear carpeta 'graphs' y 'history' si no existen
 output_dir = "graphs"
 history_dir = os.path.join(output_dir, "history")
 os.makedirs(history_dir, exist_ok=True)
@@ -133,21 +133,28 @@ clan_averages.to_json(os.path.join(output_dir, "clan_averages.json"), orient="re
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for index, row in df_general.iterrows():
-    player_name = row['Player']  # Use original name for other JSON files
-    normalized_player_name = normalizar_nombre(player_name)  # Use normalized name for history JSON files
+    player_name = row['Player']  # Usar el nombre original para los otros JSON
+    normalized_player_name = normalizar_nombre(player_name)  # Usar el nombre normalizado para el historial
     player_data = {
         "Date": timestamp,
         "Performance Score": row["Performance Score"]
     }
     player_history_file = os.path.join(history_dir, f"{normalized_player_name}_history.json")
     
+    # Leer datos históricos existentes, si los hay
     if os.path.exists(player_history_file):
         with open(player_history_file, 'r') as f:
-            history_data = json.load(f)
-        history_data.append(player_data)
+            try:
+                history_data = json.load(f)
+            except json.JSONDecodeError:
+                history_data = []
     else:
-        history_data = [player_data]
+        history_data = []
+
+    # Agregar nuevo registro al historial
+    history_data.append(player_data)
     
+    # Escribir datos históricos actualizados
     with open(player_history_file, 'w') as f:
         json.dump(history_data, f, indent=4)
 
