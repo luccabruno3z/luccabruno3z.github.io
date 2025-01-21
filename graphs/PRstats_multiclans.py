@@ -190,3 +190,26 @@ fig_clan_avg = px.bar(
 fig_clan_avg.write_html(os.path.join(output_dir, "clan_averages_chart.html"))
 
 print("Actualización completada exitosamente usando Performance Score.")
+
+# Función para buscar el perfil de un jugador
+def buscar_perfil_jugador(nombre_jugador, history_dir):
+    nombre_normalizado = normalizar_nombre(nombre_jugador)
+    player_history_file = os.path.join(history_dir, f"{nombre_normalizado}_history.json")
+
+    if os.path.exists(player_history_file):
+        with open(player_history_file, 'r') as f:
+            try:
+                history_data = json.load(f)
+                return history_data
+            except json.JSONDecodeError:
+                return None
+    else:
+        return None
+
+# Ejemplo de uso de la función de búsqueda
+nombre_jugador = "=FAUST="
+perfil = buscar_perfil_jugador(nombre_jugador, history_dir)
+if perfil:
+    print(f"Perfil encontrado para {nombre_jugador}: {perfil}")
+else:
+    print(f"Perfil no encontrado para {nombre_jugador}")
