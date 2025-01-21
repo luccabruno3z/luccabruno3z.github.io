@@ -12,7 +12,8 @@ os.environ["OMP_NUM_THREADS"] = "1"
 
 # Crear carpeta 'graphs' si no existe
 output_dir = "graphs"
-os.makedirs(output_dir, exist_ok=True)
+history_dir = os.path.join(output_dir, "history")
+os.makedirs(history_dir, exist_ok=True)
 
 # URLs de clanes
 clan_urls = {
@@ -133,7 +134,10 @@ for index, row in df_general.iterrows():
         "Date": timestamp,
         "Performance Score": row["Performance Score"]
     }
-    player_history_file = os.path.join(output_dir, f"{player_name}_history.json")
+    player_history_file = os.path.join(history_dir, f"{player_name}_history.json")
+    
+    # Asegurarse de que el directorio existe
+    os.makedirs(os.path.dirname(player_history_file), exist_ok=True)
     
     if os.path.exists(player_history_file):
         with open(player_history_file, 'r') as f:
