@@ -44,6 +44,7 @@ def convertir_valor(valor):
         return None
 
 def normalizar_nombre(nombre):
+    # Reemplaza cualquier carácter que no sea letra, número, guión o guión bajo por un guión bajo
     return re.sub(r'[^a-zA-Z0-9_-]', '_', nombre)
 
 # Extraer datos de PRStats
