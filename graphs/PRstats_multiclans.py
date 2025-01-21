@@ -7,6 +7,7 @@ import os
 import json  # Importar la librería json
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
+import re
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
@@ -41,6 +42,9 @@ def convertir_valor(valor):
             return int(valor.replace(',', '').strip())
     except (ValueError, AttributeError):
         return None
+
+def normalizar_nombre(nombre):
+    return re.sub(r'[^a-zA-Z0-9_-]', '_', nombre)
 
 # Extraer datos de PRStats
 for clan_name, url in clan_urls.items():
@@ -129,15 +133,13 @@ clan_averages.to_json(os.path.join(output_dir, "clan_averages.json"), orient="re
 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 for index, row in df_general.iterrows():
-    player_name = row['Player']
+    player_name = row['Player']  # Use original name for other JSON files
+    normalized_player_name = normalizar_nombre(player_name)  # Use normalized name for history JSON files
     player_data = {
         "Date": timestamp,
         "Performance Score": row["Performance Score"]
     }
-    player_history_file = os.path.join(history_dir, f"{player_name}_history.json")
-    
-    # Asegurarse de que el directorio existe
-    os.makedirs(os.path.dirname(player_history_file), exist_ok=True)
+    player_history_file = os.path.join(history_dir, f"{normalized_player_name}_history.json")
     
     if os.path.exists(player_history_file):
         with open(player_history_file, 'r') as f:
