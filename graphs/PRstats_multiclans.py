@@ -77,7 +77,6 @@ df_general["Kills per Round"] = df_general["Total Kills"] / df_general["Rounds"]
 # Reemplazar infinitos y valores erróneos
 df_general = df_general.replace([np.inf, -np.inf], np.nan).dropna()
 
-
 # Normalizar métricas relevantes para calcular Performance Score
 scaler = MinMaxScaler()
 df_general[["Normalized_KD", "Normalized_Score", "Normalized_Kills_Per_Round", "Normalized_Rounds"]] = scaler.fit_transform(
@@ -103,7 +102,24 @@ fig_general = px.scatter(
     size="Kills per Round", 
     hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
     color="Performance Score",
-    title="Desempeño General de Todos los Jugadores (Basado en Performance Score)"
+    title="Desempeño General de Todos los Jugadores (Basado en Performance Score)",
+    template="plotly_dark"  # Plantilla oscura
+)
+
+# Personalización de colores y estilo
+fig_general.update_layout(
+    title_font=dict(size=24, color="#00FFFF", family="Bebas Neue"),
+    font=dict(color="#00FFFF", family="Roboto"),
+    paper_bgcolor="#121212",
+    plot_bgcolor="#121212",
+    xaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+    yaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+    coloraxis_colorbar=dict(
+        title="Performance Score",
+        title_font=dict(size=16, color="#00FFFF", family="Roboto"),
+        tickfont=dict(size=12, color="#FFFFFF", family="Roboto"),
+        bgcolor="#121212"
+    )
 )
 fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"))
 
@@ -141,8 +157,35 @@ for clan_name in clan_urls.keys():
             size="Kills per Round", 
             hover_name="Player", 
             color="Performance Score",
-            title=f"Gráfico Interactivo del Clan {clan_name}"
+            title=f"Gráfico Interactivo del Clan {clan_name}",
+            template="plotly_dark"  # Plantilla oscura
+        )
+        
+        # Personalización de colores y estilo
+        fig_clan.update_layout(
+            title_font=dict(size=24, color="#00FFFF", family="Bebas Neue"),
+            font=dict(color="#00FFFF", family="Roboto"),
+            paper_bgcolor="#121212",
+            plot_bgcolor="#121212",
+            xaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+            yaxis=dict(gridcolor="rgba(255, 255, 255, 0.1)"),
+            coloraxis_colorbar=dict(
+                title="Performance Score",
+                title_font=dict(size=16, color="#00FFFF", family="Roboto"),
+                tickfont=dict(size=12, color="#FFFFFF", family="Roboto"),
+                bgcolor="#121212"
+            )
         )
         fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
+
+# Agregar botón de "regresar"
+html_button = '<a href="https://luccabruno3z.github.io" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">Regresar</a>'
+
+with open(os.path.join(output_dir, "all_players_interactive_chart.html"), "a") as file:
+    file.write(html_button)
+
+for clan_name in clan_urls.keys():
+    with open(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"), "a") as file:
+        file.write(html_button)
 
 print("Actualización completada exitosamente usando Performance Score.")
