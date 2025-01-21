@@ -836,7 +836,42 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
+        
+# Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
+def generar_grafico_historico(player_name):
+    player_history_file = f"graphs/{player_name}_history.json"
+    
+    if os.path.exists(player_history_file):
+        with open(player_history_file, 'r') as f:
+            history_data = json.load(f)
+        
+        dates = [entry['Date'] for entry in history_data]
+        scores = [entry['Performance Score'] for entry in history_data]
+        
+        fig = px.line(
+            x=dates,
+            y=scores,
+            labels={'x': 'Fecha', 'y': 'Performance Score'},
+            title=f"Performance Score Histórico de {player_name}"
+        )
+        
+        output_file = f"graphs/{player_name}_history_chart.html"
+        fig.write_html(output_file)
+        return output_file
+    else:
+        return None
 
+@bot.command()
+async def historial(ctx, jugador: str):
+    """
+    Muestra un gráfico histórico del Performance Score de un jugador.
+    """
+    grafico_file = generar_grafico_historico(jugador)
+    
+    if grafico_file:
+        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file))
+    else:
+        await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
 
 # Comando para apagar el bot (solo el dueño del bot puede usarlo)
 @bot.command()
