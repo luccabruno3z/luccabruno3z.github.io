@@ -489,6 +489,7 @@
             <button type="submit">Buscar</button>
         </form>
         <div class="search-results" id="search-results"></div>
+        <canvas id="performanceHistoryChart" style="display: none;"></canvas>
     </section>
 
     <!-- Guías -->
@@ -512,6 +513,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const playerNameInput = document.getElementById('player-name');
             const suggestionsContainer = document.getElementById('suggestions');
+            const performanceHistoryChart = document.getElementById('performanceHistoryChart');
             let playersData = [];
 
             // Fetch the players data from the JSON file
@@ -581,15 +583,7 @@
                     buscarHistorialJugador(playerName)
                         .then(historyData => {
                             if (historyData) {
-                                const historyContainer = document.createElement('div');
-                                historyContainer.classList.add('stats-box');
-                                historyContainer.innerHTML = '<h3>Historial de Performance Score</h3>';
-                                historyData.forEach(entry => {
-                                    const historyEntry = document.createElement('p');
-                                    historyEntry.textContent = `Fecha: ${entry.Date}, Performance Score: ${entry["Performance Score"]}`;
-                                    historyContainer.appendChild(historyEntry);
-                                });
-                                resultsContainer.appendChild(historyContainer);
+                                mostrarHistorialPerformance(historyData);
                             }
                         })
                         .catch(error => console.error('Error al cargar el historial de performance:', error));
@@ -619,6 +613,55 @@
             // Función para normalizar el nombre del jugador
             function normalizarNombre(nombre) {
                 return nombre.replace(/[^a-zA-Z0-9_-]/g, '_');
+            }
+
+            // Función para mostrar el gráfico de historial de performance
+            function mostrarHistorialPerformance(historyData) {
+                const dates = historyData.map(entry => entry.Date);
+                const scores = historyData.map(entry => entry["Performance Score"]);
+
+                performanceHistoryChart.style.display = 'block';
+
+                new Chart(performanceHistoryChart, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Performance Score',
+                            data: scores,
+                            borderColor: 'rgba(0, 255, 255, 0.8)',
+                            backgroundColor: 'rgba(0, 255, 255, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#fff'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#fff'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
             }
 
             // Fetch and display clan averages
