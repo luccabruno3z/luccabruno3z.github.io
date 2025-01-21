@@ -147,8 +147,8 @@ for i, row in top_players.iterrows():
         arrowhead=1,
         ax=-10,
         ay=-10,
-        font=dict(color="#FFFFFF", size=12, family="Roboto"),
-        bgcolor="#00FFFF"
+        font=dict(color="#000000", size=12, family="Roboto"),  # Cambiar color del texto a negro
+        bgcolor="#00FFFF"  # Cambiar color de fondo a celeste
     )
 
 fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"))
@@ -232,8 +232,8 @@ for clan_name in clan_urls.keys():
                 arrowhead=1,
                 ax=-10,
                 ay=-10,
-                font=dict(color="#FFFFFF", size=12, family="Roboto"),
-                bgcolor="#00FFFF"
+                font=dict(color="#000000", size=12, family="Roboto"),  # Cambiar color del texto a negro
+                bgcolor="#00FFFF"  # Cambiar color de fondo a celeste
             )
 
         fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
