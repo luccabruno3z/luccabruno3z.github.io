@@ -179,7 +179,11 @@ for clan_name in clan_urls.keys():
         fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
 
 # Agregar botón de "regresar"
-html_button = '<a href="https://luccabruno3z.github.io" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">Regresar</a>'
+html_button = '''
+<div style="position: absolute; top: 20px; left: 20px;">
+    <a href="https://luccabruno3z.github.io" style="padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">Regresar</a>
+</div>
+'''
 
 with open(os.path.join(output_dir, "all_players_interactive_chart.html"), "a") as file:
     file.write(html_button)
