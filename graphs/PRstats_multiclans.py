@@ -65,7 +65,7 @@ for clan_name, url in clan_urls.items():
 
             if rounds and rounds > 0:
                 datos_todos_jugadores.append({
-                    "Player": player,
+                    "Player": player,  # Guardamos el nombre original
                     "Clan": clan_name,
                     "Total Score": total_score,
                     "Total Kills": total_kills,
