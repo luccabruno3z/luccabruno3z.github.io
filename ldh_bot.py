@@ -845,6 +845,72 @@ async def on_command_error(ctx, error):
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
 
+# Nuevo comando para analizar la composición de un equipo
+@bot.command()
+async def analizar_equipo(ctx, *jugadores: str):
+    # Verificar que el número de jugadores esté entre 2 y 8
+    if len(jugadores) < 2 or len(jugadores) > 8:
+        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-analizar_equipo Jugador1 Jugador2 ... Jugador8`.")
+        return
+
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    equipo = []
+    for jugador in jugadores:
+        jugador_encontrado = next((entry for entry in data if entry["Player"].lower() == jugador.lower()), None)
+        if not jugador_encontrado:
+            await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado en la base de datos.")
+            return
+        equipo.append(jugador_encontrado)
+
+    # Calcular métricas del equipo
+    total_score = sum(jugador['Total Score'] for jugador in equipo)
+    total_kills = sum(jugador['Total Kills'] for jugador in equipo)
+    total_deaths = sum(jugador['Total Deaths'] for jugador in equipo)
+    total_rounds = sum(jugador['Rounds'] for jugador in equipo)
+    total_performance_score = sum(jugador['Performance Score'] for jugador in equipo) / len(equipo)
+
+    # Crear embed con el análisis del equipo
+    embed = discord.Embed(
+        title="📊 Análisis de Composición de Equipo",
+        description="Aquí tienes el análisis del equipo seleccionado:",
+        color=discord.Color.blue()
+    )
+
+    for jugador in equipo:
+        embed.add_field(
+            name=f"🎮 {jugador['Player']}",
+            value=(
+                f"**Clan**: {jugador['Clan']}\n"
+                f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
+                f"**Total Kills**: {jugador['Total Kills']}\n"
+                f"**Total Deaths**: {jugador['Total Deaths']}\n"
+                f"**Rounds Jugados**: {jugador['Rounds']}\n"
+                f"**Performance Score**: {jugador['Performance Score']:.2f}"
+            ),
+            inline=True
+        )
+
+    embed.add_field(name="**📊 Métricas del Equipo**", value=(
+        f"**Total Score**: {total_score}\n"
+        f"**Total Kills**: {total_kills}\n"
+        f"**Total Deaths**: {total_deaths}\n"
+        f"**Total Rounds**: {total_rounds}\n"
+        f"**Average Performance Score**: {total_performance_score:.2f}"
+    ), inline=False)
+
+    await ctx.send(embed=embed)
+
 # Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
 def generar_grafico_historico(player_name):
     player_history_file = f"graphs/{player_name}_history.json"
