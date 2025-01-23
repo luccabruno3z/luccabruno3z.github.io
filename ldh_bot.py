@@ -966,6 +966,51 @@ async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
     # Ordenar jugadores por las métricas ponderadas
     jugadores_ordenados = sorted(data, key=lambda x: (x.get("Score per Round", 0), x.get("Kills per Round", 0), -x.get("Deaths per Round", 0)), reverse=True)
 
+@bot.command()
+async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 5):
+    """
+    Sugiere un equipo de jugadores de un clan específico buscando una media entre mayor score por partida,
+    mayor kills por partida y menor muertes por partida, mostrando el performance score total.
+    """
+    if num_jugadores < 2 or num_jugadores > 8:
+        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-sugerir_equipo LDH 5`.")
+        return
+
+    # Diccionario para mapear clanes a sus URLs JSON
+    clan_json_urls = {
+        "LDH": GITHUB_JSON_LDH,
+        "SAE": GITHUB_JSON_SAE,
+        "FI": GITHUB_JSON_FI,
+        "FI-R": GITHUB_JSON_FI_R,
+        "141": GITHUB_JSON_141,
+        "R-LDH": GITHUB_JSON_R_LDH,
+        "WD": GITHUB_JSON_WD,
+        "300": GITHUB_JSON_300,
+        "E-LAM": GITHUB_JSON_E_LAM,
+        "RIM:LA": GITHUB_JSON_RIM_LA,
+        "ADG": GITHUB_JSON_ADG,
+    }
+
+    # Verificar si el clan existe
+    if clan not in clan_json_urls:
+        await ctx.send(f"❗ Clan '{clan}' no reconocido. Los clanes válidos son: {', '.join(clan_json_urls.keys())}.")
+        return
+
+    try:
+        response = requests.get(clan_json_urls[clan])
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    # Ordenar jugadores por las métricas ponderadas (mayor kills por partida y menor muertes por partida)
+    jugadores_ordenados = sorted(data, key=lambda x: (x.get("Kills per Round", 0), -x.get("Deaths per Round", 0)), reverse=True)
+
     # Seleccionar los mejores jugadores
     equipo_sugerido = jugadores_ordenados[:num_jugadores]
 
@@ -992,6 +1037,8 @@ async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
             name=f"🎮 {jugador['Player']}",
             value=(
                 f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
+                f"**Kills per Round**: {jugador['Kills per Round']:.2f}\n"
+                f"**Deaths per Round**: {jugador['Deaths per Round']:.2f}\n"
                 f"**Total Kills**: {jugador['Total Kills']}\n"
                 f"**Total Deaths**: {jugador['Total Deaths']}\n"
                 f"**Rounds Jugados**: {jugador['Rounds']}\n"
