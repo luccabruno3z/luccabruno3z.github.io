@@ -152,7 +152,63 @@
             font-weight: bold;
             text-shadow: 0 0 10px #00FFFF;
         }
+/* Análisis de Equipo */
+.team-analysis {
+    padding: 60px 20px;
+    background: #1a1a1a;
+    text-align: center;
+}
 
+.team-analysis h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #00FFFF;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px #00FFFF;
+}
+
+.team-analysis-form {
+    margin-top: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.team-analysis-form label, 
+.team-analysis-form input, 
+.team-analysis-form button {
+    display: block;
+    margin: 10px auto;
+}
+
+.team-analysis-form input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #00FFFF;
+    background: #333;
+    color: #fff;
+    width: 300px;
+}
+
+.team-analysis-form button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: none;
+    background: #00FFFF;
+    color: #000;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-shadow: 0 0 10px #00FFFF;
+}
+
+.team-analysis-form button:hover, 
+.team-analysis-form button:focus {
+    background: #00CED1;
+    outline: none;
+}
+
+.team-analysis-results .stats-box {
+    margin-top: 20px;
+}
         /* Estilos para los botones de redes sociales */
         .social-buttons {
             display: flex;
@@ -493,7 +549,106 @@
         <div class="search-results" id="search-results"></div>
         <canvas id="performanceHistoryChart" style="display: none;"></canvas>
     </section>
+<!-- Análisis de Equipo -->
+<section class="team-analysis">
+    <h2>Análisis de Composición de Equipo</h2>
+    <form id="team-analysis-form" class="team-analysis-form">
+        <label for="player1">Jugador 1:</label>
+        <input type="text" id="player1" name="player1">
+        <label for="player2">Jugador 2:</label>
+        <input type="text" id="player2" name="player2">
+        <label for="player3">Jugador 3:</label>
+        <input type="text" id="player3" name="player3">
+        <label for="player4">Jugador 4:</label>
+        <input type="text" id="player4" name="player4">
+        <label for="player5">Jugador 5:</label>
+        <input type="text" id="player5" name="player5">
+        <label for="player6">Jugador 6:</label>
+        <input type="text" id="player6" name="player6">
+        <label for="player7">Jugador 7:</label>
+        <input type="text" id="player7" name="player7">
+        <label for="player8">Jugador 8:</label>
+        <input type="text" id="player8" name="player8">
+        <button type="submit">Analizar Equipo</button>
+    </form>
+    <div id="team-analysis-results" class="team-analysis-results"></div>
+</section>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const teamForm = document.getElementById('team-analysis-form');
+        const resultsContainer = document.getElementById('team-analysis-results');
+        let playersData = [];
+
+        // Fetch the players data from the JSON file
+        fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
+            .then(response => response.json())
+            .then(data => {
+                playersData = data;
+            })
+            .catch(error => console.error('Error al cargar el archivo JSON:', error));
+
+        teamForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const playerInputs = [
+                document.getElementById('player1').value.trim(),
+                document.getElementById('player2').value.trim(),
+                document.getElementById('player3').value.trim(),
+                document.getElementById('player4').value.trim(),
+                document.getElementById('player5').value.trim(),
+                document.getElementById('player6').value.trim(),
+                document.getElementById('player7').value.trim(),
+                document.getElementById('player8').value.trim()
+            ].filter(name => name);
+
+            if (playerInputs.length < 2 || playerInputs.length > 8) {
+                resultsContainer.innerHTML = '<p class="error">Por favor, selecciona entre 2 y 8 jugadores.</p>';
+                return;
+            }
+
+            const equipo = playerInputs.map(name => {
+                const jugador = playersData.find(p => p.Player.toLowerCase() === name.toLowerCase());
+                if (!jugador) {
+                    resultsContainer.innerHTML = `<p class="error">Jugador '${name}' no encontrado en la base de datos.</p>`;
+                    throw new Error(`Jugador '${name}' no encontrado en la base de datos.`);
+                }
+                return jugador;
+            });
+
+            const total_score = equipo.reduce((acc, jugador) => acc + jugador['Total Score'], 0);
+            const total_kills = equipo.reduce((acc, jugador) => acc + jugador['Total Kills'], 0);
+            const total_deaths = equipo.reduce((acc, jugador) => acc + jugador['Total Deaths'], 0);
+            const total_rounds = equipo.reduce((acc, jugador) => acc + jugador['Rounds'], 0);
+            const total_performance_score = equipo.reduce((acc, jugador) => acc + jugador['Performance Score'], 0) / equipo.length;
+            const avg_kills_per_round = total_kills / total_rounds || 0;
+            const avg_deaths_per_round = total_deaths / total_rounds || 0;
+            const team_kd_ratio = total_kills / total_deaths || 0;
+
+            let resultsHTML = '<div class="stats-box"><h3>Métricas del Equipo</h3>';
+            resultsHTML += `<p><strong>Total Score:</strong> ${total_score}</p>`;
+            resultsHTML += `<p><strong>Total Kills:</strong> ${total_kills}</p>`;
+            resultsHTML += `<p><strong>Total Deaths:</strong> ${total_deaths}</p>`;
+            resultsHTML += `<p><strong>Total Rounds:</strong> ${total_rounds}</p>`;
+            resultsHTML += `<p><strong>Average Kills per Round:</strong> ${avg_kills_per_round.toFixed(2)}</p>`;
+            resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
+            resultsHTML += `<p><strong>Team K/D Ratio:</strong> ${team_kd_ratio.toFixed(2)}</p>`;
+            resultsHTML += `<p><strong>Average Performance Score:</strong> ${total_performance_score.toFixed(2)}</p></div>`;
+
+            equipo.forEach(jugador => {
+                resultsHTML += `<div class="stats-box"><h3>${jugador.Player}</h3>`;
+                resultsHTML += `<p><strong>Clan:</strong> ${jugador.Clan}</p>`;
+                resultsHTML += `<p><strong>K/D Ratio:</strong> ${jugador['K/D Ratio'].toFixed(2)}</p>`;
+                resultsHTML += `<p><strong>Total Kills:</strong> ${jugador['Total Kills']}</p>`;
+                resultsHTML += `<p><strong>Total Deaths:</strong> ${jugador['Total Deaths']}</p>`;
+                resultsHTML += `<p><strong>Rounds Jugados:</strong> ${jugador['Rounds']}</p>`;
+                resultsHTML += `<p><strong>Performance Score:</strong> ${jugador['Performance Score'].toFixed(2)}</p></div>`;
+            });
+
+            resultsContainer.innerHTML = resultsHTML;
+        });
+    });
+</script>
     <!-- Guías -->
     <section class="guides" id="guias">
         <h2>Guías de Project Reality</h2>
