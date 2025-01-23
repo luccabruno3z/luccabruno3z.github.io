@@ -921,6 +921,114 @@ async def analizar_equipo(ctx, *jugadores: str):
 
     await ctx.send(embed=embed)
 
+@bot.command()
+async def sugerir_equipo(ctx, num_jugadores: int = 5):
+    """
+    Sugiere un equipo categorizando por clanes buscando una media entre mayor score por partida,
+    mayor kills por partida y menor muertes por partida, mostrando el performance score total.
+    """
+    if num_jugadores < 2 or num_jugadores > 8:
+        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-sugerir_equipo 5`.")
+        return
+
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    # Filtrar jugadores por clan y calcular métricas
+    clanes = {}
+    for jugador in data:
+        clan = jugador.get("Clan", "Sin Clan")
+        if clan not in clanes:
+            clanes[clan] = []
+        clanes[clan].append(jugador)
+
+    # Calcular métricas ponderadas por clan
+    clan_scores = []
+    for clan, jugadores in clanes.items():
+        total_kills = sum(jugador.get('Total Kills', 0) for jugador in jugadores)
+        total_deaths = sum(jugador.get('Total Deaths', 0) for jugador in jugadores)
+        total_score = sum(jugador.get('Total Score', 0) for jugador in jugadores)
+        total_rounds = sum(jugador.get('Rounds', 0) for jugador in jugadores)
+        performance_score = sum(jugador.get('Performance Score', 0) for jugador in jugadores) / len(jugadores)
+
+        avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
+        avg_deaths_per_round = total_deaths / total_rounds if total_rounds > 0 else 0
+        avg_score_per_round = total_score / total_rounds if total_rounds > 0 else 0
+
+        clan_scores.append({
+            "clan": clan,
+            "avg_kills_per_round": avg_kills_per_round,
+            "avg_deaths_per_round": avg_deaths_per_round,
+            "avg_score_per_round": avg_score_per_round,
+            "performance_score": performance_score,
+            "jugadores": jugadores
+        })
+
+    # Ordenar clanes por las métricas ponderadas
+    clan_scores.sort(key=lambda x: (x["avg_score_per_round"], x["avg_kills_per_round"], -x["avg_deaths_per_round"]), reverse=True)
+
+    # Seleccionar los mejores jugadores de los mejores clanes
+    equipo_sugerido = []
+    for clan_score in clan_scores:
+        if len(equipo_sugerido) < num_jugadores:
+            equipo_sugerido.extend(clan_score["jugadores"][:num_jugadores - len(equipo_sugerido)])
+        else:
+            break
+
+    # Calcular métricas del equipo sugerido
+    total_score = sum(jugador['Total Score'] for jugador in equipo_sugerido)
+    total_kills = sum(jugador['Total Kills'] for jugador in equipo_sugerido)
+    total_deaths = sum(jugador['Total Deaths'] for jugador in equipo_sugerido)
+    total_rounds = sum(jugador['Rounds'] for jugador in equipo_sugerido)
+    avg_performance_score = sum(jugador['Performance Score'] for jugador in equipo_sugerido) / len(equipo_sugerido)
+
+    avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
+    avg_deaths_per_round = total_deaths / total_rounds if total_rounds > 0 else 0
+    team_kd_ratio = total_kills / total_deaths if total_deaths > 0 else 0
+
+    # Crear embed con el análisis del equipo sugerido
+    embed = discord.Embed(
+        title="📊 Equipo Sugerido",
+        description="Aquí tienes el equipo sugerido categorizado por clanes:",
+        color=discord.Color.blue()
+    )
+
+    for jugador in equipo_sugerido:
+        embed.add_field(
+            name=f"🎮 {jugador['Player']}",
+            value=(
+                f"**Clan**: {jugador['Clan']}\n"
+                f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
+                f"**Total Kills**: {jugador['Total Kills']}\n"
+                f"**Total Deaths**: {jugador['Total Deaths']}\n"
+                f"**Rounds Jugados**: {jugador['Rounds']}\n"
+                f"**Performance Score**: {jugador['Performance Score']:.2f}"
+            ),
+            inline=True
+        )
+
+    embed.add_field(name="**📊 Métricas del Equipo**", value=(
+        f"**Total Score**: {total_score}\n"
+        f"**Total Kills**: {total_kills}\n"
+        f"**Total Deaths**: {total_deaths}\n"
+        f"**Total Rounds**: {total_rounds}\n"
+        f"**Average Kills per Round**: {avg_kills_per_round:.2f}\n"
+        f"**Average Deaths per Round**: {avg_deaths_per_round:.2f}\n"
+        f"**Team K/D Ratio**: {team_kd_ratio:.2f}\n"
+        f"**Average Performance Score**: {avg_performance_score:.2f}"
+    ), inline=False)
+
+    await ctx.send(embed=embed)
+
 # Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
 def generar_grafico_historico(player_name):
     player_history_file = f"graphs/{player_name}_history.json"
