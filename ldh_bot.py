@@ -35,7 +35,6 @@ GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/graphs/WD_interactive_chart.ht
 GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/graphs/300_interactive_chart.html"
 GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html"
 GITHUB_GRAPH_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html"
-GITHUB_GRAPH_ADG = "https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/graphs/LDH_players.json"
@@ -48,7 +47,6 @@ GITHUB_JSON_WD = "https://luccabruno3z.github.io/graphs/WD_players.json"
 GITHUB_JSON_300 = "https://luccabruno3z.github.io/graphs/300_players.json"
 GITHUB_JSON_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_players.json"
 GITHUB_JSON_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_players.json"
-GITHUB_JSON_ADG = "https://luccabruno3z.github.io/graphs/ADG_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/graphs/clan_averages.json"
@@ -71,9 +69,11 @@ CLAN_EMOJIS = {
     "300": "<:Logo_300:1330790501460213770>",
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
     "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>",
-    "ADG": "<:Logo_ADG:emoji_id12>" 
+    "ADG": "<:Logo_ADG:1330790529214185473>"  # Añadir el emoji para el nuevo clan
 }
+
 KD = "K/D Ratio"
+
 @bot.command()
 async def guias(ctx):
     await ctx.send(f"[Aquí tienes acceso a las guías de la página!]({GITHUB_GUIDES})")
@@ -93,7 +93,6 @@ async def graficoldh(ctx):
 @bot.command()
 async def grafico300(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de 300!]({GITHUB_GRAPH_300})")
-
 
 @bot.command()
 async def graficoe_lam(ctx):
@@ -124,13 +123,8 @@ async def graficowd(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la WD!]({GITHUB_GRAPH_WD})")
 
 @bot.command()
-async def graficoadg(ctx):
-    await ctx.send(f"[Aquí tienes el gráfico interactivo de la ADG!]({GITHUB_GRAPH_ADG})")
-
-@bot.command()
 async def grafico(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de los usuarios!]({GITHUB_GRAPH_PLAYERS})")
-
 
 @bot.command()
 async def estadisticas(ctx, jugador: str = None):
@@ -177,6 +171,9 @@ async def estadisticas(ctx, jugador: str = None):
         # Obtener imagen del clan
         clan = jugador_encontrado.get("Clan", "N/A")
         clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.png"
+        # Verificar si la imagen en formato .png no existe, entonces intentar con .gif
+        if requests.head(clan_image_url).status_code != 200:
+            clan_image_url = f"https://luccabruno3z.github.io/logos/Logo_{clan}.gif"
 
         # Calcular la tasa de muertes por ronda
         total_deaths = jugador_encontrado.get("Total Deaths", 0)
@@ -286,7 +283,7 @@ async def tips(ctx, kit: str = None):
             "🕶️ **Usa granadas de humo:** Cubre avances y extracciones con humo.",
             "🔋 **Gestiona tu stamina:** Evita correr innecesariamente en combate."
         ],
-        "medic": [
+"medic": [
             "💉 **Prioriza la supervivencia:** No te arriesgues innecesariamente para revivir.",
             "🛡️ **Usa humo para cubrir:** Antes de revivir, lanza humo para evitar ser un blanco fácil.",
             "🏃 **Mantente cerca del escuadrón:** Apoya desde la retaguardia.",
@@ -362,11 +359,8 @@ async def tips(ctx, kit: str = None):
                 color=discord.Color.red()
             )
 
-                
     embed.set_footer(text="¡Practica y mejora tus habilidades en el campo de batalla!")
     embed.set_thumbnail(url="https://luccabruno3z.github.io/LDH_BOY2.png")  # Cambia por una imagen temática si lo deseas
-
-   
 
     await ctx.send(embed=embed)
 
@@ -466,7 +460,7 @@ async def on_ready():
 @bot.command()
 async def hola(ctx):
     await ctx.send('¡Hola! ¿En qué puedo ayudarte?')
-    
+
 @bot.command()
 async def promedios(ctx):
     try:
@@ -685,7 +679,7 @@ async def compare(ctx, entity1: str, entity2: str):
             value=(
                 f"{kills2}\n"
                 f"{deaths2}\n"
-                f"{score2}\n"
+f"{score2}\n"
                 f"{rounds2}"
             ),
             inline=True
@@ -702,7 +696,6 @@ async def compare(ctx, entity1: str, entity2: str):
         embed.set_footer(text="📅 Datos actualizados recientemente.")
 
         await ctx.send(embed=embed)
-
 
 @bot.command()
 async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "performance"):
@@ -820,6 +813,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
     # Enviar el embed
     await ctx.send(embed=embed)
     print("Embed enviado correctamente.")
+
 # Manejar errores globalmente
 @bot.event
 async def on_command_error(ctx, error):
@@ -843,7 +837,7 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
-        
+
 # Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
 def generar_grafico_historico(player_name):
     player_history_file = f"graphs/{player_name}_history.json"
