@@ -35,6 +35,7 @@ GITHUB_GRAPH_WD = "https://luccabruno3z.github.io/graphs/WD_interactive_chart.ht
 GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/graphs/300_interactive_chart.html"
 GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html"
 GITHUB_GRAPH_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html"
+GITHUB_GRAPH_ADG = "https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/graphs/LDH_players.json"
@@ -47,6 +48,7 @@ GITHUB_JSON_WD = "https://luccabruno3z.github.io/graphs/WD_players.json"
 GITHUB_JSON_300 = "https://luccabruno3z.github.io/graphs/300_players.json"
 GITHUB_JSON_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_players.json"
 GITHUB_JSON_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_players.json"
+GITHUB_JSON_ADG = "https://luccabruno3z.github.io/graphs/ADG_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/graphs/clan_averages.json"
@@ -68,7 +70,8 @@ CLAN_EMOJIS = {
     "WD": "<:Logo_WD:emoji_id7>",
     "300": "<:Logo_300:1330790501460213770>",
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
-    "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>"
+    "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>",
+    "ADG": "<:Logo_ADG:emoji_id12>" 
 }
 KD = "K/D Ratio"
 @bot.command()
@@ -119,6 +122,10 @@ async def graficor_ldh(ctx):
 @bot.command()
 async def graficowd(ctx):
     await ctx.send(f"[Aquí tienes el gráfico interactivo de la WD!]({GITHUB_GRAPH_WD})")
+
+@bot.command()
+async def graficoadg(ctx):
+    await ctx.send(f"[Aquí tienes el gráfico interactivo de la ADG!]({GITHUB_GRAPH_ADG})")
 
 @bot.command()
 async def grafico(ctx):
