@@ -36,6 +36,10 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 3px solid #00FFFF;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
         }
 
         header .logo {
@@ -75,6 +79,11 @@
             background: #00FFFF;
             color: #000;
             outline: none;
+        }
+
+        /* Sección principal ajustada para el encabezado fijo */
+        main {
+            padding-top: 120px;
         }
 
         /* Hero Section */
@@ -372,160 +381,172 @@
         </nav>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <h1>Bienvenido a la Legión de Hierro</h1>
-        <p>Explora estadísticas, gráficos y recursos del juego Project Reality</p>
-    </section>
+    <main>
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Bienvenido a la Legión de Hierro</h1>
+            <p>Explora estadísticas, gráficos y recursos del juego Project Reality</p>
+        </section>
 
-    <!-- Novedades -->
-    <section class="updates" id="novedades">
-        <h2>Novedades</h2>
-        <ul>
-            <li>✔️ Implementado visualizador 2D.</li>
-            <li>✔️ Implementadas guías de combate.</li>
-            <li>✔️ Añadido apartado de redes y estadísticas.</li>
-            <li>✔️ Actualización de datos de jugadores y clanes.</li>
-        </ul>
-    </section>
+        <!-- Novedades -->
+        <section class="updates" id="novedades">
+            <h2>Novedades</h2>
+            <ul>
+                <li>✔️ Implementado visualizador 2D.</li>
+                <li>✔️ Implementadas guías de combate.</li>
+                <li>✔️ Añadido apartado de redes y estadísticas.</li>
+                <li>✔️ Actualización de datos de jugadores y clanes.</li>
+            </ul>
+        </section>
 
-    <!-- Gráficos Interactivos -->
-    <section class="resources" id="graficos">
-        <h2>Gráficos Interactivos</h2>
-        <div class="resource-grid">
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html">RIM:LA</a></div>
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html">ADG</a></div> <!-- Añadir el nuevo clan ADG -->
-            <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a></div>
-        </div>
-    </section>
+        <!-- Gráficos Interactivos -->
+        <section class="resources" id="graficos">
+            <h2>Gráficos Interactivos</h2>
+            <div class="resource-grid">
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html">LDH</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html">SAE</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html">FI</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html">FI-R</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html">141</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html">R-LDH</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html">300</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html">E-LAM</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html">RIM:LA</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html">ADG</a></div>
+                <div class="resource-item"><a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html">All Players</a></div>
+            </div>
+        </section>
 
-    <!-- Promedios de Clanes -->
-    <section class="clan-averages">
-        <h2>Promedios de Clanes</h2>
-        <div class="clan-averages-container">
-            <canvas id="clanAveragesChart" class="clan-averages-chart"></canvas>
-            <div id="clan-averages-results" class="clan-averages-stats"></div>
-        </div>
-    </section>
+        <!-- Promedios de Clanes -->
+        <section class="clan-averages">
+            <h2>Promedios de Clanes</h2>
+            <div class="clan-averages-container">
+                <canvas id="clanAveragesChart" class="clan-averages-chart"></canvas>
+                <div id="clan-averages-results" class="clan-averages-stats"></div>
+            </div>
+        </section>
 
-    <!-- Top Players -->
-    <section class="top-players">
-        <h2>Top Jugadores</h2>
-        <form id="top-players-form" class="top-players-form">
-            <label for="category">Categoría:</label>
-            <select id="category" name="category">
-                <option value="general">General</option>
-                <option value="ldh">LDH</option>
-                <option value="sae">SAE</option>
-                <option value="fi">FI</option>
-                <option value="141">141</option>
-                <option value="fi-r">FI-R</option>
-                <option value="r-ldh">R-LDH</option>
-                <option value="e-lam">E-LAM</option>
-                <option value="300">300</option>
-                <option value="rim-la">RIM-LA</option>
-                <option value="adg">ADG</option> <!-- Añadir el nuevo clan ADG -->
-            </select>
-            <label for="metric">Métrica:</label>
-            <select id="metric" name="metric">
-                <option value="performance">Performance Score</option>
-                <option value="kd">K/D Ratio</option>
-                <option value="kills">Total Kills</option>
-                <option value="deaths">Total Deaths</option>
-                <option value="rounds">Rounds</option>
-            </select>
-            <label for="top-number">Cantidad:</label>
-            <input type="number" id="top-number" name="top-number" min="1" value="10">
-            <button type="submit">Ver Top</button>
-        </form>
-        <div id="top-players-results" class="top-players-results"></div>
-    </section>
+        <!-- Top Players -->
+        <section class="top-players">
+            <h2>Top Jugadores</h2>
+            <form id="top-players-form" class="top-players-form">
+                <label for="category">Categoría:</label>
+                <select id="category" name="category">
+                    <option value="general">General</option>
+                    <option value="ldh">LDH</option>
+                    <option value="sae">SAE</option>
+                    <option value="fi">FI</option>
+                    <option value="141">141</option>
+                    <option value="fi-r">FI-R</option>
+                    <option value="r-ldh">R-LDH</option>
+                    <option value="e-lam">E-LAM</option>
+                    <option value="300">300</option>
+                    <option value="rim-la">RIM-LA</option>
+                    <option value="adg">ADG</option>
+                </select>
+                <label for="metric">Métrica:</label>
+                <select id="metric" name="metric">
+                    <option value="performance">Performance Score</option>
+                    <option value="kd">K/D Ratio</option>
+                    <option value="kills">Total Kills</option>
+                    <option value="deaths">Total Deaths</option>
+                    <option value="rounds">Rounds</option>
+                </select>
+                <label for="top-number">Cantidad:</label>
+                <input type="number" id="top-number" name="top-number" min="1" value="10">
+                <button type="submit">Ver Top</button>
+            </form>
+            <div id="top-players-results" class="top-players-results"></div>
+        </section>
 
-<!-- Comparar Jugadores o Clanes -->
-    <section class="compare-section">
-        <h2>Comparar Jugadores o Clanes</h2>
-        <form id="compare-form" class="compare-form">
-            <label for="entity1">Entidad 1:</label>
-            <input type="text" id="entity1" name="entity1" required>
-            <label for="entity2">Entidad 2:</label>
-            <input type="text" id="entity2" name="entity2" required>
-            <button type="submit">Comparar</button>
-        </form>
-        <div id="compare-results" class="compare-results"></div>
-    </section>
+        <!-- Comparar Jugadores o Clanes -->
+        <section class="compare-section">
+            <h2>Comparar Jugadores o Clanes</h2>
+            <form id="compare-form" class="compare-form">
+                <label for="entity1">Entidad 1:</label>
+                <input type="text" id="entity1" name="entity1" required>
+                <label for="entity2">Entidad 2:</label>
+                <input type="text" id="entity2" name="entity2" required>
+                <button type="submit">Comparar</button>
+            </form>
+            <div id="compare-results" class="compare-results"></div>
+        </section>
+<!-- Redes Sociales -->
+        <section class="social-section">
+            <h2>Síguenos en nuestras redes sociales</h2>
+            <div class="social-buttons">
+                <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
+                    <img src="https://luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube">
+                    YouTube
+                </a>
+                <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
+                    <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
+                    Tiktok Grozny
+                </a>
+                <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
+                    <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
+                    Tiktok Doc
+                </a>
+            </div>
+        </section>
 
-    <!-- Redes Sociales -->
-    <section class="social-section">
-        <h2>Síguenos en nuestras redes sociales</h2>
-        <div class="social-buttons">
-            <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
-                <img src="https://luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube">
-                YouTube
-            </a>
-            <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
-                <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
-                Tiktok Grozny
-            </a>
-            <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button">
-                <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
-                Tiktok Doc
-            </a>
-        </div>
-    </section>
+        <!-- Estadísticas de Jugadores -->
+        <section class="stats-section">
+            <h2>Buscar Estadísticas de Jugadores</h2>
+            <form class="search-form" id="search-form">
+                <label for="player-name">Nombre del Jugador:</label>
+                <input type="text" id="player-name" name="player-name" required>
+                <div class="suggestions" id="suggestions"></div>
+                <button type="submit">Buscar</button>
+            </form>
+            <div class="search-results" id="search-results"></div>
+            <canvas id="performanceHistoryChart" style="display: none;"></canvas>
+        </section>
 
-    <!-- Estadísticas de Jugadores -->
-    <section class="stats-section">
-        <h2>Buscar Estadísticas de Jugadores</h2>
-        <form class="search-form" id="search-form">
-            <label for="player-name">Nombre del Jugador:</label>
-            <input type="text" id="player-name" name="player-name" required>
-            <div class="suggestions" id="suggestions"></div>
-            <button type="submit">Buscar</button>
-        </form>
-        <div class="search-results" id="search-results"></div>
-        <canvas id="performanceHistoryChart" style="display: none;"></canvas>
-    </section>
+        <!-- Análisis de Equipo -->
+        <section class="team-analysis">
+            <h2>Análisis de Composición de Equipo</h2>
+            <form id="team-analysis-form" class="team-analysis-form">
+                <label for="player1">Jugador 1:</label>
+                <input type="text" id="player1" name="player1">
+                <div class="suggestions" id="suggestions1"></div>
+                <label for="player2">Jugador 2:</label>
+                <input type="text" id="player2" name="player2">
+                <div class="suggestions" id="suggestions2"></div>
+                <label for="player3">Jugador 3:</label>
+                <input type="text" id="player3" name="player3">
+                <div class="suggestions" id="suggestions3"></div>
+                <label for="player4">Jugador 4:</label>
+                <input type="text" id="player4" name="player4">
+                <div class="suggestions" id="suggestions4"></div>
+                <label for="player5">Jugador 5:</label>
+                <input type="text" id="player5" name="player5">
+                <div class="suggestions" id="suggestions5"></div>
+                <label for="player6">Jugador 6:</label>
+                <input type="text" id="player6" name="player6">
+                <div class="suggestions" id="suggestions6"></div>
+                <label for="player7">Jugador 7:</label>
+                <input type="text" id="player7" name="player7">
+                <div class="suggestions" id="suggestions7"></div>
+                <label for="player8">Jugador 8:</label>
+                <input type="text" id="player8" name="player8">
+                <div class="suggestions" id="suggestions8"></div>
+                <button type="submit">Analizar Equipo</button>
+            </form>
+            <div id="team-analysis-results" class="team-analysis-results"></div>
+        </section>
 
-    <!-- Análisis de Equipo -->
-    <section class="team-analysis">
-        <h2>Análisis de Composición de Equipo</h2>
-        <form id="team-analysis-form" class="team-analysis-form">
-            <label for="player1">Jugador 1:</label>
-            <input type="text" id="player1" name="player1">
-            <div class="suggestions" id="suggestions1"></div>
-            <label for="player2">Jugador 2:</label>
-            <input type="text" id="player2" name="player2">
-            <div class="suggestions" id="suggestions2"></div>
-            <label for="player3">Jugador 3:</label>
-            <input type="text" id="player3" name="player3">
-            <div class="suggestions" id="suggestions3"></div>
-            <label for="player4">Jugador 4:</label>
-            <input type="text" id="player4" name="player4">
-            <div class="suggestions" id="suggestions4"></div>
-            <label for="player5">Jugador 5:</label>
-            <input type="text" id="player5" name="player5">
-            <div class="suggestions" id="suggestions5"></div>
-            <label for="player6">Jugador 6:</label>
-            <input type="text" id="player6" name="player6">
-            <div class="suggestions" id="suggestions6"></div>
-            <label for="player7">Jugador 7:</label>
-            <input type="text" id="player7" name="player7">
-            <div class="suggestions" id="suggestions7"></div>
-            <label for="player8">Jugador 8:</label>
-            <input type="text" id="player8" name="player8">
-            <div class="suggestions" id="suggestions8"></div>
-            <button type="submit">Analizar Equipo</button>
-        </form>
-        <div id="team-analysis-results" class="team-analysis-results"></div>
-    </section>
+        <!-- Guías -->
+        <section class="guides" id="guias">
+            <h2>Guías de Project Reality</h2>
+            <div class="guide-grid">
+                <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
+                <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
+                <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
+                <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
+            </div>
+        </section>
+    </main>
 
     <!-- Pie de Página -->
     <footer>
@@ -847,7 +868,7 @@
                 resultsHTML += `<p><strong>Total Deaths:</strong> ${total_deaths}</p>`;
                 resultsHTML += `<p><strong>Total Rounds:</strong> ${total_rounds}</p>`;
                 resultsHTML += `<p><strong>Average Kills per Round:</strong> ${avg_kills_per_round.toFixed(2)}</p>`;
-                resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
+resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
                 resultsHTML += `<p><strong>Team K/D Ratio:</strong> ${team_kd_ratio.toFixed(2)}</p>`;
                 resultsHTML += `<p><strong>Average Performance Score:</strong> ${total_performance_score.toFixed(2)}</p></div>`;
 
@@ -856,7 +877,7 @@
                     resultsHTML += `<p><strong>Clan:</strong> ${jugador.Clan}</p>`;
                     resultsHTML += `<p><strong>K/D Ratio:</strong> ${jugador['K/D Ratio'].toFixed(2)}</p>`;
                     resultsHTML += `<p><strong>Total Kills:</strong> ${jugador['Total Kills']}</p>`;
-resultsHTML += `<p><strong>Total Deaths:</strong> ${jugador['Total Deaths']}</p>`;
+                    resultsHTML += `<p><strong>Total Deaths:</strong> ${jugador['Total Deaths']}</p>`;
                     resultsHTML += `<p><strong>Rounds Jugados:</strong> ${jugador['Rounds']}</p>`;
                     resultsHTML += `<p><strong>Performance Score:</strong> ${jugador['Performance Score'].toFixed(2)}</p></div>`;
                 });
