@@ -716,14 +716,15 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         "r-ldh": GITHUB_JSON_R_LDH,
         "e-lam": GITHUB_JSON_E_LAM,
         "300": GITHUB_JSON_300,
-        "rim-la": GITHUB_JSON_RIM_LA
+        "rim-la": GITHUB_JSON_RIM_LA,
+        "adg": GITHUB_JSON_ADG
     }
 
     # Validar la categoría ingresada
     if categoria.lower() not in categorias_validas:
         await ctx.send(
             "❗ **Categoría inválida.** Las categorías válidas son:\n"
-            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`."
+            "`general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`, `adg`."
         )
         return
 
