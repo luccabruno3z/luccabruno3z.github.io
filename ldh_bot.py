@@ -922,17 +922,37 @@ async def analizar_equipo(ctx, *jugadores: str):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def sugerir_equipo(ctx, num_jugadores: int = 5):
+async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
     """
-    Sugiere un equipo categorizando por clanes buscando una media entre mayor score por partida,
+    Sugiere un equipo de jugadores de un clan específico buscando una media entre mayor score por partida,
     mayor kills por partida y menor muertes por partida, mostrando el performance score total.
     """
     if num_jugadores < 2 or num_jugadores > 8:
-        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-sugerir_equipo 5`.")
+        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-sugerir_equipo LDH 5`.")
+        return
+
+    # Diccionario para mapear clanes a sus URLs JSON
+    clan_json_urls = {
+        "LDH": GITHUB_JSON_LDH,
+        "SAE": GITHUB_JSON_SAE,
+        "FI": GITHUB_JSON_FI,
+        "FI-R": GITHUB_JSON_FI_R,
+        "141": GITHUB_JSON_141,
+        "R-LDH": GITHUB_JSON_R_LDH,
+        "WD": GITHUB_JSON_WD,
+        "300": GITHUB_JSON_300,
+        "E-LAM": GITHUB_JSON_E_LAM,
+        "RIM:LA": GITHUB_JSON_RIM_LA,
+        "ADG": GITHUB_JSON_ADG,
+    }
+
+    # Verificar si el clan existe
+    if clan not in clan_json_urls:
+        await ctx.send(f"❗ Clan '{clan}' no reconocido. Los clanes válidos son: {', '.join(clan_json_urls.keys())}.")
         return
 
     try:
-        response = requests.get(GITHUB_JSON_PLAYERS)
+        response = requests.get(clan_json_urls[clan])
         response.raise_for_status()
         data = response.json()
     except requests.exceptions.RequestException as e:
@@ -943,46 +963,11 @@ async def sugerir_equipo(ctx, num_jugadores: int = 5):
         await ctx.send("❌ Error al procesar los datos del archivo JSON.")
         return
 
-    # Filtrar jugadores por clan y calcular métricas
-    clanes = {}
-    for jugador in data:
-        clan = jugador.get("Clan", "Sin Clan")
-        if clan not in clanes:
-            clanes[clan] = []
-        clanes[clan].append(jugador)
+    # Ordenar jugadores por las métricas ponderadas
+    jugadores_ordenados = sorted(data, key=lambda x: (x.get("Score per Round", 0), x.get("Kills per Round", 0), -x.get("Deaths per Round", 0)), reverse=True)
 
-    # Calcular métricas ponderadas por clan
-    clan_scores = []
-    for clan, jugadores in clanes.items():
-        total_kills = sum(jugador.get('Total Kills', 0) for jugador in jugadores)
-        total_deaths = sum(jugador.get('Total Deaths', 0) for jugador in jugadores)
-        total_score = sum(jugador.get('Total Score', 0) for jugador in jugadores)
-        total_rounds = sum(jugador.get('Rounds', 0) for jugador in jugadores)
-        performance_score = sum(jugador.get('Performance Score', 0) for jugador in jugadores) / len(jugadores)
-
-        avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
-        avg_deaths_per_round = total_deaths / total_rounds if total_rounds > 0 else 0
-        avg_score_per_round = total_score / total_rounds if total_rounds > 0 else 0
-
-        clan_scores.append({
-            "clan": clan,
-            "avg_kills_per_round": avg_kills_per_round,
-            "avg_deaths_per_round": avg_deaths_per_round,
-            "avg_score_per_round": avg_score_per_round,
-            "performance_score": performance_score,
-            "jugadores": jugadores
-        })
-
-    # Ordenar clanes por las métricas ponderadas
-    clan_scores.sort(key=lambda x: (x["avg_score_per_round"], x["avg_kills_per_round"], -x["avg_deaths_per_round"]), reverse=True)
-
-    # Seleccionar los mejores jugadores de los mejores clanes
-    equipo_sugerido = []
-    for clan_score in clan_scores:
-        if len(equipo_sugerido) < num_jugadores:
-            equipo_sugerido.extend(clan_score["jugadores"][:num_jugadores - len(equipo_sugerido)])
-        else:
-            break
+    # Seleccionar los mejores jugadores
+    equipo_sugerido = jugadores_ordenados[:num_jugadores]
 
     # Calcular métricas del equipo sugerido
     total_score = sum(jugador['Total Score'] for jugador in equipo_sugerido)
@@ -997,8 +982,8 @@ async def sugerir_equipo(ctx, num_jugadores: int = 5):
 
     # Crear embed con el análisis del equipo sugerido
     embed = discord.Embed(
-        title="📊 Equipo Sugerido",
-        description="Aquí tienes el equipo sugerido categorizado por clanes:",
+        title=f"📊 Equipo Sugerido para {clan}",
+        description=f"Aquí tienes el equipo sugerido del clan {clan}:",
         color=discord.Color.blue()
     )
 
@@ -1006,7 +991,6 @@ async def sugerir_equipo(ctx, num_jugadores: int = 5):
         embed.add_field(
             name=f"🎮 {jugador['Player']}",
             value=(
-                f"**Clan**: {jugador['Clan']}\n"
                 f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
                 f"**Total Kills**: {jugador['Total Kills']}\n"
                 f"**Total Deaths**: {jugador['Total Deaths']}\n"
