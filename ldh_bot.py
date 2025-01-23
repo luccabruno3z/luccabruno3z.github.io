@@ -923,7 +923,7 @@ async def analizar_equipo(ctx, *jugadores: str):
 
 
 @bot.command()
-async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 5):
+async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
     """
     Sugiere un equipo de jugadores de un clan específico buscando una media entre mayor score por partida,
     mayor kills por partida y menor muertes por partida, mostrando el performance score total.
