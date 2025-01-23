@@ -97,13 +97,13 @@
         }
 
         /* Sección de Actualizaciones y Guías */
-        .updates, .resources, .guides, .clan-averages, .top-players, .compare-section {
+        .updates, .resources, .guides, .clan-averages, .top-players, .compare-section, .team-analysis {
             padding: 60px 20px;
             text-align: center;
             background: #1a1a1a;
         }
 
-        .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2 {
+        .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2, .team-analysis h2 {
             font-size: 2.5rem;
             margin-bottom: 20px;
             color: #00FFFF;
@@ -152,63 +152,7 @@
             font-weight: bold;
             text-shadow: 0 0 10px #00FFFF;
         }
-/* Análisis de Equipo */
-.team-analysis {
-    padding: 60px 20px;
-    background: #1a1a1a;
-    text-align: center;
-}
 
-.team-analysis h2 {
-    font-size: 2.5rem;
-    margin-bottom: 20px;
-    color: #00FFFF;
-    text-transform: uppercase;
-    text-shadow: 0 0 10px #00FFFF;
-}
-
-.team-analysis-form {
-    margin-top: 20px;
-    text-align: center;
-    position: relative;
-}
-
-.team-analysis-form label, 
-.team-analysis-form input, 
-.team-analysis-form button {
-    display: block;
-    margin: 10px auto;
-}
-
-.team-analysis-form input {
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #00FFFF;
-    background: #333;
-    color: #fff;
-    width: 300px;
-}
-
-.team-analysis-form button {
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: none;
-    background: #00FFFF;
-    color: #000;
-    cursor: pointer;
-    transition: background 0.3s;
-    text-shadow: 0 0 10px #00FFFF;
-}
-
-.team-analysis-form button:hover, 
-.team-analysis-form button:focus {
-    background: #00CED1;
-    outline: none;
-}
-
-.team-analysis-results .stats-box {
-    margin-top: 20px;
-}
         /* Estilos para los botones de redes sociales */
         .social-buttons {
             display: flex;
@@ -237,12 +181,12 @@
         }
 
         /* Estilos para el formulario de búsqueda */
-        .search-form, .top-players-form, .compare-form {
+        .search-form, .top-players-form, .compare-form, .team-analysis-form {
             margin-top: 20px;
             text-align: center;
             position: relative;
         }
-        .search-form input, .top-players-form input, .compare-form input, .top-players-form select {
+        .search-form input, .top-players-form input, .compare-form input, .top-players-form select, .team-analysis-form input {
             padding: 10px;
             border-radius: 5px;
             border: 1px solid #00FFFF;
@@ -251,7 +195,7 @@
             width: 300px;
             margin: 5px;
         }
-        .search-form button, .top-players-form button, .compare-form button {
+        .search-form button, .top-players-form button, .compare-form button, .team-analysis-form button {
             padding: 10px 20px;
             border-radius: 5px;
             border: none;
@@ -261,7 +205,7 @@
             transition: background 0.3s;
             text-shadow: 0 0 10px #00FFFF;
         }
-        .search-form button:hover, .search-form button:focus, .top-players-form button:hover, .top-players-form button:focus, .compare-form button:hover, .compare-form button:focus {
+        .search-form button:hover, .search-form button:focus, .top-players-form button:hover, .top-players-form button:focus, .compare-form button:hover, .compare-form button:focus, .team-analysis-form button:hover, .team-analysis-form button:focus {
             background: #00CED1;
             outline: none;
         }
@@ -287,7 +231,7 @@
             background: #444;
             outline: none;
         }
-        .search-results, .clan-averages-results, .top-players-results, .compare-results {
+        .search-results, .clan-averages-results, .top-players-results, .compare-results, .team-analysis-results {
             margin-top: 20px;
             text-align: center;
         }
@@ -399,7 +343,7 @@
                 font-size: 1rem;
             }
 
-            .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2 {
+            .updates h2, .resources h2, .guides h2, .clan-averages h2, .top-players h2, .compare-section h2, .team-analysis h2 {
                 font-size: 2rem;
             }
 
@@ -505,7 +449,7 @@
         <div id="top-players-results" class="top-players-results"></div>
     </section>
 
-    <!-- Comparar Jugadores o Clanes -->
+<!-- Comparar Jugadores o Clanes -->
     <section class="compare-section">
         <h2>Comparar Jugadores o Clanes</h2>
         <form id="compare-form" class="compare-form">
@@ -525,7 +469,7 @@
             <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button">
                 <img src="https://luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube">
                 YouTube
-</a>
+            </a>
             <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button">
                 <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="Tiktok">
                 Tiktok Grozny
@@ -549,115 +493,38 @@
         <div class="search-results" id="search-results"></div>
         <canvas id="performanceHistoryChart" style="display: none;"></canvas>
     </section>
-<!-- Análisis de Equipo -->
-<section class="team-analysis">
-    <h2>Análisis de Composición de Equipo</h2>
-    <form id="team-analysis-form" class="team-analysis-form">
-        <label for="player1">Jugador 1:</label>
-        <input type="text" id="player1" name="player1">
-        <label for="player2">Jugador 2:</label>
-        <input type="text" id="player2" name="player2">
-        <label for="player3">Jugador 3:</label>
-        <input type="text" id="player3" name="player3">
-        <label for="player4">Jugador 4:</label>
-        <input type="text" id="player4" name="player4">
-        <label for="player5">Jugador 5:</label>
-        <input type="text" id="player5" name="player5">
-        <label for="player6">Jugador 6:</label>
-        <input type="text" id="player6" name="player6">
-        <label for="player7">Jugador 7:</label>
-        <input type="text" id="player7" name="player7">
-        <label for="player8">Jugador 8:</label>
-        <input type="text" id="player8" name="player8">
-        <button type="submit">Analizar Equipo</button>
-    </form>
-    <div id="team-analysis-results" class="team-analysis-results"></div>
-</section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const teamForm = document.getElementById('team-analysis-form');
-        const resultsContainer = document.getElementById('team-analysis-results');
-        let playersData = [];
-
-        // Fetch the players data from the JSON file
-        fetch('https://luccabruno3z.github.io/graphs/all_players_clusters.json')
-            .then(response => response.json())
-            .then(data => {
-                playersData = data;
-            })
-            .catch(error => console.error('Error al cargar el archivo JSON:', error));
-
-        teamForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const playerInputs = [
-                document.getElementById('player1').value.trim(),
-                document.getElementById('player2').value.trim(),
-                document.getElementById('player3').value.trim(),
-                document.getElementById('player4').value.trim(),
-                document.getElementById('player5').value.trim(),
-                document.getElementById('player6').value.trim(),
-                document.getElementById('player7').value.trim(),
-                document.getElementById('player8').value.trim()
-            ].filter(name => name);
-
-            if (playerInputs.length < 2 || playerInputs.length > 8) {
-                resultsContainer.innerHTML = '<p class="error">Por favor, selecciona entre 2 y 8 jugadores.</p>';
-                return;
-            }
-
-            const equipo = playerInputs.map(name => {
-                const jugador = playersData.find(p => p.Player.toLowerCase() === name.toLowerCase());
-                if (!jugador) {
-                    resultsContainer.innerHTML = `<p class="error">Jugador '${name}' no encontrado en la base de datos.</p>`;
-                    throw new Error(`Jugador '${name}' no encontrado en la base de datos.`);
-                }
-                return jugador;
-            });
-
-            const total_score = equipo.reduce((acc, jugador) => acc + jugador['Total Score'], 0);
-            const total_kills = equipo.reduce((acc, jugador) => acc + jugador['Total Kills'], 0);
-            const total_deaths = equipo.reduce((acc, jugador) => acc + jugador['Total Deaths'], 0);
-            const total_rounds = equipo.reduce((acc, jugador) => acc + jugador['Rounds'], 0);
-            const total_performance_score = equipo.reduce((acc, jugador) => acc + jugador['Performance Score'], 0) / equipo.length;
-            const avg_kills_per_round = total_kills / total_rounds || 0;
-            const avg_deaths_per_round = total_deaths / total_rounds || 0;
-            const team_kd_ratio = total_kills / total_deaths || 0;
-
-            let resultsHTML = '<div class="stats-box"><h3>Métricas del Equipo</h3>';
-            resultsHTML += `<p><strong>Total Score:</strong> ${total_score}</p>`;
-            resultsHTML += `<p><strong>Total Kills:</strong> ${total_kills}</p>`;
-            resultsHTML += `<p><strong>Total Deaths:</strong> ${total_deaths}</p>`;
-            resultsHTML += `<p><strong>Total Rounds:</strong> ${total_rounds}</p>`;
-            resultsHTML += `<p><strong>Average Kills per Round:</strong> ${avg_kills_per_round.toFixed(2)}</p>`;
-            resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
-            resultsHTML += `<p><strong>Team K/D Ratio:</strong> ${team_kd_ratio.toFixed(2)}</p>`;
-            resultsHTML += `<p><strong>Average Performance Score:</strong> ${total_performance_score.toFixed(2)}</p></div>`;
-
-            equipo.forEach(jugador => {
-                resultsHTML += `<div class="stats-box"><h3>${jugador.Player}</h3>`;
-                resultsHTML += `<p><strong>Clan:</strong> ${jugador.Clan}</p>`;
-                resultsHTML += `<p><strong>K/D Ratio:</strong> ${jugador['K/D Ratio'].toFixed(2)}</p>`;
-                resultsHTML += `<p><strong>Total Kills:</strong> ${jugador['Total Kills']}</p>`;
-                resultsHTML += `<p><strong>Total Deaths:</strong> ${jugador['Total Deaths']}</p>`;
-                resultsHTML += `<p><strong>Rounds Jugados:</strong> ${jugador['Rounds']}</p>`;
-                resultsHTML += `<p><strong>Performance Score:</strong> ${jugador['Performance Score'].toFixed(2)}</p></div>`;
-            });
-
-            resultsContainer.innerHTML = resultsHTML;
-        });
-    });
-</script>
-    <!-- Guías -->
-    <section class="guides" id="guias">
-        <h2>Guías de Project Reality</h2>
-        <div class="guide-grid">
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing">Guía de Kits Básicos</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing">Guía Avanzada de Infantería</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing">Tácticas Avanzadas de Combate en Áreas Urbanas</a></div>
-            <div class="guide-item"><a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing">Guía de CQB</a></div>
-        </div>
+    <!-- Análisis de Equipo -->
+    <section class="team-analysis">
+        <h2>Análisis de Composición de Equipo</h2>
+        <form id="team-analysis-form" class="team-analysis-form">
+            <label for="player1">Jugador 1:</label>
+            <input type="text" id="player1" name="player1">
+            <div class="suggestions" id="suggestions1"></div>
+            <label for="player2">Jugador 2:</label>
+            <input type="text" id="player2" name="player2">
+            <div class="suggestions" id="suggestions2"></div>
+            <label for="player3">Jugador 3:</label>
+            <input type="text" id="player3" name="player3">
+            <div class="suggestions" id="suggestions3"></div>
+            <label for="player4">Jugador 4:</label>
+            <input type="text" id="player4" name="player4">
+            <div class="suggestions" id="suggestions4"></div>
+            <label for="player5">Jugador 5:</label>
+            <input type="text" id="player5" name="player5">
+            <div class="suggestions" id="suggestions5"></div>
+            <label for="player6">Jugador 6:</label>
+            <input type="text" id="player6" name="player6">
+            <div class="suggestions" id="suggestions6"></div>
+            <label for="player7">Jugador 7:</label>
+            <input type="text" id="player7" name="player7">
+            <div class="suggestions" id="suggestions7"></div>
+            <label for="player8">Jugador 8:</label>
+            <input type="text" id="player8" name="player8">
+            <div class="suggestions" id="suggestions8"></div>
+            <button type="submit">Analizar Equipo</button>
+        </form>
+        <div id="team-analysis-results" class="team-analysis-results"></div>
     </section>
 
     <!-- Pie de Página -->
@@ -686,12 +553,12 @@
 
             // Add event listener for input changes
             playerNameInput.addEventListener('input', function() {
-                const query = playerNameInput.value.trim();
+                const query = playerNameInput.value.trim().toLowerCase();
                 suggestionsContainer.innerHTML = '';
 
                 if (query.length > 0) {
                     const filteredPlayers = playersData.filter(player =>
-                        player.Player.includes(query)
+                        player.Player.toLowerCase().includes(query)
                     );
 
                     filteredPlayers.forEach(player => {
@@ -711,13 +578,13 @@
             document.getElementById('search-form').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const playerName = playerNameInput.value.trim();
-                const player = playersData.find(p => p.Player === playerName);
+                const player = playersData.find(p => p.Player.toLowerCase() === playerName.toLowerCase());
                 const resultsContainer = document.getElementById('search-results');
                 resultsContainer.innerHTML = '';
 
                 if (player) {
-                    const ranking = playersData.findIndex(p => p.Player === playerName) + 1;
-                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo" onerror="this.onerror=null;this.src='logos/Logo_${player.Clan}.gif';">`;  // Comprobar si existe el .png, si no, intentar con .gif
+                    const ranking = playersData.findIndex(p => p.Player.toLowerCase() === playerName.toLowerCase()) + 1;
+                    const clanLogo = `<img src="logos/Logo_${player.Clan}.png" alt="Logo ${player.Clan}" class="clan-logo" onerror="this.onerror=null;this.src='logos/Logo_${player.Clan}.gif';">`;
                     const playerStats = `
                         <div class="stats-box">
                             ${clanLogo}
@@ -894,6 +761,108 @@
                     });
                 })
                 .catch(error => console.error('Error al cargar el archivo JSON de promedios:', error));
+
+            // Integrate suggestions for team analysis form
+            const teamInputs = [
+                document.getElementById('player1'),
+                document.getElementById('player2'),
+                document.getElementById('player3'),
+                document.getElementById('player4'),
+                document.getElementById('player5'),
+                document.getElementById('player6'),
+                document.getElementById('player7'),
+                document.getElementById('player8')
+            ];
+
+            const suggestionContainers = [
+                document.getElementById('suggestions1'),
+                document.getElementById('suggestions2'),
+                document.getElementById('suggestions3'),
+                document.getElementById('suggestions4'),
+                document.getElementById('suggestions5'),
+                document.getElementById('suggestions6'),
+                document.getElementById('suggestions7'),
+                document.getElementById('suggestions8')
+            ];
+
+            teamInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    const query = input.value.trim().toLowerCase();
+                    suggestionContainers[index].innerHTML = '';
+
+                    if (query.length > 0) {
+                        const filteredPlayers = playersData.filter(player =>
+                            player.Player.toLowerCase().includes(query)
+                        );
+
+                        filteredPlayers.forEach(player => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.classList.add('suggestion-item');
+                            suggestionItem.textContent = player.Player;
+                            suggestionItem.addEventListener('click', function() {
+                                input.value = player.Player;
+                                suggestionContainers[index].innerHTML = '';
+                            });
+                            suggestionContainers[index].appendChild(suggestionItem);
+                        });
+                    }
+                });
+            });
+
+            // Handle team analysis form submission
+            const teamForm = document.getElementById('team-analysis-form');
+            const teamResultsContainer = document.getElementById('team-analysis-results');
+
+            teamForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const playerInputs = teamInputs.map(input => input.value.trim()).filter(name => name);
+
+                if (playerInputs.length < 2 || playerInputs.length > 8) {
+                    teamResultsContainer.innerHTML = '<p class="error">Por favor, selecciona entre 2 y 8 jugadores.</p>';
+                    return;
+                }
+
+                const equipo = playerInputs.map(name => {
+                    const jugador = playersData.find(p => p.Player.toLowerCase() === name.toLowerCase());
+                    if (!jugador) {
+                        teamResultsContainer.innerHTML = `<p class="error">Jugador '${name}' no encontrado en la base de datos.</p>`;
+                        throw new Error(`Jugador '${name}' no encontrado en la base de datos.`);
+                    }
+                    return jugador;
+                });
+
+                const total_score = equipo.reduce((acc, jugador) => acc + jugador['Total Score'], 0);
+                const total_kills = equipo.reduce((acc, jugador) => acc + jugador['Total Kills'], 0);
+                const total_deaths = equipo.reduce((acc, jugador) => acc + jugador['Total Deaths'], 0);
+                const total_rounds = equipo.reduce((acc, jugador) => acc + jugador['Rounds'], 0);
+                const total_performance_score = equipo.reduce((acc, jugador) => acc + jugador['Performance Score'], 0) / equipo.length;
+                const avg_kills_per_round = total_kills / total_rounds || 0;
+                const avg_deaths_per_round = total_deaths / total_rounds || 0;
+                const team_kd_ratio = total_kills / total_deaths || 0;
+
+                let resultsHTML = '<div class="stats-box"><h3>Métricas del Equipo</h3>';
+                resultsHTML += `<p><strong>Total Score:</strong> ${total_score}</p>`;
+                resultsHTML += `<p><strong>Total Kills:</strong> ${total_kills}</p>`;
+                resultsHTML += `<p><strong>Total Deaths:</strong> ${total_deaths}</p>`;
+                resultsHTML += `<p><strong>Total Rounds:</strong> ${total_rounds}</p>`;
+                resultsHTML += `<p><strong>Average Kills per Round:</strong> ${avg_kills_per_round.toFixed(2)}</p>`;
+                resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
+                resultsHTML += `<p><strong>Team K/D Ratio:</strong> ${team_kd_ratio.toFixed(2)}</p>`;
+                resultsHTML += `<p><strong>Average Performance Score:</strong> ${total_performance_score.toFixed(2)}</p></div>`;
+
+                equipo.forEach(jugador => {
+                    resultsHTML += `<div class="stats-box"><h3>${jugador.Player}</h3>`;
+                    resultsHTML += `<p><strong>Clan:</strong> ${jugador.Clan}</p>`;
+                    resultsHTML += `<p><strong>K/D Ratio:</strong> ${jugador['K/D Ratio'].toFixed(2)}</p>`;
+                    resultsHTML += `<p><strong>Total Kills:</strong> ${jugador['Total Kills']}</p>`;
+resultsHTML += `<p><strong>Total Deaths:</strong> ${jugador['Total Deaths']}</p>`;
+                    resultsHTML += `<p><strong>Rounds Jugados:</strong> ${jugador['Rounds']}</p>`;
+                    resultsHTML += `<p><strong>Performance Score:</strong> ${jugador['Performance Score'].toFixed(2)}</p></div>`;
+                });
+
+                teamResultsContainer.innerHTML = resultsHTML;
+            });
         });
     </script>
 </body>
