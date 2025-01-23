@@ -61,7 +61,7 @@ GITHUB_VISUALIZER_2D = "https://luccabruno3z.github.io/realitytracker.github.io/
 
 # Diccionario de emojis de clanes personalizados con IDs
 CLAN_EMOJIS = {
-    "LDH": "<:Logo_LDH:1330790515251216424>",  # Reemplaza emoji_id1 con el ID del emoji
+    "LDH": "<a:Logo_LDH:1331795086169866290>",  # Reemplaza emoji_id1 con el ID del emoji
     "SAE": "<:Logo_SAE:1330790573061312542>",
     "FI": "<:Logo_FI:1330790559601659924>",
     "FI-R": "<:Logo_FI:1330790559601659924>",
