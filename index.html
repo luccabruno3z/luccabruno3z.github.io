@@ -309,6 +309,63 @@
             width: calc(100% / 3 - 40px);
         }
 
+        /* Estilo para el formulario de análisis de equipo */
+        .team-analysis-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .team-analysis-box {
+            background: #333;
+            padding: 20px;
+            border-radius: 10px;
+            width: calc(50% - 40px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            border: 1px solid #00FFFF;
+            min-width: 300px;
+        }
+
+        .team-analysis-box h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            color: #00FFFF;
+            text-shadow: 0 0 10px #00FFFF;
+            margin-bottom: 10px;
+        }
+
+        .team-analysis-box label, .team-analysis-box input {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .team-analysis-box input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #00FFFF;
+            background: #444;
+            color: #fff;
+        }
+
+        .team-analysis-box button {
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background: #00FFFF;
+            color: #000;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-shadow: 0 0 10px #00FFFF;
+        }
+
+        .team-analysis-box button:hover, .team-analysis-box button:focus {
+            background: #00CED1;
+            outline: none;
+        }
+
         /* Pie de página */
         footer {
             text-align: center;
@@ -361,6 +418,10 @@
             }
 
             .clan-averages-stats .stats-box {
+                width: 100%;
+            }
+
+            .team-analysis-box {
                 width: 100%;
             }
         }
@@ -435,7 +496,7 @@
                     <option value="general">General</option>
                     <option value="ldh">LDH</option>
                     <option value="sae">SAE</option>
-                    <option value="fi">FI</option>
+<option value="fi">FI</option>
                     <option value="141">141</option>
                     <option value="fi-r">FI-R</option>
                     <option value="r-ldh">R-LDH</option>
@@ -471,7 +532,8 @@
             </form>
             <div id="compare-results" class="compare-results"></div>
         </section>
-<!-- Redes Sociales -->
+
+        <!-- Redes Sociales -->
         <section class="social-section">
             <h2>Síguenos en nuestras redes sociales</h2>
             <div class="social-buttons">
@@ -506,34 +568,44 @@
         <!-- Análisis de Equipo -->
         <section class="team-analysis">
             <h2>Análisis de Composición de Equipo</h2>
-            <form id="team-analysis-form" class="team-analysis-form">
-                <label for="player1">Jugador 1:</label>
-                <input type="text" id="player1" name="player1">
-                <div class="suggestions" id="suggestions1"></div>
-                <label for="player2">Jugador 2:</label>
-                <input type="text" id="player2" name="player2">
-                <div class="suggestions" id="suggestions2"></div>
-                <label for="player3">Jugador 3:</label>
-                <input type="text" id="player3" name="player3">
-                <div class="suggestions" id="suggestions3"></div>
-                <label for="player4">Jugador 4:</label>
-                <input type="text" id="player4" name="player4">
-                <div class="suggestions" id="suggestions4"></div>
-                <label for="player5">Jugador 5:</label>
-                <input type="text" id="player5" name="player5">
-                <div class="suggestions" id="suggestions5"></div>
-                <label for="player6">Jugador 6:</label>
-                <input type="text" id="player6" name="player6">
-                <div class="suggestions" id="suggestions6"></div>
-                <label for="player7">Jugador 7:</label>
-                <input type="text" id="player7" name="player7">
-                <div class="suggestions" id="suggestions7"></div>
-                <label for="player8">Jugador 8:</label>
-                <input type="text" id="player8" name="player8">
-                <div class="suggestions" id="suggestions8"></div>
-                <button type="submit">Analizar Equipo</button>
-            </form>
-            <div id="team-analysis-results" class="team-analysis-results"></div>
+            <div class="team-analysis-container">
+                <!-- Input Team Section -->
+                <div class="team-analysis-box">
+                    <h3>Introduce tu Equipo</h3>
+                    <form id="team-analysis-form" class="team-analysis-form">
+                        <label for="player1">Jugador 1:</label>
+                        <input type="text" id="player1" name="player1">
+                        <div class="suggestions" id="suggestions1"></div>
+                        <label for="player2">Jugador 2:</label>
+                        <input type="text" id="player2" name="player2">
+                        <div class="suggestions" id="suggestions2"></div>
+                        <label for="player3">Jugador 3:</label>
+                        <input type="text" id="player3" name="player3">
+                        <div class="suggestions" id="suggestions3"></div>
+                        <label for="player4">Jugador 4:</label>
+                        <input type="text" id="player4" name="player4">
+                        <div class="suggestions" id="suggestions4"></div>
+                        <label for="player5">Jugador 5:</label>
+                        <input type="text" id="player5" name="player5">
+                        <div class="suggestions" id="suggestions5"></div>
+                        <label for="player6">Jugador 6:</label>
+                        <input type="text" id="player6" name="player6">
+                        <div class="suggestions" id="suggestions6"></div>
+                        <label for="player7">Jugador 7:</label>
+                        <input type="text" id="player7" name="player7">
+                        <div class="suggestions" id="suggestions7"></div>
+                        <label for="player8">Jugador 8:</label>
+                        <input type="text" id="player8" name="player8">
+                        <div class="suggestions" id="suggestions8"></div>
+                        <button type="submit">Analizar Equipo</button>
+                    </form>
+                </div>
+                <!-- Results Section -->
+                <div class="team-analysis-box">
+                    <h3>Resultados del Análisis</h3>
+                    <div id="team-analysis-results" class="team-analysis-results"></div>
+                </div>
+            </div>
         </section>
 
         <!-- Guías -->
@@ -830,7 +902,7 @@
                 });
             });
 
-            // Handle team analysis form submission
+// Handle team analysis form submission
             const teamForm = document.getElementById('team-analysis-form');
             const teamResultsContainer = document.getElementById('team-analysis-results');
 
@@ -868,12 +940,14 @@
                 resultsHTML += `<p><strong>Total Deaths:</strong> ${total_deaths}</p>`;
                 resultsHTML += `<p><strong>Total Rounds:</strong> ${total_rounds}</p>`;
                 resultsHTML += `<p><strong>Average Kills per Round:</strong> ${avg_kills_per_round.toFixed(2)}</p>`;
-resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
+                resultsHTML += `<p><strong>Average Deaths per Round:</strong> ${avg_deaths_per_round.toFixed(2)}</p>`;
                 resultsHTML += `<p><strong>Team K/D Ratio:</strong> ${team_kd_ratio.toFixed(2)}</p>`;
                 resultsHTML += `<p><strong>Average Performance Score:</strong> ${total_performance_score.toFixed(2)}</p></div>`;
 
                 equipo.forEach(jugador => {
+                    const clanLogo = `<img src="logos/Logo_${jugador.Clan}.png" alt="Logo ${jugador.Clan}" class="clan-logo" onerror="this.onerror=null;this.src='logos/Logo_${jugador.Clan}.gif';">`;
                     resultsHTML += `<div class="stats-box"><h3>${jugador.Player}</h3>`;
+                    resultsHTML += `${clanLogo}`;
                     resultsHTML += `<p><strong>Clan:</strong> ${jugador.Clan}</p>`;
                     resultsHTML += `<p><strong>K/D Ratio:</strong> ${jugador['K/D Ratio'].toFixed(2)}</p>`;
                     resultsHTML += `<p><strong>Total Kills:</strong> ${jugador['Total Kills']}</p>`;
