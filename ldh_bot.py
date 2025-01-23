@@ -957,6 +957,53 @@ async def historial(ctx, jugador: str):
     else:
         await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
 
+# Nuevo comando para buscar nombres de usuarios
+@bot.command()
+async def buscar_usuario(ctx, *, nombre_parcial: str = None):
+    if not nombre_parcial:
+        await ctx.send("❗ Por favor, proporciona una parte del nombre de usuario que deseas buscar. Ejemplo: `-buscar_usuario parte_del_nombre`.")
+        return
+
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    # Buscar usuarios cuyos nombres contengan la cadena de búsqueda
+    resultados = [jugador for jugador in data if nombre_parcial.lower() in jugador["Player"].lower()]
+
+    if resultados:
+        embed = discord.Embed(
+            title="🔍 Resultados de la Búsqueda de Usuarios",
+            description=f"Usuarios que contienen '{nombre_parcial}' en su nombre:",
+            color=discord.Color.green()
+        )
+
+        for jugador in resultados:
+            embed.add_field(
+                name=jugador["Player"],
+                value=(
+                    f"**Clan**: {jugador['Clan']}\n"
+                    f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
+                    f"**Performance Score**: {jugador['Performance Score']:.2f}"
+                ),
+                inline=True
+            )
+        
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send(f"⚠️ No se encontraron usuarios que contengan '{nombre_parcial}' en su nombre.")
+
+# Ejecutar el bot
+bot.run(TOKEN)
+
 # Comando para apagar el bot (solo el dueño del bot puede usarlo)
 @bot.command()
 @commands.is_owner()
