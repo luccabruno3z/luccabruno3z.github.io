@@ -879,6 +879,13 @@ async def analizar_equipo(ctx, *jugadores: str):
     total_deaths = sum(jugador['Total Deaths'] for jugador in equipo)
     total_rounds = sum(jugador['Rounds'] for jugador in equipo)
     total_performance_score = sum(jugador['Performance Score'] for jugador in equipo) / len(equipo)
+    
+    # Calcular promedio de kills por partida y promedio de muertes por partida
+    avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
+    avg_deaths_per_round = total_deaths / total_rounds if total_rounds > 0 else 0
+
+    # Calcular K/D ratio del equipo
+    team_kd_ratio = total_kills / total_deaths if total_deaths > 0 else 0
 
     # Crear embed con el análisis del equipo
     embed = discord.Embed(
@@ -906,6 +913,9 @@ async def analizar_equipo(ctx, *jugadores: str):
         f"**Total Kills**: {total_kills}\n"
         f"**Total Deaths**: {total_deaths}\n"
         f"**Total Rounds**: {total_rounds}\n"
+        f"**Average Kills per Round**: {avg_kills_per_round:.2f}\n"
+        f"**Average Deaths per Round**: {avg_deaths_per_round:.2f}\n"
+        f"**Team K/D Ratio**: {team_kd_ratio:.2f}\n"
         f"**Average Performance Score**: {total_performance_score:.2f}"
     ), inline=False)
 
