@@ -201,8 +201,11 @@
             border: 1px solid #00FFFF;
             background: #333;
             color: #fff;
-            width: 300px;
             margin: 5px;
+        }
+        .team-analysis-form input {
+            width: 100%;
+            box-sizing: border-box;
         }
         .search-form button, .top-players-form button, .compare-form button, .team-analysis-form button {
             padding: 10px 20px;
@@ -220,13 +223,13 @@
         }
         .suggestions {
             position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 100%;
+            left: 0;
+            transform: translateY(5px);
             background: #333;
             border: 1px solid #00FFFF;
             border-radius: 5px;
-            width: 300px;
+            width: 100%;
             max-height: 200px;
             overflow-y: auto;
             z-index: 1000;
@@ -495,8 +498,8 @@
                 <select id="category" name="category">
                     <option value="general">General</option>
                     <option value="ldh">LDH</option>
-                    <option value="sae">SAE</option>
-<option value="fi">FI</option>
+                        <option value="sae">SAE</option>
+                    <option value="fi">FI</option>
                     <option value="141">141</option>
                     <option value="fi-r">FI-R</option>
                     <option value="r-ldh">R-LDH</option>
@@ -900,9 +903,9 @@
                         });
                     }
                 });
-            });
+});
 
-// Handle team analysis form submission
+            // Handle team analysis form submission
             const teamForm = document.getElementById('team-analysis-form');
             const teamResultsContainer = document.getElementById('team-analysis-results');
 
