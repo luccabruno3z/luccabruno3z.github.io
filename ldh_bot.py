@@ -877,7 +877,7 @@ async def analizar_equipo(ctx, *jugadores: str):
     total_kills = sum(jugador['Total Kills'] for jugador in equipo)
     total_deaths = sum(jugador['Total Deaths'] for jugador in equipo)
     total_rounds = sum(jugador['Rounds'] for jugador in equipo)
-    total_performance_score = sum(jugador['Performance Score'] for jugador in equipo) / len(equipo)
+    total_performance_score = sum(jugador['Performance Score'] for jugador en equipo) / len(equipo)
     
     # Calcular promedio de kills por partida y promedio de muertes por partida
     avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
@@ -886,40 +886,37 @@ async def analizar_equipo(ctx, *jugadores: str):
     # Calcular K/D ratio del equipo
     team_kd_ratio = total_kills / total_deaths if total_deaths > 0 else 0
 
+    # Generar el gráfico de barras
+    nombres = [jugador['Player'] for jugador in equipo]
+    kd_ratios = [jugador['K/D Ratio'] for jugador in equipo]
+    scores = [jugador['Total Score'] for jugador in equipo]
+    performance_scores = [jugador['Performance Score'] for jugador in equipo]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.2
+    index = range(len(nombres))
+
+    bar1 = plt.bar(index, kd_ratios, bar_width, label='K/D Ratio', color='b')
+    bar2 = plt.bar([i + bar_width for i in index], scores, bar_width, label='Total Score', color='g')
+    bar3 = plt.bar([i + 2 * bar_width for i in index], performance_scores, bar_width, label='Performance Score', color='r')
+
+    plt.xlabel('Jugadores')
+    plt.ylabel('Valores')
+    plt.title('Estadísticas de Jugadores')
+    plt.xticks([i + bar_width for i in index], nombres)
+    plt.legend()
+
+    # Guardar el gráfico en un buffer de bytes
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
     # Crear embed con el análisis del equipo
     embed = discord.Embed(
         title="📊 Análisis de Composición de Equipo",
         description="Aquí tienes el análisis del equipo seleccionado:",
         color=discord.Color.blue()
     )
-
-    def determinar_color(performance_score):
-        if performance_score >= 0.85:
-            return discord.Color.gold()
-        elif performance_score >= 0.70:
-            return discord.Color.green()
-        elif performance_score >= 0.50:
-            return discord.Color.blue()
-        elif performance_score >= 0.30:
-            return discord.Color.orange()
-        else:
-            return discord.Color.red()
-
-    for jugador in equipo:
-        color = determinar_color(jugador['Performance Score'])
-        player_embed = discord.Embed(
-            title=f"🎮 {jugador['Player']}",
-            description=(
-                f"**Clan**: {jugador['Clan']}\n"
-                f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
-                f"**Total Kills**: {jugador['Total Kills']}\n"
-                f"**Total Deaths**: {jugador['Total Deaths']}\n"
-                f"**Rounds Jugados**: {jugador['Rounds']}\n"
-                f"**Performance Score**: {jugador['Performance Score']:.2f}"
-            ),
-            color=color
-        )
-        embed.add_field(name=f"Jugador: {jugador['Player']}", value=player_embed.description, inline=False)
 
     embed.add_field(name="**📊 Métricas del Equipo**", value=(
         f"**Total Score**: {total_score}\n"
@@ -932,7 +929,11 @@ async def analizar_equipo(ctx, *jugadores: str):
         f"**Average Performance Score**: {total_performance_score:.2f}"
     ), inline=False)
 
-    await ctx.send(embed=embed)
+    # Adjuntar el gráfico al mensaje
+    file = discord.File(buf, filename="team_analysis.png")
+    embed.set_image(url="attachment://team_analysis.png")
+
+    await ctx.send(embed=embed, file=file)
 
 @bot.command()
 async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
