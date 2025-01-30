@@ -845,8 +845,6 @@ async def on_command_error(ctx, error):
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
 
-import discord
-
 @bot.command()
 async def analizar_equipo(ctx, *jugadores: str):
     # Verificar que se haya proporcionado al menos un jugador
@@ -909,9 +907,9 @@ async def analizar_equipo(ctx, *jugadores: str):
 
     for jugador in equipo:
         color = determinar_color(jugador['Performance Score'])
-        embed.add_field(
-            name=f"🎮 {jugador['Player']}",
-            value=(
+        player_embed = discord.Embed(
+            title=f"🎮 {jugador['Player']}",
+            description=(
                 f"**Clan**: {jugador['Clan']}\n"
                 f"**K/D Ratio**: {jugador['K/D Ratio']:.2f}\n"
                 f"**Total Kills**: {jugador['Total Kills']}\n"
@@ -919,9 +917,9 @@ async def analizar_equipo(ctx, *jugadores: str):
                 f"**Rounds Jugados**: {jugador['Rounds']}\n"
                 f"**Performance Score**: {jugador['Performance Score']:.2f}"
             ),
-            inline=True
+            color=color
         )
-        embed.color = color
+        embed.add_field(name=f"Jugador: {jugador['Player']}", value=player_embed.description, inline=False)
 
     embed.add_field(name="**📊 Métricas del Equipo**", value=(
         f"**Total Score**: {total_score}\n"
