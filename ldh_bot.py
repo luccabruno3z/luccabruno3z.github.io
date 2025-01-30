@@ -845,6 +845,10 @@ async def on_command_error(ctx, error):
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
 
+import matplotlib.pyplot as plt
+import io
+import discord
+
 @bot.command()
 async def analizar_equipo(ctx, *jugadores: str):
     # Verificar que se haya proporcionado al menos un jugador
@@ -886,24 +890,20 @@ async def analizar_equipo(ctx, *jugadores: str):
     # Calcular K/D ratio del equipo
     team_kd_ratio = total_kills / total_deaths if total_deaths > 0 else 0
 
-    # Generar el gráfico de barras
+    # Generar el gráfico de barras solo con K/D Ratio
     nombres = [jugador['Player'] for jugador in equipo]
     kd_ratios = [jugador['K/D Ratio'] for jugador in equipo]
-    scores = [jugador['Total Score'] for jugador in equipo]
-    performance_scores = [jugador['Performance Score'] for jugador in equipo]
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    bar_width = 0.2
+    bar_width = 0.5
     index = range(len(nombres))
 
-    bar1 = plt.bar(index, kd_ratios, bar_width, label='K/D Ratio', color='b')
-    bar2 = plt.bar([i + bar_width for i in index], scores, bar_width, label='Total Score', color='g')
-    bar3 = plt.bar([i + 2 * bar_width for i in index], performance_scores, bar_width, label='Performance Score', color='r')
+    plt.bar(index, kd_ratios, bar_width, color='b', label='K/D Ratio')
 
     plt.xlabel('Jugadores')
-    plt.ylabel('Valores')
-    plt.title('Estadísticas de Jugadores')
-    plt.xticks([i + bar_width for i in index], nombres)
+    plt.ylabel('K/D Ratio')
+    plt.title('K/D Ratio de Jugadores')
+    plt.xticks(index, nombres)
     plt.legend()
 
     # Guardar el gráfico en un buffer de bytes
@@ -934,6 +934,7 @@ async def analizar_equipo(ctx, *jugadores: str):
     embed.set_image(url="attachment://team_analysis.png")
 
     await ctx.send(embed=embed, file=file)
+
 @bot.command()
 async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
     """
