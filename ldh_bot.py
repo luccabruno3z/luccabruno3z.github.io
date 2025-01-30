@@ -845,12 +845,11 @@ async def on_command_error(ctx, error):
         await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
         print(f"Error inesperado: {error}")  # Esto imprime el error en la consola para diagnóstico.
 
-# Nuevo comando para analizar la composición de un equipo
 @bot.command()
 async def analizar_equipo(ctx, *jugadores: str):
-    # Verificar que el número de jugadores esté entre 2 y 8
-    if len(jugadores) < 2 or len(jugadores) > 8:
-        await ctx.send("❗ Por favor, selecciona entre 2 y 8 jugadores. Ejemplo: `-analizar_equipo Jugador1 Jugador2 ... Jugador8`.")
+    # Verificar que se haya proporcionado al menos un jugador
+    if len(jugadores) < 1:
+        await ctx.send("❗ Por favor, proporciona al menos un jugador. Ejemplo: `-analizar_equipo Jugador1 Jugador2 ... JugadorN`.")
         return
 
     try:
@@ -920,7 +919,6 @@ async def analizar_equipo(ctx, *jugadores: str):
     ), inline=False)
 
     await ctx.send(embed=embed)
-
 
 @bot.command()
 async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
