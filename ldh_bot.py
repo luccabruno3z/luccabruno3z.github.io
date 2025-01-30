@@ -877,7 +877,7 @@ async def analizar_equipo(ctx, *jugadores: str):
     total_kills = sum(jugador['Total Kills'] for jugador in equipo)
     total_deaths = sum(jugador['Total Deaths'] for jugador in equipo)
     total_rounds = sum(jugador['Rounds'] for jugador in equipo)
-    total_performance_score = sum(jugador['Performance Score'] for jugador en equipo) / len(equipo)
+    total_performance_score = sum(jugador['Performance Score'] for jugador in equipo) / len(equipo)
     
     # Calcular promedio de kills por partida y promedio de muertes por partida
     avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
@@ -934,7 +934,6 @@ async def analizar_equipo(ctx, *jugadores: str):
     embed.set_image(url="attachment://team_analysis.png")
 
     await ctx.send(embed=embed, file=file)
-
 @bot.command()
 async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
     """
