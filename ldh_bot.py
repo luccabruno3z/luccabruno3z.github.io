@@ -894,17 +894,24 @@ async def analizar_equipo(ctx, *jugadores: str):
     nombres = [jugador['Player'] for jugador in equipo]
     kd_ratios = [jugador['K/D Ratio'] for jugador in equipo]
 
+    plt.style.use('dark_background')
     fig, ax = plt.subplots(figsize=(10, 6))
     bar_width = 0.5
     index = range(len(nombres))
 
-    plt.bar(index, kd_ratios, bar_width, color='b', label='K/D Ratio')
+    bars = plt.bar(index, kd_ratios, bar_width, color='#00FF00', edgecolor='white')
 
-    plt.xlabel('Jugadores')
-    plt.ylabel('K/D Ratio')
-    plt.title('K/D Ratio de Jugadores')
-    plt.xticks(index, nombres)
-    plt.legend()
+    plt.xlabel('Jugadores', color='white')
+    plt.ylabel('K/D Ratio', color='white')
+    plt.title('K/D Ratio de Jugadores', color='white')
+    plt.xticks(index, nombres, rotation=45, ha='right', color='white')
+    plt.yticks(color='white')
+    plt.grid(axis='y', linestyle='--', color='gray')
+
+    # Añadir etiquetas en las barras
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2, yval + 0.01, round(yval, 2), ha='center', color='white')
 
     # Guardar el gráfico en un buffer de bytes
     buf = io.BytesIO()
