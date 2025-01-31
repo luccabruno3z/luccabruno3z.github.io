@@ -1061,6 +1061,112 @@ def generar_grafico_historico(player_name):
         return None
 
 @bot.command()
+async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
+    # Verificar que se haya proporcionado al menos un jugador por equipo
+    if len(jugadores) < 2 or len(jugadores) % 2 != 0:
+        await ctx.send("❗ Por favor, proporciona jugadores para ambos equipos. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`.")
+        return
+
+    jugadores_equipo1 = jugadores[:len(jugadores) // 2]
+    jugadores_equipo2 = jugadores[len(jugadores) // 2:]
+
+    equipos = {
+        equipo1: jugadores_equipo1,
+        equipo2: jugadores_equipo2
+    }
+
+    resultados = {}
+
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+        print(f"Error: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON.")
+        return
+
+    for equipo, jugadores in equipos.items():
+        equipo_data = []
+        for jugador in jugadores:
+            jugador_encontrado = next((entry for entry in data if entry["Player"].lower() == jugador.lower()), None)
+            if not jugador_encontrado:
+                await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado en la base de datos.")
+                return
+            equipo_data.append(jugador_encontrado)
+
+        # Calcular métricas del equipo
+        total_score = sum(jugador['Total Score'] for jugador in equipo_data)
+        total_kills = sum(jugador['Total Kills'] for jugador in equipo_data)
+        total_deaths = sum(jugador['Total Deaths'] for jugador in equipo_data)
+        total_rounds = sum(jugador['Rounds'] for jugador in equipo_data)
+        avg_performance_score = sum(jugador['Performance Score'] for jugador in equipo_data) / len(equipo_data)
+
+        avg_kills_per_round = total_kills / total_rounds if total_rounds > 0 else 0
+        avg_deaths_per_round = total_deaths / total_rounds if total_rounds > 0 else 0
+        team_kd_ratio = total_kills / total_deaths if total_deaths > 0 else 0
+
+        resultados[equipo] = {
+            "total_score": total_score,
+            "total_kills": total_kills,
+            "total_deaths": total_deaths,
+            "total_rounds": total_rounds,
+            "avg_performance_score": avg_performance_score,
+            "avg_kills_per_round": avg_kills_per_round,
+            "avg_deaths_per_round": avg_deaths_per_round,
+            "team_kd_ratio": team_kd_ratio,
+            "jugadores": equipo_data
+        }
+
+    # Generar gráficos comparativos
+    fig, ax = plt.subplots(2, 1, figsize=(12, 12))
+
+    for index, (equipo, datos) in enumerate(resultados.items()):
+        nombres = [jugador['Player'] for jugador in datos["jugadores"]]
+        kd_ratios = [jugador['K/D Ratio'] for jugador in datos["jugadores"]]
+
+        ax[index].bar(nombres, kd_ratios, color='#00FF00', edgecolor='white')
+        ax[index].set_xlabel('Jugadores')
+        ax[index].set_ylabel('K/D Ratio')
+        ax[index].set_title(f'K/D Ratio de Jugadores - {equipo}')
+        ax[index].tick_params(axis='x', rotation=45)
+
+    plt.tight_layout()
+
+    # Guardar el gráfico en un buffer de bytes
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    # Crear embed con el análisis comparativo
+    embed = discord.Embed(
+        title="📊 Comparación de Equipos",
+        description="Aquí tienes la comparación de los equipos seleccionados:",
+        color=discord.Color.blue()
+    )
+
+    for equipo, datos in resultados.items():
+        embed.add_field(name=f"**📊 Métricas del Equipo {equipo}**", value=(
+            f"**Total Score**: {datos['total_score']}\n"
+            f"**Total Kills**: {datos['total_kills']}\n"
+            f"**Total Deaths**: {datos['total_deaths']}\n"
+            f"**Total Rounds**: {datos['total_rounds']}\n"
+            f"**Average Kills per Round**: {datos['avg_kills_per_round']:.2f}\n"
+            f"**Average Deaths per Round**: {datos['avg_deaths_per_round']:.2f}\n"
+            f"**Team K/D Ratio**: {datos['team_kd_ratio']:.2f}\n"
+            f"**Average Performance Score**: {datos['avg_performance_score']:.2f}"
+        ), inline=False)
+
+    # Adjuntar el gráfico al mensaje
+    file = discord.File(buf, filename="team_comparison.png")
+    embed.set_image(url="attachment://team_comparison.png")
+
+    await ctx.send(embed=embed, file=file)
+
+@bot.command()
 async def historial(ctx, jugador: str):
     """
     Muestra un gráfico histórico del Performance Score de un jugador.
