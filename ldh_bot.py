@@ -1062,13 +1062,14 @@ def generar_grafico_historico(player_name):
 
 @bot.command()
 async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
-    # Verificar que se hayan proporcionado 16 jugadores (8 para cada equipo)
-    if len(jugadores) != 16:
-        await ctx.send("❗ Por favor, proporciona exactamente 16 jugadores, 8 para cada equipo. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador8_E1 Jugador1_E2 Jugador2_E2 ... Jugador8_E2`.")
+    # Verificar que se haya proporcionado un número par de jugadores
+    if len(jugadores) < 2 or len(jugadores) % 2 != 0:
+        await ctx.send("❗ Por favor, proporciona un número par de jugadores. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`.")
         return
 
-    jugadores_equipo1 = jugadores[:8]
-    jugadores_equipo2 = jugadores[8:]
+    mitad = len(jugadores) // 2
+    jugadores_equipo1 = jugadores[:mitad]
+    jugadores_equipo2 = jugadores[mitad:]
 
     equipos = {
         equipo1: jugadores_equipo1,
