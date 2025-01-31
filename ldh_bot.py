@@ -1062,13 +1062,13 @@ def generar_grafico_historico(player_name):
 
 @bot.command()
 async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
-    # Verificar que se haya proporcionado al menos un jugador por equipo
-    if len(jugadores) < 2 or len(jugadores) % 2 != 0:
-        await ctx.send("❗ Por favor, proporciona jugadores para ambos equipos. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`.")
+    # Verificar que se hayan proporcionado 16 jugadores (8 para cada equipo)
+    if len(jugadores) != 16:
+        await ctx.send("❗ Por favor, proporciona exactamente 16 jugadores, 8 para cada equipo. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador8_E1 Jugador1_E2 Jugador2_E2 ... Jugador8_E2`.")
         return
 
-    jugadores_equipo1 = jugadores[:len(jugadores) // 2]
-    jugadores_equipo2 = jugadores[len(jugadores) // 2:]
+    jugadores_equipo1 = jugadores[:8]
+    jugadores_equipo2 = jugadores[8:]
 
     equipos = {
         equipo1: jugadores_equipo1,
@@ -1122,6 +1122,7 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
         }
 
     # Generar gráficos comparativos
+    plt.style.use('dark_background')
     fig, ax = plt.subplots(2, 1, figsize=(12, 12))
 
     for index, (equipo, datos) in enumerate(resultados.items()):
@@ -1129,10 +1130,11 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
         kd_ratios = [jugador['K/D Ratio'] for jugador in datos["jugadores"]]
 
         ax[index].bar(nombres, kd_ratios, color='#00FF00', edgecolor='white')
-        ax[index].set_xlabel('Jugadores')
-        ax[index].set_ylabel('K/D Ratio')
-        ax[index].set_title(f'K/D Ratio de Jugadores - {equipo}')
-        ax[index].tick_params(axis='x', rotation=45)
+        ax[index].set_xlabel('Jugadores', color='white')
+        ax[index].set_ylabel('K/D Ratio', color='white')
+        ax[index].set_title(f'K/D Ratio de Jugadores - {equipo}', color='white')
+        ax[index].tick_params(axis='x', rotation=45, colors='white')
+        ax[index].tick_params(axis='y', colors='white')
 
     plt.tight_layout()
 
