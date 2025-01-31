@@ -1137,6 +1137,10 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
         ax[index].tick_params(axis='x', rotation=45, colors='white')
         ax[index].tick_params(axis='y', colors='white')
 
+        # Añadir líneas horizontales de referencia
+        for y in range(0, int(max(kd_ratios)) + 2):
+            ax[index].axhline(y=y, color='gray', linestyle='--', linewidth=0.5)
+
     plt.tight_layout()
 
     # Guardar el gráfico en un buffer de bytes
