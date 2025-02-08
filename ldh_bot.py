@@ -376,7 +376,7 @@ async def tips(ctx, kit: str = None):
 @bot.command()
 async def ayuda(ctx):
     embed = discord.Embed(
-        title="📜 Lista de Comandos Disponibles",
+        title="📜 **Lista de Comandos Disponibles**",
         description="Aquí tienes todos los comandos organizados por categorías:",
         color=discord.Color.blue()
     )
@@ -423,7 +423,7 @@ async def ayuda(ctx):
             "`-graficofi` - Muestra el gráfico interactivo de la FI.\n"
             "`-graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
             "`-grafico141` - Muestra el gráfico interactivo del 141.\n"
-            "`-graficowd` - Muestra el gráfico interactivo de la WD.\n"
+            "`-graficoe_lam` - Muestra el gráfico interactivo de la E-LAM.\n"
             "`-grafico300` - Muestra el gráfico interactivo de 300.\n"
             "`-graficoe_lam` - Muestra el gráfico interactivo de la E-LAM.\n"
             "`-graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
@@ -436,7 +436,7 @@ async def ayuda(ctx):
         name="🏅 **Rankings y Promedios**",
         value=(
             "`-top <cantidad de jugadores> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada:\n"
-            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`.\n"
+            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`, `adg`.\n"
             "  Métricas: `performance`, `kd`, `kills`, `deaths`, `rounds`.\n"
             "`-promedios` - Muestra los promedios de estadísticas por clan."
         ),
@@ -563,8 +563,8 @@ async def compare(ctx, entity1: str, entity2: str):
         return
 
     # Buscar los jugadores en la base de datos
-    p1 = next((p for p in data_players if p['Player'].lower() == entity1.lower()), None)
-    p2 = next((p for p in data_players if p['Player'].lower() == entity2.lower()), None)
+    p1 = next((p for p in data_players if p['Player'] == entity1), None)
+    p2 = next((p for p in data_players if p['Player'] == entity2), None)
     
     if p1 and p2:
         # Comparar jugadores
@@ -648,7 +648,7 @@ async def compare(ctx, entity1: str, entity2: str):
             total_score = 0
             total_rounds = 0
             for player in data_players:
-                if player.get('Clan', '').lower() == clan_name.lower():
+                if player.get('Clan', '') == clan_name:
                     total_kills += player.get('Total Kills', 0)
                     total_deaths += player.get('Total Deaths', 0)
                     total_score += player.get('Total Score', 0)
@@ -688,7 +688,7 @@ async def compare(ctx, entity1: str, entity2: str):
             value=(
                 f"{kills2}\n"
                 f"{deaths2}\n"
-f"{score2}\n"
+                f"{score2}\n"
                 f"{rounds2}"
             ),
             inline=True
