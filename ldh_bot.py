@@ -720,7 +720,8 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         "e-lam": GITHUB_JSON_E_LAM,
         "300": GITHUB_JSON_300,
         "rim-la": GITHUB_JSON_RIM_LA,
-        "adg": GITHUB_JSON_ADG
+        "adg": GITHUB_JSON_ADG,
+        "a-ldh": GITHUB_JSON_A_LDH
     }
 
     # Validar la categoría ingresada
