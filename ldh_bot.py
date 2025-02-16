@@ -37,6 +37,7 @@ GITHUB_GRAPH_300 = "https://luccabruno3z.github.io/graphs/300_interactive_chart.
 GITHUB_GRAPH_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html"
 GITHUB_GRAPH_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html"
 GITHUB_GRAPH_ADG = "https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html"
+GITHUB_GRAPH_FASO = "https://luccabruno3z.github.io/graphs/FASO_interactive_chart.html"
 GITHUB_GRAPH_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html"
 
 GITHUB_JSON_LDH = "https://luccabruno3z.github.io/graphs/LDH_players.json"
@@ -51,6 +52,7 @@ GITHUB_JSON_300 = "https://luccabruno3z.github.io/graphs/300_players.json"
 GITHUB_JSON_E_LAM = "https://luccabruno3z.github.io/graphs/E-LAM_players.json"
 GITHUB_JSON_RIM_LA = "https://luccabruno3z.github.io/graphs/RIM:LA_players.json"
 GITHUB_JSON_ADG = "https://luccabruno3z.github.io/graphs/ADG_players.json"
+GITHUB_JSON_FASO = "https://luccabruno3z.github.io/graphs/FASO_players.json"
 GITHUB_JSON_PLAYERS = "https://luccabruno3z.github.io/graphs/all_players_clusters.json"
 
 GITHUB_JSON_CLANS = "https://luccabruno3z.github.io/graphs/clan_averages.json"
@@ -721,6 +723,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         "300": GITHUB_JSON_300,
         "rim-la": GITHUB_JSON_RIM_LA,
         "adg": GITHUB_JSON_ADG,
+        "faso": GITHUB_JSON_FASO,
         "a-ldh": GITHUB_JSON_A_LDH
     }
 
