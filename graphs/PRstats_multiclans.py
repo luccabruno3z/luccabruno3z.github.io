@@ -26,7 +26,8 @@ clan_urls = {
     "E-LAM": "https://prstats.realitymod.com/clan/29486/e-lam",
     "RIM:LA": "https://prstats.realitymod.com/clan/9406/rimla",
     "ADG": "https://prstats.realitymod.com/clan/17913/adg",
-    "A-LDH": "https://prstats.realitymod.com/clan/44173/a-ldh"
+    "A-LDH": "https://prstats.realitymod.com/clan/44173/a-ldh",
+    "FASO": "https://prstats.realitymod.com/clan/46393/faso"
 }
 
 datos_todos_jugadores = []
