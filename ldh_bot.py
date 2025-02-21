@@ -708,9 +708,9 @@ async def compare(ctx, entity1: str, entity2: str):
 
         await ctx.send(embed=embed)
 
-# Agrega el comando para enviar un mensaje con una reacción de emoji
+# Agrega el comando para enviar un mensaje con una reacción de emoji y asignar un rol
 @bot.command()
-async def message(ctx, emoji: str, *, message: str):
+async def message(ctx, emoji: str, role_name: str, *, message: str):
     """
     Envía un mensaje con una reacción de emoji.
     Los usuarios que reaccionen con el emoji recibirán un rol específico.
@@ -720,17 +720,24 @@ async def message(ctx, emoji: str, *, message: str):
         await ctx.send("❌ No tienes permisos para usar este comando.")
         return
 
+    # Obtener el rol del nombre
+    role = discord.utils.get(ctx.guild.roles, name=role_name)
+    if not role:
+        await ctx.send(f"❌ El rol '{role_name}' no existe.")
+        return
+
     # Enviar el mensaje
     msg = await ctx.send(message)
 
     # Añadir reacción de emoji al mensaje
     await msg.add_reaction(emoji)
 
-    # Almacenar el mensaje y el emoji en el contexto del bot para manejar las reacciones
+    # Almacenar el mensaje, el emoji y el rol en el contexto del bot para manejar las reacciones
     bot.message_id = msg.id
     bot.emoji = emoji
+    bot.role = role
 
-    await ctx.send(f"✅ Mensaje enviado y reacción {emoji} añadida. Los usuarios que reaccionen recibirán un rol.")
+    await ctx.send(f"✅ Mensaje enviado y reacción {emoji} añadida. Los usuarios que reaccionen recibirán el rol '{role_name}'.")
 
 # Manejar reacciones añadidas
 @bot.event
@@ -743,11 +750,10 @@ async def on_raw_reaction_add(payload):
     if payload.message_id == bot.message_id and str(payload.emoji) == bot.emoji:
         guild = bot.get_guild(payload.guild_id)
         member = guild.get_member(payload.user_id)
-        role = discord.utils.get(guild.roles, name="NombreDelRol")  # Cambia "NombreDelRol" por el nombre del rol que deseas asignar
 
-        if role:
-            await member.add_roles(role)
-            await member.send(f"🎉 ¡Has recibido el rol '{role.name}' por reaccionar con {payload.emoji}!")
+        if bot.role:
+            await member.add_roles(bot.role)
+            await member.send(f"🎉 ¡Has recibido el rol '{bot.role.name}' por reaccionar con {payload.emoji}!")
         else:
             await member.send("❌ El rol no existe o no se pudo asignar.")
 
@@ -762,12 +768,11 @@ async def on_raw_reaction_remove(payload):
     if payload.message_id == bot.message_id and str(payload.emoji) == bot.emoji:
         guild = bot.get_guild(payload.guild_id)
         member = guild.get_member(payload.user_id)
-        role = discord.utils.get(guild.roles, name="NombreDelRol")  # Cambia "NombreDelRol" por el nombre del rol que deseas asignar
 
-        if role:
-            await member.remove_roles(role)
-            await member.send(f"❌ El rol '{role.name}' ha sido removido al quitar la reacción de {payload.emoji}.")
-
+        if bot.role:
+            await member.remove_roles(bot.role)
+            await member.send(f"❌ El rol '{bot.role.name}' ha sido removido al quitar la reacción de {payload.emoji}.")
+            
 @bot.command()
 async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str = "performance"):
     # Diccionario de categorías válidas y sus URLs correspondientes
