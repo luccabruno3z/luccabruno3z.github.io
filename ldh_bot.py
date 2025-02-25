@@ -7,6 +7,8 @@ import requests
 import random
 import matplotlib.pyplot as plt
 import io
+from datetime import datetime, timedelta
+import asyncio
 
 # Solo cargar .env si está en local
 if os.path.exists(".env"):
@@ -1256,6 +1258,54 @@ async def historial(ctx, jugador: str):
         await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file))
     else:
         await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
+
+# Comando para iniciar un countdown
+@bot.command()
+async def countdown(ctx, date: str, time: str):
+    """
+    Inicia un countdown hasta una fecha y hora específica.
+    Ejemplo: -countdown 28/02/2025 16:30
+    """
+    try:
+        # Parsea la fecha y hora ingresadas
+        target_datetime = datetime.strptime(f"{date} {time}", "%d/%m/%Y %H:%M")
+
+        # Verifica si la fecha y hora ingresadas son válidas y están en el futuro
+        if target_datetime <= datetime.now():
+            await ctx.send("❗ La fecha y hora deben estar en el futuro.")
+            return
+
+        # Calcula el tiempo restante
+        time_remaining = target_datetime - datetime.now()
+
+        # Crea un embed para mostrar el countdown
+        embed = discord.Embed(
+            title="⏳ Countdown",
+            description=f"Tiempo restante hasta `{target_datetime.strftime('%d/%m/%Y %H:%M')}`",
+            color=discord.Color.blue()
+        )
+
+        # Actualiza el embed con el tiempo restante en tiempo real
+        message = await ctx.send(embed=embed)
+
+        while time_remaining.total_seconds() > 0:
+            # Calcula el tiempo restante
+            time_remaining = target_datetime - datetime.now()
+
+            # Actualiza el embed
+            embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
+            await message.edit(embed=embed)
+
+            # Espera 1 segundo antes de actualizar nuevamente
+            await asyncio.sleep(1)
+
+        # Mensaje final cuando el countdown llega a 0
+        embed.description = "¡El tiempo ha llegado!"
+        await message.edit(embed=embed)
+
+    except ValueError:
+        await ctx.send("❗ Formato de fecha y hora inválido. Usa el formato `DD/MM/YYYY HH:MM`.")
+
 
 # Nuevo comando para buscar nombres de usuarios
 @bot.command()
