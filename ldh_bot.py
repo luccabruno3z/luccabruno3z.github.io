@@ -1,4 +1,7 @@
 import os
+from datetime import datetime, timedelta
+import pytz
+import asyncio
 from dotenv import load_dotenv
 import json
 import discord
@@ -7,8 +10,7 @@ import requests
 import random
 import matplotlib.pyplot as plt
 import io
-from datetime import datetime, timedelta
-import asyncio
+
 
 # Solo cargar .env si está en local
 if os.path.exists(".env"):
@@ -1259,29 +1261,45 @@ async def historial(ctx, jugador: str):
     else:
         await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
 
+# Define la zona horaria UTC-3
+timezone = pytz.timezone('America/Sao_Paulo')
+
+# Diccionario de emojis de banderas hispanohablantes y sus zonas horarias
+FLAG_EMOJIS = {
+    "🇦🇷": "America/Argentina/Buenos_Aires",
+    "🇲🇽": "America/Mexico_City",
+    "🇪🇸": "Europe/Madrid",
+    "🇨🇱": "America/Santiago",
+    "🇨🇴": "America/Bogota",
+    "🇵🇪": "America/Lima",
+    "🇻🇪": "America/Caracas",
+    "🇵🇾": "America/Asuncion",
+    "🇺🇾": "America/Montevideo"
+}
+
 # Comando para iniciar un countdown
 @bot.command()
 async def countdown(ctx, date: str, time: str):
     """
-    Inicia un countdown hasta una fecha y hora específica.
+    Inicia un countdown hasta una fecha y hora específica en la zona horaria UTC-3.
     Ejemplo: -countdown 28/02/2025 16:30
     """
     try:
-        # Parsea la fecha y hora ingresadas
-        target_datetime = datetime.strptime(f"{date} {time}", "%d/%m/%Y %H:%M")
+        # Parsea la fecha y hora ingresadas en la zona horaria UTC-3
+        target_datetime = timezone.localize(datetime.strptime(f"{date} {time}", "%d/%m/%Y %H:%M"))
 
         # Verifica si la fecha y hora ingresadas son válidas y están en el futuro
-        if target_datetime <= datetime.now():
+        if target_datetime <= datetime.now(timezone):
             await ctx.send("❗ La fecha y hora deben estar en el futuro.")
             return
 
         # Calcula el tiempo restante
-        time_remaining = target_datetime - datetime.now()
+        time_remaining = target_datetime - datetime.now(timezone)
 
         # Crea un embed para mostrar el countdown
         embed = discord.Embed(
             title="⏳ Countdown",
-            description=f"Tiempo restante hasta `{target_datetime.strftime('%d/%m/%Y %H:%M')}`",
+            description=f"Tiempo restante hasta `{target_datetime.strftime('%d/%m/%Y %H:%M %Z')}`",
             color=discord.Color.blue()
         )
 
@@ -1290,7 +1308,7 @@ async def countdown(ctx, date: str, time: str):
 
         while time_remaining.total_seconds() > 0:
             # Calcula el tiempo restante
-            time_remaining = target_datetime - datetime.now()
+            time_remaining = target_datetime - datetime.now(timezone)
 
             # Actualiza el embed
             embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
@@ -1305,6 +1323,45 @@ async def countdown(ctx, date: str, time: str):
 
     except ValueError:
         await ctx.send("❗ Formato de fecha y hora inválido. Usa el formato `DD/MM/YYYY HH:MM`.")
+
+# Función para manejar reacciones
+@bot.event
+async def on_raw_reaction_add(payload):
+    # Ignorar reacciones del propio bot
+    if payload.user_id == bot.user.id:
+        return
+
+    # Obtener el emoji de la reacción
+    emoji = str(payload.emoji)
+
+    # Verificar si el emoji es una bandera hispanohablante
+    if emoji in FLAG_EMOJIS:
+        # Obtener la zona horaria correspondiente
+        user_timezone = pytz.timezone(FLAG_EMOJIS[emoji])
+
+        # Definir una fecha y hora de ejemplo para el countdown
+        example_target_datetime = timezone.localize(datetime.strptime("28/02/2025 16:30", "%d/%m/%Y %H:%M"))
+
+        # Calcular el tiempo restante en la zona horaria del usuario
+        time_remaining = example_target_datetime - datetime.now(user_timezone)
+
+        # Crear un embed para mostrar el countdown
+        embed = discord.Embed(
+            title="⏳ Countdown Personalizado",
+            description=f"Tiempo restante hasta `{example_target_datetime.strftime('%d/%m/%Y %H:%M %Z')}` en tu zona horaria ({user_timezone.zone})",
+            color=discord.Color.blue()
+        )
+
+        # Actualizar el embed con el tiempo restante
+        embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
+
+        # Enviar un mensaje privado al usuario con el countdown
+        user = await bot.fetch_user(payload.user_id)
+        await user.send(embed=embed)
+
+        # Responder en el mismo canal para confirmar que se ha enviado el mensaje privado
+        channel = await bot.fetch_channel(payload.channel_id)
+        await channel.send(f"{user.mention}, te he enviado un mensaje privado con el countdown personalizado.")
 
 
 # Nuevo comando para buscar nombres de usuarios
