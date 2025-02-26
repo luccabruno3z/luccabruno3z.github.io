@@ -10,7 +10,7 @@ import requests
 import random
 import matplotlib.pyplot as plt
 import io
-
+import plotly.express as px  # Asegúrate de tener plotly instalado
 
 # Solo cargar .env si está en local
 if os.path.exists(".env"):
