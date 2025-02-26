@@ -184,6 +184,7 @@ timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 for clan_name in clan_urls.keys():
     df_clan = df_general[df_general["Clan"] == clan_name]
     if not df_clan.empty:
+        df_clan = df_clan.copy()  # Asegurarse de trabajar sobre una copia
         df_clan["Last Updated"] = timestamp
         df_clan.to_json(os.path.join(output_dir, f"{clan_name}_players.json"), orient="records", lines=False)
         
