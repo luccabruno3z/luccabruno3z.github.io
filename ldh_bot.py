@@ -80,7 +80,8 @@ CLAN_EMOJIS = {
     "300": "<:Logo_300:1330790501460213770>",
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
     "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>",
-    "ADG": "<a:Logo_ADG:1331778693949034516>"  # Añadir el emoji para el nuevo clan
+    "ADG": "<a:Logo_ADG:1331778693949034516>",  # Añadir el emoji para el nuevo clan
+    "FASO": "<:Logo_FASO:1344203061907689482>"
 }
 
 KD = "K/D Ratio"
