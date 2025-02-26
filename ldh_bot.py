@@ -1226,10 +1226,15 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
     embed.set_image(url="attachment://team_comparison.png")
 
     await ctx.send(embed=embed, file=file)
-
+    
+# Función para generar nombres de archivo seguros
+def safe_filename(filename):
+    return re.sub(r'[^a-zA-Z0-9_\-]', '_', filename)
+    
 # Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
 def generar_grafico_historico(player_name):
-    player_history_file = f"graphs/history/{player_name}_history.json"
+    safe_player_name = safe_filename(player_name)
+    player_history_file = f"graphs/history/{safe_player_name}_history.json"
     
     if os.path.exists(player_history_file):
         with open(player_history_file, 'r') as f:
@@ -1238,19 +1243,23 @@ def generar_grafico_historico(player_name):
         dates = [entry['Date'] for entry in history_data]
         scores = [entry['Performance Score'] for entry in history_data]
         
-        fig = px.line(
-            x=dates,
-            y=scores,
-            labels={'x': 'Fecha', 'y': 'Performance Score'},
-            title=f"Performance Score Histórico de {player_name}"
-        )
+        plt.figure(figsize=(10, 6))
+        plt.plot(dates, scores, marker='o')
+        plt.title(f"Performance Score Histórico de {player_name}")
+        plt.xlabel('Fecha')
+        plt.ylabel('Performance Score')
+        plt.grid(True)
         
-        output_file = f"graphs/{player_name}_history_chart.html"
-        fig.write_html(output_file)
-        return output_file
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close()
+
+        return buf
     else:
         return None
-        
+
+
 @bot.command()
 async def historial(ctx, jugador: str):
     """
@@ -1259,10 +1268,11 @@ async def historial(ctx, jugador: str):
     grafico_file = generar_grafico_historico(jugador)
     
     if grafico_file:
-        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file))
+        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file, f"{jugador}_history_chart.png"))
     else:
         await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
 
+        
 # Define la zona horaria UTC-3
 timezone = pytz.timezone('America/Sao_Paulo')
 
