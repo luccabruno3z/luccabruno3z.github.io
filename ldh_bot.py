@@ -1230,7 +1230,7 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
 # Función para generar nombres de archivo seguros
 def safe_filename(filename):
     return re.sub(r'[^a-zA-Z0-9_\-]', '_', filename)
-    
+
 # Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
 def generar_grafico_historico(player_name):
     safe_player_name = safe_filename(player_name)
@@ -1259,18 +1259,21 @@ def generar_grafico_historico(player_name):
     else:
         return None
 
-
 @bot.command()
 async def historial(ctx, jugador: str):
     """
     Muestra un gráfico histórico del Performance Score de un jugador.
     """
-    grafico_file = generar_grafico_historico(jugador)
-    
-    if grafico_file:
-        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file, f"{jugador}_history_chart.png"))
-    else:
-        await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
+    try:
+        grafico_file = generar_grafico_historico(jugador)
+        
+        if grafico_file:
+            await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file, f"{jugador}_history_chart.png"))
+        else:
+            await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
+    except Exception as e:
+        await ctx.send(f"❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
+        print(f"Error: {e}")
 
         
 # Define la zona horaria UTC-3
