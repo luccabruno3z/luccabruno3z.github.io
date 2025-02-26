@@ -1113,29 +1113,6 @@ async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
 
     await ctx.send(embed=embed)
 
-# Esta función se usa para generar un gráfico histórico de Performance Score de un jugador
-def generar_grafico_historico(player_name):
-    player_history_file = f"graphs/{player_name}_history.json"
-    
-    if os.path.exists(player_history_file):
-        with open(player_history_file, 'r') as f:
-            history_data = json.load(f)
-        
-        dates = [entry['Date'] for entry in history_data]
-        scores = [entry['Performance Score'] for entry in history_data]
-        
-        fig = px.line(
-            x=dates,
-            y=scores,
-            labels={'x': 'Fecha', 'y': 'Performance Score'},
-            title=f"Performance Score Histórico de {player_name}"
-        )
-        
-        output_file = f"graphs/{player_name}_history_chart.html"
-        fig.write_html(output_file)
-        return output_file
-    else:
-        return None
 
 @bot.command()
 async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
