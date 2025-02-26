@@ -1250,15 +1250,32 @@ async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
 
     await ctx.send(embed=embed, file=file)
 
+# Comando para mostrar el historial de un jugador
 @bot.command()
 async def historial(ctx, jugador: str):
     """
     Muestra un gráfico histórico del Performance Score de un jugador.
     """
-    grafico_file = generar_grafico_historico(jugador)
+    player_history_file = f"graphs/history/{jugador}_history.json"
     
-    if grafico_file:
-        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(grafico_file))
+    if os.path.exists(player_history_file):
+        with open(player_history_file, 'r') as f:
+            history_data = json.load(f)
+        
+        dates = [entry['Date'] for entry in history_data]
+        scores = [entry['Performance Score'] for entry in history_data]
+        
+        fig = px.line(
+            x=dates,
+            y=scores,
+            labels={'x': 'Fecha', 'y': 'Performance Score'},
+            title=f"Performance Score Histórico de {jugador}"
+        )
+        
+        output_file = f"graphs/{jugador}_history_chart.html"
+        fig.write_html(output_file)
+        
+        await ctx.send(f"Aquí tienes el gráfico histórico del Performance Score de {jugador}:", file=discord.File(output_file))
     else:
         await ctx.send(f"No se encontró historial de performance para el jugador {jugador}.")
 
