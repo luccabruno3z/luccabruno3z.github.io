@@ -6,12 +6,17 @@ import numpy as np
 import os
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
+import json
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
 # Crear carpeta 'graphs' si no existe
 output_dir = "graphs"
 os.makedirs(output_dir, exist_ok=True)
+
+# Crear carpeta 'history' si no existe
+history_dir = os.path.join(output_dir, "history")
+os.makedirs(history_dir, exist_ok=True)
 
 # URLs de clanes
 clan_urls = {
@@ -257,5 +262,27 @@ with open(os.path.join(output_dir, "all_players_interactive_chart.html"), "a") a
 for clan_name in clan_urls.keys():
     with open(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"), "a") as file:
         file.write(html_button)
+
+# Guardar historial de Performance Score de cada jugador
+for _, row in df_general.iterrows():
+    player_name = row["Player"]
+    player_history_file = os.path.join(history_dir, f"{player_name}_history.json")
+    
+    # Cargar historial existente si existe
+    if os.path.exists(player_history_file):
+        with open(player_history_file, "r") as f:
+            player_history = json.load(f)
+    else:
+        player_history = []
+
+    # Agregar nuevo registro de Performance Score
+    player_history.append({
+        "Date": timestamp,
+        "Performance Score": row["Performance Score"]
+    })
+
+    # Guardar historial actualizado
+    with open(player_history_file, "w") as f:
+        json.dump(player_history, f, indent=4)
 
 print("Actualización completada exitosamente usando Performance Score.")
