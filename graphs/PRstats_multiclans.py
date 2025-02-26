@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler
 import json
+import re  # Importar la librería de expresiones regulares
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
@@ -265,9 +266,12 @@ for clan_name in clan_urls.keys():
         file.write(html_button)
 
 # Guardar historial de Performance Score de cada jugador
+def safe_filename(filename):
+    return re.sub(r'[^a-zA-Z0-9_\-]', '_', filename)
+
 for _, row in df_general.iterrows():
     player_name = row["Player"]
-    player_history_file = os.path.join(history_dir, f"{player_name}_history.json")
+    player_history_file = os.path.join(history_dir, f"{safe_filename(player_name)}_history.json")
     
     # Cargar historial existente si existe
     if os.path.exists(player_history_file):
@@ -279,7 +283,8 @@ for _, row in df_general.iterrows():
     # Agregar nuevo registro de Performance Score
     player_history.append({
         "Date": timestamp,
-        "Performance Score": row["Performance Score"]
+        "Performance Score": row["Performance Score"],
+        "Player": player_name  # Guardar el nombre original del jugador
     })
 
     # Guardar historial actualizado
