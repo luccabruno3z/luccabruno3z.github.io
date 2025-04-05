@@ -1116,7 +1116,7 @@ async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
 @bot.command()
 async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
     # Verificar que se haya proporcionado un número par de jugadores
-    if len(jugadores) < 2 || len(jugadores) % 2 != 0:
+    if len(jugadores) < 2 or len(jugadores) % 2 != 0:
         await ctx.send("❗ Por favor, proporciona un número par de jugadores. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`.")
         return
 
