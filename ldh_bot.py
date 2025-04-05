@@ -5,7 +5,7 @@ import asyncio
 from dotenv import load_dotenv
 import json
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import requests
 import random
 import matplotlib.pyplot as plt
@@ -299,7 +299,7 @@ async def tips(ctx, kit: str = None):
             "🕶️ **Usa granadas de humo:** Cubre avances y extracciones con humo.",
             "🔋 **Gestiona tu stamina:** Evita correr innecesariamente en combate."
         ],
-"medic": [
+        "medic": [
             "💉 **Prioriza la supervivencia:** No te arriesgues innecesariamente para revivir.",
             "🛡️ **Usa humo para cubrir:** Antes de revivir, lanza humo para evitar ser un blanco fácil.",
             "🏃 **Mantente cerca del escuadrón:** Apoya desde la retaguardia.",
@@ -1113,11 +1113,10 @@ async def sugerir_equipo(ctx, clan: str, num_jugadores: int = 8):
 
     await ctx.send(embed=embed)
 
-
 @bot.command()
 async def comparar_equipos(ctx, equipo1: str, equipo2: str, *jugadores: str):
     # Verificar que se haya proporcionado un número par de jugadores
-    if len(jugadores) < 2 or len(jugadores) % 2 != 0:
+    if len(jugadores) < 2 || len(jugadores) % 2 != 0:
         await ctx.send("❗ Por favor, proporciona un número par de jugadores. Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`.")
         return
 
@@ -1326,7 +1325,7 @@ async def countdown(ctx, date: str, time: str):
             time_remaining = target_datetime - datetime.now(timezone)
 
             # Actualiza el embed
-            embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
+            embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos."
             await message.edit(embed=embed)
 
             # Espera 1 segundo antes de actualizar nuevamente
@@ -1368,7 +1367,8 @@ async def on_raw_reaction_add(payload):
         )
 
         # Actualizar el embed con el tiempo restante
-        embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
+        embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos."
+        await message.edit(embed=embed)
 
         # Enviar un mensaje privado al usuario con el countdown
         user = await bot.fetch_user(payload.user_id)
@@ -1377,7 +1377,6 @@ async def on_raw_reaction_add(payload):
         # Responder en el mismo canal para confirmar que se ha enviado el mensaje privado
         channel = await bot.fetch_channel(payload.channel_id)
         await channel.send(f"{user.mention}, te he enviado un mensaje privado con el countdown personalizado.")
-
 
 # Nuevo comando para buscar nombres de usuarios
 @bot.command()
