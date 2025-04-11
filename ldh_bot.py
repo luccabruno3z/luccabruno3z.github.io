@@ -1422,6 +1422,102 @@ async def buscar_usuario(ctx, *, nombre_parcial: str = None):
     else:
         await ctx.send(f"⚠️ No se encontraron usuarios que contengan '{nombre_parcial}' en su nombre.")
 
+@bot.command()
+async def promedios_clanes(ctx):
+    """
+    Calcula los promedios de los 15 mejores jugadores de cada clan y muestra los resultados.
+    """
+    try:
+        response = requests.get(GITHUB_JSON_CLANS)
+        response.raise_for_status()
+        clans_data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos de clanes. Inténtalo más tarde.")
+        print(f"Error al conectar con la base de datos de clanes: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON de clanes.")
+        return
+
+    try:
+        response = requests.get(GITHUB_JSON_PLAYERS)
+        response.raise_for_status()
+        players_data = response.json()
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ Error al conectar con la base de datos de jugadores. Inténtalo más tarde.")
+        print(f"Error al conectar con la base de datos de jugadores: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ Error al procesar los datos del archivo JSON de jugadores.")
+        return
+
+    embed = discord.Embed(
+        title="🏆 **Promedios de los Mejores 15 de Cada Clan**",
+        description="Promedios calculados usando solo los mejores 15 jugadores de cada clan.",
+        color=discord.Color.blue()
+    )
+
+    # Variables para el gráfico
+    clan_names = []
+    performance_scores = []
+
+    for clan_data in clans_data:
+        clan_name = clan_data.get("Clan", "Desconocido")
+        
+        # Filtrar jugadores del clan
+        jugadores_clan = [player for player in players_data if player.get("Clan") == clan_name]
+
+        # Ordenar jugadores por Performance Score y seleccionar los mejores 15
+        top_jugadores = sorted(jugadores_clan, key=lambda x: x.get("Performance Score", 0), reverse=True)[:15]
+
+        # Calcular promedios basados en los mejores 15 jugadores
+        if top_jugadores:
+            promedio_kd = sum(player.get("K/D Ratio", 0) for player in top_jugadores) / len(top_jugadores)
+            promedio_score_per_round = sum(player.get("Score per Round", 0) for player in top_jugadores) / len(top_jugadores)
+            promedio_kills_per_round = sum(player.get("Kills per Round", 0) for player in top_jugadores) / len(top_jugadores)
+            promedio_performance = sum(player.get("Performance Score", 0) for player in top_jugadores) / len(top_jugadores)
+        else:
+            promedio_kd = promedio_score_per_round = promedio_kills_per_round = promedio_performance = 0
+
+        # Agregar datos al embed y al gráfico
+        clan_names.append(clan_name)
+        performance_scores.append(promedio_performance)
+
+        embed.add_field(
+            name=f"🏅 {clan_name}",
+            value=(
+                f"**🔹 Promedio K/D:** {promedio_kd:.2f}\n"
+                f"**🔹 Promedio Score:** {promedio_score_per_round:.2f}\n"
+                f"**🔹 Promedio Kills:** {promedio_kills_per_round:.2f}\n"
+                f"**🔹 Performance Score:** {promedio_performance:.2f}"
+            ),
+            inline=False
+        )
+
+    # Crear el gráfico de barras
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bar_width = 0.5
+    index = range(len(clan_names))
+
+    bars = plt.bar(index, performance_scores, bar_width, label='Performance Score')
+
+    plt.xlabel('Clanes')
+    plt.ylabel('Performance Score')
+    plt.title('Performance Score de los Mejores 15 de Cada Clan')
+    plt.xticks(index, clan_names, rotation=45)
+    plt.legend()
+
+    # Guardar el gráfico en un buffer de bytes
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    # Adjuntar el gráfico al mensaje
+    file = discord.File(buf, filename="top15_performance_scores_clanes.png")
+    embed.set_image(url="attachment://top15_performance_scores_clanes.png")
+
+    await ctx.send(embed=embed, file=file)
+
 # Ejecutar el bot
 bot.run(TOKEN)
 
