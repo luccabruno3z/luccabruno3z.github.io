@@ -1434,6 +1434,3 @@ async def apagar(ctx):
         await bot.close()
     except Exception as e:
         await ctx.send(f"Ocurrió un error al intentar apagar el bot: {e}")
-
-# Ejecutar el bot
-bot.run(TOKEN)
