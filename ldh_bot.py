@@ -1423,7 +1423,7 @@ async def buscar_usuario(ctx, *, nombre_parcial: str = None):
         await ctx.send(f"⚠️ No se encontraron usuarios que contengan '{nombre_parcial}' en su nombre.")
 
 @bot.command()
-async def promedios_clanes(ctx):
+async def promedios_tops(ctx):
     """
     Calcula los promedios de los 15 mejores jugadores de cada clan y muestra los resultados.
     """
