@@ -1560,13 +1560,3 @@ async def promedios_tops(ctx, cantidad: int = 15, metrica: str = "performance"):
 
 # Ejecutar el bot
 bot.run(TOKEN)
-
-# Comando para apagar el bot (solo el dueño del bot puede usarlo)
-@bot.command()
-@commands.is_owner()
-async def apagar(ctx):
-    try:
-        await ctx.send("¡Apagando el bot!")
-        await bot.close()
-    except Exception as e:
-        await ctx.send(f"Ocurrió un error al intentar apagar el bot: {e}")
