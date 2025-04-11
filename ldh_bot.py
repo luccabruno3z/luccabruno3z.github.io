@@ -1423,74 +1423,88 @@ async def buscar_usuario(ctx, *, nombre_parcial: str = None):
         await ctx.send(f"⚠️ No se encontraron usuarios que contengan '{nombre_parcial}' en su nombre.")
 
 @bot.command()
-async def promedios_tops(ctx):
+async def promedios_tops(ctx, cantidad: int = 15, metrica: str = "performance"):
     """
-    Calcula los promedios de los 15 mejores jugadores de cada clan y muestra los resultados.
+    Calcula los promedios de las métricas para los mejores jugadores de cada clan (según la métrica especificada).
     """
-    try:
-        response = requests.get(GITHUB_JSON_CLANS)
-        response.raise_for_status()
-        clans_data = response.json()
-    except requests.exceptions.RequestException as e:
-        await ctx.send("❌ Error al conectar con la base de datos de clanes. Inténtalo más tarde.")
-        print(f"Error al conectar con la base de datos de clanes: {e}")
-        return
-    except json.JSONDecodeError:
-        await ctx.send("❌ Error al procesar los datos del archivo JSON de clanes.")
+    # URL para los datos de jugadores
+    url_json = GITHUB_JSON_PLAYERS
+
+    # Validar la cantidad de jugadores solicitados
+    if cantidad <= 0:
+        await ctx.send("❗ **La cantidad debe ser mayor a 0.**")
         return
 
-    try:
-        response = requests.get(GITHUB_JSON_PLAYERS)
-        response.raise_for_status()
-        players_data = response.json()
-    except requests.exceptions.RequestException as e:
-        await ctx.send("❌ Error al conectar con la base de datos de jugadores. Inténtalo más tarde.")
-        print(f"Error al conectar con la base de datos de jugadores: {e}")
-        return
-    except json.JSONDecodeError:
-        await ctx.send("❌ Error al procesar los datos del archivo JSON de jugadores.")
+    # Validar la métrica ingresada
+    metricas_validas = ["performance", "kd", "kills", "deaths", "rounds", "score"]
+    if metrica not in metricas_validas:
+        await ctx.send(
+            "❗ **Métrica inválida.** Las métricas válidas son:\n"
+            "`performance`, `kd`, `kills`, `deaths`, `rounds`, `score`."
+        )
         return
 
+    # Intentar obtener y procesar los datos
+    try:
+        response = requests.get(url_json)
+        response.raise_for_status()
+        data = response.json()
+        print(f"Datos obtenidos correctamente de {url_json}")
+    except requests.exceptions.RequestException as e:
+        await ctx.send("❌ **Error al conectar con la base de datos.** Inténtalo más tarde.")
+        print(f"Error al conectar con la base de datos: {e}")
+        return
+    except json.JSONDecodeError:
+        await ctx.send("❌ **Error al procesar los datos del archivo JSON.**")
+        print("Error al procesar los datos del archivo JSON.")
+        return
+
+    # Mapeo de las métricas con sus claves en el JSON
+    metric_key_mapping = {
+        "performance": "Performance Score",
+        "kd": "K/D Ratio",
+        "kills": "Total Kills",
+        "deaths": "Total Deaths",
+        "rounds": "Rounds",
+        "score": "Total Score"
+    }
+    metric_key = metric_key_mapping.get(metrica, metrica)
+
+    # Agrupar jugadores por clan
+    clans = {}
+    for player in data:
+        clan_name = player.get("Clan", "Sin Clan")
+        if clan_name not in clans:
+            clans[clan_name] = []
+        clans[clan_name].append(player)
+
+    # Calcular promedios para cada clan
     embed = discord.Embed(
-        title="🏆 **Promedios de los Mejores 15 de Cada Clan**",
-        description="Promedios calculados usando solo los mejores 15 jugadores de cada clan.",
-        color=discord.Color.blue()
+        title=f"🏆 **Promedios de los Mejores {cantidad} de Cada Clan** (Métrica: {metrica.capitalize()})",
+        description=f"Promedios calculados usando los mejores {cantidad} jugadores de cada clan.",
+        color=discord.Color.green()
     )
 
-    # Variables para el gráfico
     clan_names = []
-    performance_scores = []
+    avg_metric_values = []
 
-    for clan_data in clans_data:
-        clan_name = clan_data.get("Clan", "Desconocido")
-        
-        # Filtrar jugadores del clan
-        jugadores_clan = [player for player in players_data if player.get("Clan") == clan_name]
+    for clan_name, players in clans.items():
+        # Seleccionar los mejores jugadores del clan según la métrica
+        top_players = sorted(players, key=lambda x: x.get(metric_key, 0), reverse=True)[:cantidad]
 
-        # Ordenar jugadores por Performance Score y seleccionar los mejores 15
-        top_jugadores = sorted(jugadores_clan, key=lambda x: x.get("Performance Score", 0), reverse=True)[:15]
-
-        # Calcular promedios basados en los mejores 15 jugadores
-        if top_jugadores:
-            promedio_kd = sum(player.get("K/D Ratio", 0) for player in top_jugadores) / len(top_jugadores)
-            promedio_score_per_round = sum(player.get("Score per Round", 0) for player in top_jugadores) / len(top_jugadores)
-            promedio_kills_per_round = sum(player.get("Kills per Round", 0) for player in top_jugadores) / len(top_jugadores)
-            promedio_performance = sum(player.get("Performance Score", 0) for player in top_jugadores) / len(top_jugadores)
+        # Calcular promedio de la métrica especificada
+        if top_players:
+            avg_metric = sum(player.get(metric_key, 0) for player in top_players) / len(top_players)
         else:
-            promedio_kd = promedio_score_per_round = promedio_kills_per_round = promedio_performance = 0
+            avg_metric = 0
 
         # Agregar datos al embed y al gráfico
         clan_names.append(clan_name)
-        performance_scores.append(promedio_performance)
+        avg_metric_values.append(avg_metric)
 
         embed.add_field(
             name=f"🏅 {clan_name}",
-            value=(
-                f"**🔹 Promedio K/D:** {promedio_kd:.2f}\n"
-                f"**🔹 Promedio Score:** {promedio_score_per_round:.2f}\n"
-                f"**🔹 Promedio Kills:** {promedio_kills_per_round:.2f}\n"
-                f"**🔹 Performance Score:** {promedio_performance:.2f}"
-            ),
+            value=f"**🔹 Promedio {metrica.capitalize()}:** {avg_metric:.2f}",
             inline=False
         )
 
@@ -1499,11 +1513,11 @@ async def promedios_tops(ctx):
     bar_width = 0.5
     index = range(len(clan_names))
 
-    bars = plt.bar(index, performance_scores, bar_width, label='Performance Score')
+    bars = plt.bar(index, avg_metric_values, bar_width, label=f'Promedio {metrica.capitalize()}')
 
     plt.xlabel('Clanes')
-    plt.ylabel('Performance Score')
-    plt.title('Performance Score de los Mejores 15 de Cada Clan')
+    plt.ylabel(f'Promedio {metrica.capitalize()}')
+    plt.title(f'Promedio {metrica.capitalize()} de los Mejores {cantidad} Jugadores por Clan')
     plt.xticks(index, clan_names, rotation=45)
     plt.legend()
 
@@ -1513,8 +1527,8 @@ async def promedios_tops(ctx):
     buf.seek(0)
 
     # Adjuntar el gráfico al mensaje
-    file = discord.File(buf, filename="top15_performance_scores_clanes.png")
-    embed.set_image(url="attachment://top15_performance_scores_clanes.png")
+    file = discord.File(buf, filename="promedios_tops.png")
+    embed.set_image(url="attachment://promedios_tops.png")
 
     await ctx.send(embed=embed, file=file)
 
