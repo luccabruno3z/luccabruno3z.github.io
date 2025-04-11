@@ -381,7 +381,11 @@ async def tips(ctx, kit: str = None):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def ayuda(ctx):
+async def help(ctx):
+    """
+    Comando actualizado de ayuda que lista todos los comandos disponibles
+    junto con su descripción y uso correcto.
+    """
     embed = discord.Embed(
         title="📜 **Lista de Comandos Disponibles**",
         description="Aquí tienes todos los comandos organizados por categorías:",
@@ -393,29 +397,52 @@ async def ayuda(ctx):
         name="🔧 **Comandos Básicos**",
         value=(
             "`-hola` - Saluda al bot.\n"
-            "`-tips <kit>` - Tips para tener en cuenta en el juego. Si no especificas kit se te daran consejos generales.\n"
-            "`-apagar` - Apaga el bot (solo el dueño del bot puede usar este comando)."
+            "**Uso:** `-hola`\n\n"
+            "`-guias` - Accede a las guías de la página.\n"
+            "**Uso:** `-guias`\n\n"
+            "`-visualizador` - Accede al visualizador 2D.\n"
+            "**Uso:** `-visualizador`\n\n"
+            "`-pagina` - Muestra el enlace a la página principal.\n"
+            "**Uso:** `-pagina`\n\n"
+            "`-apagar` - Apaga el bot (solo el dueño del bot puede usar este comando).\n"
+            "**Uso:** `-apagar`"
         ),
         inline=False
     )
 
-    # Sección: Estadísticas de jugadores
+    # Sección: Estadísticas y análisis
     embed.add_field(
-        name="📊 **Estadísticas de Jugadores**",
+        name="📊 **Estadísticas y Análisis**",
         value=(
-            "`-estadisticas <jugador>` - Muestra estadísticas detalladas de un jugador, incluyendo:\n"
-            "  💥 **K/D Ratio**\n"
-            "  🔫 **Tasa de kills**\n"
-            "  🎯 **Tasa de score**\n"
-            "  🌟 **Performance Score**\n"
-            "  🎮 **Rounds Jugados**\n"
-            "  ☠️ **Total Kills**\n"
-            "  🏆 **Total Score**\n"
-            "  🎖️ **Clan**\n"
-            "  💀 **Total Muertes**\n"
-            "  📉 **Tasa de Muertes**\n"
-            "  🏅 **Ranking en el Clan**\n\n"
-            "`-compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores."
+            "`-estadisticas <jugador>` - Muestra estadísticas detalladas de un jugador.\n"
+            "**Uso:** `-estadisticas {nombre_jugador}`\n\n"
+            "`-compare <jugador1> <jugador2>` - Compara estadísticas de dos jugadores.\n"
+            "**Uso:** `-compare {jugador1} {jugador2}`\n\n"
+            "`-analizar_equipo <jugadores>` - Analiza estadísticas de un equipo de jugadores.\n"
+            "**Uso:** `-analizar_equipo {jugador1} {jugador2} ...`\n\n"
+            "`-sugerir_equipo <clan> <num_jugadores>` - Sugiere un equipo del clan especificado.\n"
+            "**Uso:** `-sugerir_equipo {clan} {cantidad_jugadores}`\n\n"
+            "`-buscar_usuario <parte_nombre>` - Busca jugadores por parte de su nombre.\n"
+            "**Uso:** `-buscar_usuario {parte_nombre}`\n\n"
+            "`-historial <jugador>` - Muestra un gráfico histórico del Performance Score de un jugador.\n"
+            "**Uso:** `-historial {nombre_jugador}`"
+        ),
+        inline=False
+    )
+
+    # Sección: Rankings y promedios
+    embed.add_field(
+        name="🏅 **Rankings y Promedios**",
+        value=(
+            "`-top <cantidad> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada.\n"
+            "**Uso:** `-top {cantidad} {categoría} {métrica}`\n"
+            "**Categorías:** `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`, `adg`\n"
+            "**Métricas:** `performance`, `kd`, `kills`, `deaths`, `rounds`\n\n"
+            "`-promedios_tops <cantidad> <métrica>` - Calcula los promedios de los mejores jugadores por clan.\n"
+            "**Uso:** `-promedios_tops {cantidad} {métrica}`\n"
+            "**Métricas:** `performance`, `kd`, `kills`, `deaths`, `rounds`, `score`\n\n"
+            "`-promedios` - Muestra los promedios de estadísticas por clan.\n"
+            "**Uso:** `-promedios`"
         ),
         inline=False
     )
@@ -425,37 +452,36 @@ async def ayuda(ctx):
         name="📈 **Gráficos Interactivos**",
         value=(
             "`-grafico` - Muestra el gráfico interactivo con estadísticas de todos los jugadores.\n"
+            "**Uso:** `-grafico`\n\n"
             "`-graficoldh` - Muestra el gráfico interactivo de la LDH.\n"
+            "**Uso:** `-graficoldh`\n\n"
             "`-graficosae` - Muestra el gráfico interactivo de la SAE.\n"
+            "**Uso:** `-graficosae`\n\n"
             "`-graficofi` - Muestra el gráfico interactivo de la FI.\n"
+            "**Uso:** `-graficofi`\n\n"
             "`-graficofi_r` - Muestra el gráfico interactivo de la FI-R.\n"
+            "**Uso:** `-graficofi_r`\n\n"
             "`-grafico141` - Muestra el gráfico interactivo del 141.\n"
-            "`-graficoe_lam` - Muestra el gráfico interactivo de la E-LAM.\n"
+            "**Uso:** `-grafico141`\n\n"
             "`-grafico300` - Muestra el gráfico interactivo de 300.\n"
+            "**Uso:** `-grafico300`\n\n"
             "`-graficoe_lam` - Muestra el gráfico interactivo de la E-LAM.\n"
-            "`-graficor_ldh` - Muestra el gráfico interactivo de la R-LDH."
+            "**Uso:** `-graficoe_lam`\n\n"
+            "`-graficor_ldh` - Muestra el gráfico interactivo de la R-LDH.\n"
+            "**Uso:** `-graficor_ldh`"
         ),
         inline=False
     )
 
-    # Sección: Rankings y promedios
+    # Sección: Consejos y otros
     embed.add_field(
-        name="🏅 **Rankings y Promedios**",
+        name="📚 **Consejos y Otros**",
         value=(
-            "`-top <cantidad de jugadores> <categoría> <métrica>` - Muestra el top de jugadores según la categoría y métrica especificada:\n"
-            "  `general`, `ldh`, `sae`, `fi`, `141`, `fi-r`, `r-ldh`, `e-lam`, `300`, `rim-la`, `adg`.\n"
-            "  Métricas: `performance`, `kd`, `kills`, `deaths`, `rounds`.\n"
-            "`-promedios` - Muestra los promedios de estadísticas por clan."
-        ),
-        inline=False
-    )
-
-    # Sección: Recursos adicionales
-    embed.add_field(
-        name="📚 **Recursos Adicionales**",
-        value=(
-            "`-guias` - Accede a las guías de la página.\n"
-            "`-visualizador` - Accede al visualizador 2D."
+            "`-tips <kit>` - Proporciona consejos según el kit seleccionado.\n"
+            "**Uso:** `-tips {kit}`\n"
+            "**Kits disponibles:** `rifleman`, `medic`, `automatic rifleman`, `grenadier`, `sniper`, `lat`, `hat`, `combat engineer`\n\n"
+            "`-countdown <fecha> <hora>` - Inicia un countdown hasta una fecha y hora específica.\n"
+            "**Uso:** `-countdown {DD/MM/YYYY} {HH:MM}`"
         ),
         inline=False
     )
