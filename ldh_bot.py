@@ -381,7 +381,7 @@ async def tips(ctx, kit: str = None):
     await ctx.send(embed=embed)
 
 @bot.command()
-async def help(ctx):
+async def ayuda(ctx):
     """
     Comando actualizado de ayuda que lista todos los comandos disponibles
     junto con su descripción y uso correcto.
