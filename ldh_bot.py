@@ -1364,12 +1364,23 @@ async def countdown(ctx, date: str, time: str):
     except ValueError:
         await ctx.send("❗ Formato de fecha y hora inválido. Usa el formato `DD/MM/YYYY HH:MM`.")
 
-# Función para manejar reacciones
 @bot.event
 async def on_raw_reaction_add(payload):
+    """
+    Maneja las reacciones añadidas a mensajes. Si se reacciona con una bandera de un país,
+    y el mensaje fue enviado por el bot, se envía un countdown personalizado al usuario.
+    """
     # Ignorar reacciones del propio bot
     if payload.user_id == bot.user.id:
         return
+
+    # Obtener el canal y el mensaje al que se reaccionó
+    channel = bot.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+
+    # Verificar si el mensaje fue enviado por el bot
+    if message.author.id != bot.user.id:
+        return  # Salir si el mensaje no fue enviado por el bot
 
     # Obtener el emoji de la reacción
     emoji = str(payload.emoji)
@@ -1393,15 +1404,13 @@ async def on_raw_reaction_add(payload):
         )
 
         # Actualizar el embed con el tiempo restante
-        embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos."
-        await message.edit(embed=embed)
-
+        embed.description = f"**{time_remaining.days}** días, **{time_remaining.seconds // 3600}** horas, **{(time_remaining.seconds // 60) % 60}** minutos, **{time_remaining.seconds % 60}** segundos"
+        
         # Enviar un mensaje privado al usuario con el countdown
         user = await bot.fetch_user(payload.user_id)
         await user.send(embed=embed)
 
         # Responder en el mismo canal para confirmar que se ha enviado el mensaje privado
-        channel = await bot.fetch_channel(payload.channel_id)
         await channel.send(f"{user.mention}, te he enviado un mensaje privado con el countdown personalizado.")
 
 # Nuevo comando para buscar nombres de usuarios
