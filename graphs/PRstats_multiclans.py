@@ -33,7 +33,8 @@ clan_urls = {
     "RIM:LA": "https://prstats.realitymod.com/clan/9406/rimla",
     "ADG": "https://prstats.realitymod.com/clan/17913/adg",
     "A-LDH": "https://prstats.realitymod.com/clan/44173/a-ldh",
-    "FASO": "https://prstats.realitymod.com/clan/46393/faso"
+    "FASO": "https://prstats.realitymod.com/clan/46393/faso",
+    "PORN": "https://prstats.realitymod.com/clan/47806/porn"
 }
 
 datos_todos_jugadores = []
