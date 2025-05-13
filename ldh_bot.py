@@ -822,6 +822,7 @@ async def top(ctx, cantidad: int = 15, categoria: str = "general", metrica: str 
         "rim-la": GITHUB_JSON_RIM_LA,
         "adg": GITHUB_JSON_ADG,
         "faso": GITHUB_JSON_FASO,
+        "porn": GITHUB_JSON_PORN,
         "a-ldh": GITHUB_JSON_A_LDH
     }
 
