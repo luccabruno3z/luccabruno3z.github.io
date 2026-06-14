@@ -18,6 +18,13 @@ luccabruno3z.github.io/
 ├── bot/                       # Bot de Discord (discord.py 2.0, 8 cogs)
 ├── scraper/                   # Pipeline de datos (scraping + parser de demos)
 ├── graphs/                    # Datos generados (JSONs, charts Plotly, historial)
+│   ├── history/               #   Historial de Performance Score por jugador
+│   └── demos/                 #   Datos derivados de .PRdemo:
+│       ├── rounds/            #     Rondas particionadas por dia + index.json
+│       ├── leaderboards/      #     Rankings precalculados (dia/semana/mes/todo)
+│       ├── player_rounds/     #     Timeline de rondas por jugador
+│       ├── player_details.json
+│       └── map_stats.json
 ├── guides/                    # Paginas de guias HTML
 └── logos/                     # Logos de clanes
 ```
@@ -37,6 +44,9 @@ luccabruno3z.github.io/
 - Predictor de partidas 8v8
 - Analisis de equipo y composicion de squad
 - Estadisticas de demos (rondas, mapas, rachas)
+- **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
+- **Feed de partidas recientes** (mapa, modo, ganador, kills)
+- **Historial de rondas por jugador** en su perfil de demos
 - 21 graficos interactivos Plotly (uno por clan + global)
 
 ### Sistema de Scoring (v3)
@@ -61,6 +71,23 @@ luccabruno3z.github.io/
 3. **Scoring** con normalizacion y clustering
 4. **Generacion** de JSONs, charts Plotly e historial de jugadores
 5. **Auto-discovery** de servidores con demos disponibles
+
+### Almacenamiento de rondas (escalable)
+Las rondas de demos se guardan **particionadas por dia** (`graphs/demos/rounds/<fecha>.json`)
+en vez de un unico archivo monolitico. Los dias pasados son inmutables, asi que cada
+corrida del scraper solo reescribe el archivo del dia actual: el historial de git se
+mantiene chico y **ningun archivo se acerca al limite de 100 MB de GitHub**. Un
+`index.json` lista las fechas disponibles.
+
+El matching de IGN de demo → cuenta de prstats es **case-sensitive de dos niveles**
+(`ClanMatcher`): respeta cuentas distintas que solo difieren en mayusculas
+(p. ej. `Dev.CO` vs `Dev.Co`), con fallback case-insensitive solo cuando es inequivoco.
+
+Sobre esas rondas se precalculan:
+- **Leaderboards** por periodo (`leaderboards/{dia,semana,mes,todo}.json`) — el bot y la
+  web leen un archivo de pocos KB en vez de procesar todo el historial.
+- **player_rounds/** — timeline por jugador (escritura por diff, sin churn).
+- **player_details.json** y **map_stats.json** — agregados por jugador y por mapa.
 
 ## Clanes rastreados
 
@@ -92,7 +119,16 @@ Abrir `index.html` en un navegador o servir con cualquier servidor estatico.
 
 - **Frontend**: GitHub Pages (rama `main`)
 - **Bot**: Heroku / Railway (via `Procfile` o `nixpacks.toml`)
-- **Scraper**: GitHub Actions — corre cada 15 minutos, commitea datos actualizados a `main`
+- **Scraper**: GitHub Actions — corre cada hora, commitea datos actualizados a `main`
+
+> **Nota:** los datos NO usan Git LFS (Pages sirve el puntero, no el contenido).
+> Si agregas datasets grandes, particionalos como `graphs/demos/rounds/`.
+
+### Migracion del historial de rondas
+Para partir un `round_history.json` monolitico antiguo a la estructura por dia:
+```bash
+python -m scraper.migrate_rounds
+```
 
 ## Sugerencias y contacto
 
