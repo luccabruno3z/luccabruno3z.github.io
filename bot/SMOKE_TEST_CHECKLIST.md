@@ -35,6 +35,15 @@
 - [ ] Solo quien invocó puede usar los selects — _Notas:_
 - [ ] Período vacío muestra mensaje amable (no error) — _Notas:_
 
+## 3.b Ayuda + Glosario
+- [ ] `-ayuda` (o `/ayuda`) muestra **todos** los comandos por categoría (Select) — _Notas:_
+- [ ] Aparecen los reversionados/nuevos: `top_periodo`, `encuesta`, `mvp`, `glosario`, `modo` — _Notas:_
+- [ ] Los atajos `-grafico<clan>` aparecen colapsados en una sola línea — _Notas:_
+- [ ] `/glosario` abre el glosario, el Select cambia de categoría — _Notas:_
+- [ ] Definiciones correctas (K/D, Índice Táctico, tiers, etc.) con "de dónde sale" — _Notas:_
+- [ ] Botón **📖 Glosario** en la player card abre el glosario (efímero) — _Notas:_
+- [ ] `-modo` muestra el selector de modo de datos (PRStats/Demos/Combinado) — _Notas:_
+
 ## 4. Polls + app instalable
 - [ ] `-encuesta ¿pregunta? | op1 | op2 | op3` crea una **poll nativa** — _Notas:_
 - [ ] `-mvp juan, pedro, ana` crea poll de MVP (7 días) — _Notas:_
