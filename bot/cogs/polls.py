@@ -18,24 +18,32 @@ class Polls(commands.Cog):
 
     @commands.hybrid_command(aliases=["poll", "votacion", "votación"])
     @app_commands.describe(
-        contenido="Pregunta y opciones separadas por '|'  ej: ¿Mejor jugador? | juan | pedro | ana",
-        horas="Duración de la encuesta en horas (default 24, máx 768)",
+        contenido="pregunta | opción1 | opción2 [| ...]  (opcional: agregá '| 48h' para la duración)",
     )
-    async def encuesta(self, ctx: commands.Context, *, contenido: str, horas: int = 24):
-        """Crea una encuesta nativa de Discord. Formato: pregunta | op1 | op2 | ..."""
+    async def encuesta(self, ctx: commands.Context, *, contenido: str):
+        """Crea una encuesta nativa de Discord. Formato: pregunta | op1 | op2 [| 48h]"""
         parts = [p.strip() for p in contenido.split("|") if p.strip()]
+
+        # Duración opcional: último token tipo "48h" / "12h".
+        horas = 24
+        if parts:
+            tok = parts[-1].lower().replace(" ", "")
+            if tok.endswith("h") and tok[:-1].isdigit():
+                horas = max(1, min(int(tok[:-1]), 32 * 24))  # Discord máx 32 días
+                parts = parts[:-1]
+
         if len(parts) < 3:
             await ctx.send(
                 "❗ Formato: `-encuesta pregunta | opción1 | opción2 [| ...]`\n"
-                "Ejemplo: `-encuesta ¿MVP de la semana? | juan*ARG* | TheEtern | _JORGE`",
+                "Ejemplo: `-encuesta ¿MVP de la semana? | juan*ARG* | TheEtern | _JORGE`\n"
+                "Duración opcional al final: `... | 48h`",
                 ephemeral=True,
             )
             return
 
-        question, options = parts[0], parts[1:10]  # Discord allows up to 10 answers
-        horas = max(1, min(horas, 32 * 24))  # Discord max is 32 days
+        question, options = parts[0], parts[1:11]  # Discord permite hasta 10 respuestas
 
-        poll = discord.Poll(question=question, duration=timedelta(hours=horas))
+        poll = discord.Poll(question=question[:300], duration=timedelta(hours=horas))
         for i, opt in enumerate(options):
             poll.add_answer(text=opt[:55], emoji=_NUMBER_EMOJI[i])
 
