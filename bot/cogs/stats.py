@@ -305,7 +305,7 @@ class Stats(commands.Cog):
         mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
         actions = build_actions(jugador_encontrado["Player"])
         if mode not in ("combined", "demos"):
-            actions = [a for a in actions if a.action in ("hist", "cmp")]
+            actions = [a for a in actions if a.action in ("hist", "cmp", "glos")]
 
         card = PlayerCard(
             jugador_encontrado,

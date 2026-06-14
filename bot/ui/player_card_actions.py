@@ -25,6 +25,7 @@ _ACTIONS = {
     "hist": ("Historial", "📈", discord.ButtonStyle.secondary),
     "cmp": ("Comparar", "⚔️", discord.ButtonStyle.secondary),
     "rounds": ("Últimas rondas", "🎯", discord.ButtonStyle.secondary),
+    "glos": ("Glosario", "📖", discord.ButtonStyle.secondary),
 }
 
 
@@ -34,7 +35,7 @@ def _safe(name: str) -> str:
 
 class PlayerCardActionButton(
     discord.ui.DynamicItem[discord.ui.Button],
-    template=r"pc:(?P<action>demo|hist|cmp|rounds):(?P<name>.+)",
+    template=r"pc:(?P<action>demo|hist|cmp|rounds|glos):(?P<name>.+)",
 ):
     def __init__(self, action: str, player_name: str, *, label: str | None = None):
         self.action = action
@@ -58,6 +59,11 @@ class PlayerCardActionButton(
         await handler(interaction)
 
     # ── Actions ────────────────────────────────────────────────────────────
+
+    async def _do_glos(self, interaction: discord.Interaction):
+        # Glosario enfocado en los términos del Performance/índices.
+        from bot.ui.glossary import GlossaryView
+        await interaction.response.send_message(view=GlossaryView("performance"), ephemeral=True)
 
     async def _do_cmp(self, interaction: discord.Interaction):
         # Lazy import avoids a circular import at module load.
@@ -154,5 +160,6 @@ def _find_demo_player(data, name: str):
 
 
 def build_actions(player_name: str) -> list[PlayerCardActionButton]:
-    """The four contextual buttons for a player card."""
-    return [PlayerCardActionButton(a, player_name) for a in ("demo", "hist", "cmp", "rounds")]
+    """The contextual buttons for a player card (ActionRow holds up to 5)."""
+    return [PlayerCardActionButton(a, player_name)
+            for a in ("demo", "hist", "cmp", "rounds", "glos")]
