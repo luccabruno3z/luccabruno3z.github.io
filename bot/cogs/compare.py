@@ -15,6 +15,7 @@ from bot.config import (
 from bot.services.chart_renderer import render_kd_chart, render_comparison_chart, render_multi_comparison, render_radar_chart, render_horizontal_bars, render_comparison_bars, render_probability_bar
 from bot.utils import format_number, find_player, highlight_winner, advantage_pct, progress_bar, relative_time, sample_reliability, standard_footer, ERR_DB
 from bot.views.demo_details import DemoDetailsView
+from bot.ui.comparison_card import ComparisonCard
 
 logger = logging.getLogger(__name__)
 
@@ -271,58 +272,25 @@ class Compare(commands.Cog):
                 else f"**Resultado:** Empate {p1_wins}/{len(metrics)} categorías cada uno"
             )
 
-            embed = discord.Embed(
-                title=f"🔍 {entity1} vs {entity2}",
-                description=f"**{entity1}** ⚔️ **{entity2}**",
-                color=discord.Color.purple(),
-            )
-            embed.add_field(
-                name="📊 Comparación",
-                value="\n".join(lines),
-                inline=False,
-            )
-            embed.add_field(
-                name="🏆 Veredicto",
-                value=summary,
-                inline=False,
-            )
-
             p1_rounds = p1.get("Rounds", 0)
             p2_rounds = p2.get("Rounds", 0)
+            warning = None
             if p1_rounds < 50 or p2_rounds < 50:
-                embed.add_field(
-                    name="⚠️ Nota sobre muestras",
-                    value=(
-                        (f"**{entity1}** tiene solo {p1_rounds} rondas\n" if p1_rounds < 50 else "") +
-                        (f"**{entity2}** tiene solo {p2_rounds} rondas\n" if p2_rounds < 50 else "") +
-                        "Los stats con pocas rondas pueden no ser representativos."
-                    ),
-                    inline=False,
+                warning = (
+                    (f"{entity1} tiene solo {p1_rounds} rondas. " if p1_rounds < 50 else "")
+                    + (f"{entity2} tiene solo {p2_rounds} rondas. " if p2_rounds < 50 else "")
+                    + "Stats con pocas rondas pueden no ser representativos."
                 )
 
-            embed.set_footer(text=standard_footer(p1))
-
-            # Build multi-comparison chart (function normalizes internally)
-            chart_labels = ["K/D", "Kills/R", "Score/R", "Performance", "Rounds", "Total Kills", "Total Score"]
-            vals1 = [p1["K/D Ratio"], p1.get("Kills per Round", 0), p1.get("Score per Round", 0),
-                     p1.get("Performance Score", 0), p1.get("Rounds", 0), p1.get("Total Kills", 0), p1.get("Total Score", 0)]
-            vals2 = [p2["K/D Ratio"], p2.get("Kills per Round", 0), p2.get("Score per Round", 0),
-                     p2.get("Performance Score", 0), p2.get("Rounds", 0), p2.get("Total Kills", 0), p2.get("Total Score", 0)]
-            chart_buf = render_multi_comparison(entity1, vals1, entity2, vals2, chart_labels, "Comparación")
-            file = discord.File(chart_buf, filename="compare.png")
-            embed.set_image(url="attachment://compare.png")
-
-            view = InvertCompareView(self, ctx, entity1, entity2)
-
-            # Add demo details buttons if mode allows
             mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-            if mode in ("combined", "demos"):
-                for player_name in (entity1, entity2):
-                    demo_view = DemoDetailsView(player_name, self.bot)
-                    for item in demo_view.children:
-                        view.add_item(item)
+            demo_for = [entity1, entity2] if mode in ("combined", "demos") else None
 
-            await ctx.send(embed=embed, file=file, view=view)
+            card = ComparisonCard(
+                self, ctx, entity1, entity2,
+                lines=lines, summary=summary, warning=warning,
+                footer=standard_footer(p1), demo_for=demo_for,
+            )
+            card.message = await ctx.send(view=card)
 
             # Radar comparison chart (if both players have radar data)
             radar1 = p1.get("radar")

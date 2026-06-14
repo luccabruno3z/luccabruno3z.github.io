@@ -36,13 +36,13 @@ class PlayerCardActionButton(
     discord.ui.DynamicItem[discord.ui.Button],
     template=r"pc:(?P<action>demo|hist|cmp|rounds):(?P<name>.+)",
 ):
-    def __init__(self, action: str, player_name: str):
+    def __init__(self, action: str, player_name: str, *, label: str | None = None):
         self.action = action
         self.player_name = player_name
-        label, emoji, style = _ACTIONS[action]
+        default_label, emoji, style = _ACTIONS[action]
         super().__init__(
             discord.ui.Button(
-                label=label,
+                label=(label or default_label)[:80],
                 emoji=emoji,
                 style=style,
                 custom_id=f"pc:{action}:{player_name}"[:100],
