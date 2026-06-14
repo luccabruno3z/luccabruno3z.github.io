@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /graphs/demos/
+Disallow: /bot/
+Disallow: /scraper/
+
+Sitemap: https://luccabruno3z.github.io/sitemap.xml

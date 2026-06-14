@@ -1,0 +1,66 @@
+[
+    {
+        "Date": "2026-03-17",
+        "Performance Score": 0.4155
+    },
+    {
+        "Date": "2026-03-18",
+        "Performance Score": 0.5397,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-19",
+        "Performance Score": 0.5397,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-22",
+        "Performance Score": 0.5422,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-23",
+        "Performance Score": 0.5425,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-25",
+        "Performance Score": 0.5426,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-30",
+        "Performance Score": 0.5431,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-31",
+        "Performance Score": 0.546,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-01",
+        "Performance Score": 0.5415,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-03",
+        "Performance Score": 0.5397,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-12",
+        "Performance Score": 0.4469,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-13",
+        "Performance Score": 0.4488,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-17",
+        "Performance Score": 0.4486,
+        "scoring_version": "v3"
+    }
+]

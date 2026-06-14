@@ -1,0 +1,26 @@
+[
+    {
+        "Date": "2026-03-17",
+        "Performance Score": 0.5219
+    },
+    {
+        "Date": "2026-03-18",
+        "Performance Score": 0.5242,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-19",
+        "Performance Score": 0.5367,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-20",
+        "Performance Score": 0.5357,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-21",
+        "Performance Score": 0.5377,
+        "scoring_version": "v3"
+    }
+]

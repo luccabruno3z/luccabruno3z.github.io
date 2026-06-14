@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guias de PR — Legion de Hierro</title>
+    <meta name="description" content="Guias y estrategias para Project Reality. Tips basicos, roles de kits, liderazgo de squad, vehiculos y estrategia de mapas.">
+    <meta name="theme-color" content="#00FFFF">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../logos/favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-surface: rgba(15, 15, 25, 0.8);
+            --bg-elevated: rgba(20, 20, 35, 0.9);
+            --accent: #00FFFF;
+            --accent-glow: rgba(0, 255, 255, 0.3);
+            --accent-dim: rgba(0, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6a6a7a;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4466;
+            --border-subtle: rgba(0, 255, 255, 0.1);
+            --border-medium: rgba(0, 255, 255, 0.2);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(0,255,255,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,187,255,0.02) 0%, transparent 50%);
+            pointer-events: none; z-index: -1;
+        }
+
+        /* --- Header --- */
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.8rem 2rem;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .top-bar .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text-primary); }
+        .top-bar .logo span { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 2px; }
+        .top-bar nav { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+        .top-bar nav a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; padding: 0.3rem 0.6rem; border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .top-bar nav a:hover, .top-bar nav a.active { color: var(--accent); background: var(--accent-dim); }
+
+        /* --- Hero --- */
+        .hero {
+            text-align: center; padding: 4rem 2rem 2.5rem;
+            background: linear-gradient(180deg, rgba(0,255,255,0.04) 0%, transparent 100%);
+        }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: 3px; color: var(--accent); }
+        .hero p { color: var(--text-secondary); max-width: 600px; margin: 0.8rem auto 0; font-size: 1.05rem; }
+
+        /* --- TOC --- */
+        .toc {
+            max-width: 700px; margin: 0 auto 2rem; padding: 1.5rem 2rem;
+            background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+        }
+        .toc h2 { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 2px; color: var(--accent); margin-bottom: 0.8rem; }
+        .toc ol { padding-left: 1.2rem; }
+        .toc li { margin-bottom: 0.4rem; }
+        .toc a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .toc a:hover { color: var(--accent); }
+
+        /* --- Content --- */
+        .content { max-width: 900px; margin: 0 auto; padding: 0 2rem 4rem; }
+
+        .guide-section {
+            margin-bottom: 3rem; padding: 2rem;
+            background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+            transition: border-color 0.3s;
+        }
+        .guide-section:hover { border-color: var(--border-medium); }
+
+        .guide-section h2 {
+            font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 2px;
+            color: var(--accent); margin-bottom: 1rem;
+            padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);
+        }
+        .guide-section h3 { font-size: 1.1rem; color: var(--text-primary); margin: 1.2rem 0 0.5rem; }
+        .guide-section p, .guide-section li { color: var(--text-secondary); }
+        .guide-section ul, .guide-section ol { padding-left: 1.4rem; margin-bottom: 0.8rem; }
+        .guide-section li { margin-bottom: 0.35rem; }
+
+        .tip-box {
+            margin: 1rem 0; padding: 0.8rem 1.2rem;
+            border-left: 3px solid var(--accent); background: var(--accent-dim); border-radius: 0 8px 8px 0;
+        }
+        .tip-box.warn { border-left-color: var(--warning); background: rgba(255,170,0,0.08); }
+        .tip-box.danger { border-left-color: var(--danger); background: rgba(255,68,102,0.08); }
+        .tip-box strong { color: var(--text-primary); }
+
+        /* --- Kit Cards --- */
+        .kit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .kit-card {
+            padding: 1.2rem; background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md); transition: transform 0.2s, border-color 0.2s;
+        }
+        .kit-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+        .kit-card h4 { color: var(--accent); font-size: 1rem; margin-bottom: 0.4rem; }
+        .kit-card p { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* --- Google Docs Links --- */
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; }
+        .doc-link {
+            display: block; padding: 1.2rem; text-decoration: none;
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .doc-link:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .doc-link h4 { color: var(--accent); font-size: 0.95rem; margin-bottom: 0.3rem; }
+        .doc-link p { color: var(--text-muted); font-size: 0.8rem; }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center; padding: 2rem;
+            border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .top-bar { flex-direction: column; gap: 0.5rem; padding: 0.6rem 1rem; }
+            .top-bar nav { justify-content: center; }
+            .hero { padding: 2.5rem 1rem 1.5rem; }
+            .content { padding: 0 1rem 3rem; }
+            .guide-section { padding: 1.2rem; }
+            .kit-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <a href="../index.html" class="logo">
+            <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Logo LDH" width="40" height="40">
+            <span>Legion de Hierro</span>
+        </a>
+        <nav>
+            <a href="../index.html">Inicio</a>
+            <a href="#tips" class="active">Guias PR</a>
+            <a href="commands.html">Comandos Bot</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Guias de Project Reality</h1>
+        <p>Todo lo que necesitas saber para mejorar tu juego, desde los fundamentos hasta estrategias avanzadas.</p>
+    </section>
+
+    <div class="content">
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h2>Contenido</h2>
+            <ol>
+                <li><a href="#tips">Tips Basicos</a></li>
+                <li><a href="#kits">Roles de Kits</a></li>
+                <li><a href="#squad">Liderazgo de Squad</a></li>
+                <li><a href="#vehicles">Operacion de Vehiculos</a></li>
+                <li><a href="#maps">Estrategia de Mapas</a></li>
+                <li><a href="#docs">Guias en Google Docs</a></li>
+            </ol>
+        </div>
+
+        <!-- 1. BASIC TIPS -->
+        <section class="guide-section" id="tips">
+            <h2>1. Tips Basicos</h2>
+
+            <h3>Comunicacion</h3>
+            <ul>
+                <li><strong>Usa el mic siempre.</strong> La comunicacion por voz es la diferencia entre ganar y perder. Local voice (H) para tu squad cercano, squad radio (V) para el squad completo.</li>
+                <li>Reporta enemigos con <strong>direccion + distancia + tipo</strong>: "Enemigo infanteria, norte 320, 150 metros".</li>
+                <li>No satures el canal de radio. Habla cuando tengas informacion util.</li>
+            </ul>
+
+            <h3>Supervivencia</h3>
+            <ul>
+                <li><strong>No corras en campo abierto.</strong> Siempre movi de cobertura en cobertura.</li>
+                <li>Si estas herido, arrodillate y pedi medico. No sigas corriendo: te vas a morir mas rapido.</li>
+                <li>Revisa el mapa (M) cada 30 segundos. Sabe donde estan tus aliados y hacia donde se mueve el equipo.</li>
+                <li>Los spawns son limitados. Morir es caro: cada muerte gasta tickets del equipo.</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>Tip:</strong> Antes de disparar, preguntate: "Puedo ganar este enfrentamiento?" Si la respuesta es no, reporta la posicion enemiga y espera refuerzos.
+            </div>
+
+            <h3>Trabajo en Equipo</h3>
+            <ul>
+                <li>Siempre segui a tu Squad Leader (SL). Si el dice mover, moves. Si dice parar, paras.</li>
+                <li>No salgas solo. Un jugador solo es un jugador muerto.</li>
+                <li>Cura a tus companeros, revivi a los caidos, comparti municion. Estas acciones ganan rondas.</li>
+            </ul>
+        </section>
+
+        <!-- 2. KIT ROLES -->
+        <section class="guide-section" id="kits">
+            <h2>2. Roles de Kits</h2>
+            <p>Cada kit tiene un proposito especifico. Usarlos correctamente define el resultado de la partida.</p>
+
+            <div class="kit-grid">
+                <div class="kit-card">
+                    <h4>Rifleman</h4>
+                    <p>El backbone del squad. Lleva ammo bags para reabastecer al equipo. Ideal para principiantes. Siempre queda cerca del medico y del SL.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Medic</h4>
+                    <p>El kit mas importante. Sin medicos, el squad colapsa. Prioridad: mantente vivo, cura y revivi. No vayas al frente, quedate atras cubriendo.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Automatic Rifleman (AR)</h4>
+                    <p>Fuego de supresion. Montate en posiciones con buena linea de vision y mantene al enemigo agachado mientras tu squad avanza.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Grenadier</h4>
+                    <p>Lanza granadas para desalojar enemigos de posiciones fortificadas. Util contra grupos en edificios y detras de muros.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Anti-Tank (HAT/LAT)</h4>
+                    <p>Esencial contra vehiculos blindados. LAT para vehiculos ligeros, HAT para tanques. Espera a tener un tiro limpio — tu municion es limitada.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Marksman</h4>
+                    <p>Reconocimiento y eliminacion a distancia. No es un sniper solitario: trabaja con el squad dando informacion y cubriendo flancos.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Breacher / Sapper</h4>
+                    <p>Explosivos y breaching. Abre paredes, destrui caches y colocas minas. Comunica siempre antes de detonar.</p>
+                </div>
+                <div class="kit-card">
+                    <h4>Squad Leader</h4>
+                    <p>Coordina al squad, coloca rallies y FOBs, se comunica con otros SLs. El rol mas exigente: requiere experiencia y liderazgo.</p>
+                </div>
+            </div>
+
+            <div class="tip-box warn">
+                <strong>Importante:</strong> Los kits limitados (HAT, Marksman, etc.) tienen restriccion por squad. No los pidas si no sabes usarlos — deja que los tome alguien con experiencia.
+            </div>
+        </section>
+
+        <!-- 3. SQUAD LEADERSHIP -->
+        <section class="guide-section" id="squad">
+            <h2>3. Liderazgo de Squad</h2>
+
+            <h3>Antes de Crear un Squad</h3>
+            <ul>
+                <li>Asegurate de tener experiencia basica con los kits y el flujo del juego.</li>
+                <li>Tene un mic funcional y buena voluntad para comunicar constantemente.</li>
+                <li>Revisa el mapa: identifica que zonas necesitan presencia y donde hay huecos en la defensa.</li>
+            </ul>
+
+            <h3>Gestion del Squad</h3>
+            <ul>
+                <li><strong>Compone tu squad antes de salir:</strong> minimo 2 medicos, 1 AR, riflemen con ammo.</li>
+                <li><strong>Rally points:</strong> colocalos en zonas cubiertas, no en campo abierto. Un rally expuesto es un rally muerto.</li>
+                <li><strong>FOBs:</strong> coordina con otros SLs para no superponer FOBs. Una buena red de FOBs gana partidas.</li>
+                <li><strong>Da ordenes claras:</strong> "Mover al edificio marcado en el mapa" es mejor que "vamos para alla".</li>
+            </ul>
+
+            <h3>Comunicacion con Otros Squads</h3>
+            <ul>
+                <li>Usa el canal de comando (Numpad 0) para coordinar ataques y defensas.</li>
+                <li>Reporta movimiento enemigo al Commander y otros SLs.</li>
+                <li>Acepta cuando tu squad necesita cambiar de rol: a veces toca defender en vez de atacar.</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>Regla de oro del SL:</strong> Un squad mediocre bien coordinado le gana a un squad de cracks sin comunicacion.
+            </div>
+        </section>
+
+        <!-- 4. VEHICLE OPERATIONS -->
+        <section class="guide-section" id="vehicles">
+            <h2>4. Operacion de Vehiculos</h2>
+
+            <h3>Reglas Fundamentales</h3>
+            <ul>
+                <li><strong>No agarres un vehiculo si no sabes manejarlo.</strong> Los vehiculos blindados son assets valiosos y perderlos cuesta muchos tickets.</li>
+                <li>Siempre opera con un crew minimo: driver + gunner. Idealmente con un tercer tripulante.</li>
+                <li>Mantene comunicacion constante entre driver y gunner.</li>
+            </ul>
+
+            <h3>Tipos de Vehiculos</h3>
+            <ul>
+                <li><strong>Transporte (Trucks/APCs livianos):</strong> Para mover tropas y suministros. No los lleves al frente enemigo.</li>
+                <li><strong>IFVs (Bradley, BMP, etc.):</strong> Apoyo de infanteria con canon automatico. Mantene distancia y usa terreno como cobertura.</li>
+                <li><strong>Tanques (MBTs):</strong> Poder de fuego maximo. Operan mejor con infanteria de apoyo que los proteja de HATs.</li>
+                <li><strong>Helicopteros:</strong> Transporte y CAS. Requieren mucha practica. No vueles si no entrenaste.</li>
+            </ul>
+
+            <h3>Tacticas de Blindados</h3>
+            <ul>
+                <li><strong>Hull-down:</strong> Posiciona el vehiculo detras de una elevacion mostrando solo la torreta.</li>
+                <li><strong>Shoot and scoot:</strong> Dispara, movete a otra posicion, volve a disparar. No te quedes estatico.</li>
+                <li>Siempre tene una ruta de escape planificada antes de entrar en combate.</li>
+            </ul>
+
+            <div class="tip-box danger">
+                <strong>Atencion:</strong> Perder un tanque puede costar 30+ tickets. Si no estas seguro de la situacion, retroce y reagrupa.
+            </div>
+        </section>
+
+        <!-- 5. MAP STRATEGY -->
+        <section class="guide-section" id="maps">
+            <h2>5. Estrategia de Mapas</h2>
+
+            <h3>Principios Generales</h3>
+            <ul>
+                <li><strong>Control de flags:</strong> En modo AAS (Advance and Secure), las flags se capturan en orden. Siempre defende la flag actual mientras atacas la siguiente.</li>
+                <li><strong>No dejes flags desprotegidas.</strong> Una flag perdida por atras cambia completamente la partida.</li>
+                <li>Las FOBs deben estar cerca pero no encima de la flag — a 100-200m, en una posicion defendible.</li>
+            </ul>
+
+            <h3>Posicionamiento</h3>
+            <ul>
+                <li><strong>Terreno alto:</strong> Controla las elevaciones. El que tiene la altura tiene la ventaja.</li>
+                <li><strong>Flanqueo:</strong> No ataques de frente si podes flanquear. Un squad atacando de costado causa mucho mas dano.</li>
+                <li><strong>Choke points:</strong> Identifica puentes, pasos de montana y calles estrechas. Controlarlos limita el movimiento enemigo.</li>
+            </ul>
+
+            <h3>Combate Urbano</h3>
+            <ul>
+                <li>Movi edificio por edificio, asegurando cada uno antes de avanzar.</li>
+                <li>Los pisos altos dan ventaja visual pero te exponen a explosivos. Equilibra riesgo y vision.</li>
+                <li>Cubri las esquinas. La mayoria de las muertes urbanas son por no chequear los angulos.</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>Tip:</strong> Estudia los mapas en el modo offline antes de jugar online. Conocer el terreno te da una ventaja enorme.
+            </div>
+        </section>
+
+        <!-- 6. GOOGLE DOCS GUIDES -->
+        <section class="guide-section" id="docs">
+            <h2>6. Guias Detalladas (Google Docs)</h2>
+            <p>Guias escritas por la comunidad con informacion en profundidad.</p>
+
+            <div class="docs-grid">
+                <a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing" class="doc-link" target="_blank" rel="noopener">
+                    <h4>Guia de Kits Basicos</h4>
+                    <p>Fundamentos de cada kit disponible en el campo de batalla.</p>
+                </a>
+                <a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing" class="doc-link" target="_blank" rel="noopener">
+                    <h4>Guia Avanzada de Infanteria</h4>
+                    <p>Tacticas y estrategias avanzadas para combate a pie.</p>
+                </a>
+                <a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing" class="doc-link" target="_blank" rel="noopener">
+                    <h4>Tacticas de Combate Urbano</h4>
+                    <p>Domina el combate en areas urbanas con tacticas probadas.</p>
+                </a>
+                <a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing" class="doc-link" target="_blank" rel="noopener">
+                    <h4>Guia de CQB</h4>
+                    <p>Close Quarter Battle: enfrentamientos a corta distancia.</p>
+                </a>
+            </div>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>Legion de Hierro &copy; 2026 &mdash; <a href="../index.html">Volver al inicio</a></p>
+    </footer>
+
+</body>
+</html>

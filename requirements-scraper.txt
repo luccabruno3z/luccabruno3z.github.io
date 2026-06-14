@@ -1,0 +1,6 @@
+pandas
+numpy
+plotly
+beautifulsoup4
+aiohttp
+cloudscraper

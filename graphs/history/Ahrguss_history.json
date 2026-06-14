@@ -1,0 +1,91 @@
+[
+    {
+        "Date": "2026-03-17",
+        "Performance Score": 0.4262
+    },
+    {
+        "Date": "2026-03-18",
+        "Performance Score": 0.5779,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-19",
+        "Performance Score": 0.5859,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-20",
+        "Performance Score": 0.6006,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-21",
+        "Performance Score": 0.601,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-22",
+        "Performance Score": 0.6026,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-23",
+        "Performance Score": 0.605,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-24",
+        "Performance Score": 0.6124,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-25",
+        "Performance Score": 0.6015,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-26",
+        "Performance Score": 0.5981,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-27",
+        "Performance Score": 0.6011,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-28",
+        "Performance Score": 0.6031,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-29",
+        "Performance Score": 0.586,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-30",
+        "Performance Score": 0.5851,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-03-31",
+        "Performance Score": 0.5893,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-01",
+        "Performance Score": 0.5888,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-02",
+        "Performance Score": 0.6013,
+        "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-04-03",
+        "Performance Score": 0.6097,
+        "scoring_version": "v3"
+    }
+]

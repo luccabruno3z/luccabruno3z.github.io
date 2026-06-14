@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comandos del Bot — Legion de Hierro</title>
+    <meta name="description" content="Referencia completa de comandos del bot de estadisticas de Legion de Hierro para Project Reality.">
+    <meta name="theme-color" content="#00FFFF">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="../logos/favicon.ico" type="image/x-icon">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-surface: rgba(15, 15, 25, 0.8);
+            --bg-elevated: rgba(20, 20, 35, 0.9);
+            --accent: #00FFFF;
+            --accent-glow: rgba(0, 255, 255, 0.3);
+            --accent-dim: rgba(0, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6a6a7a;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --border-subtle: rgba(0, 255, 255, 0.1);
+            --border-medium: rgba(0, 255, 255, 0.2);
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-body: 'Roboto', sans-serif;
+            --font-mono: 'Roboto Mono', monospace;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+        body::before {
+            content: '';
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(0,255,255,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0,187,255,0.02) 0%, transparent 50%);
+            pointer-events: none; z-index: -1;
+        }
+
+        /* --- Header --- */
+        .top-bar {
+            position: sticky; top: 0; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.8rem 2rem;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .top-bar .logo { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: var(--text-primary); }
+        .top-bar .logo span { font-family: var(--font-display); font-size: 1.4rem; letter-spacing: 2px; }
+        .top-bar nav { display: flex; gap: 1.2rem; flex-wrap: wrap; }
+        .top-bar nav a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; padding: 0.3rem 0.6rem; border-radius: 6px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .top-bar nav a:hover, .top-bar nav a.active { color: var(--accent); background: var(--accent-dim); }
+
+        /* --- Hero --- */
+        .hero {
+            text-align: center; padding: 4rem 2rem 2.5rem;
+            background: linear-gradient(180deg, rgba(0,255,255,0.04) 0%, transparent 100%);
+        }
+        .hero h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: 3px; color: var(--accent); }
+        .hero p { color: var(--text-secondary); max-width: 600px; margin: 0.8rem auto 0; font-size: 1.05rem; }
+
+        /* --- Content --- */
+        .content { max-width: 1000px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+        /* --- Category Sections --- */
+        .cmd-category {
+            margin-bottom: 2.5rem; padding: 1.8rem;
+            background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+        }
+        .cmd-category:hover { border-color: var(--border-medium); }
+        .cmd-category h2 {
+            font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 2px;
+            color: var(--accent); margin-bottom: 0.3rem;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .cmd-category .cat-desc { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem; }
+
+        /* --- Command table --- */
+        .cmd-table { width: 100%; border-collapse: collapse; }
+        .cmd-table th {
+            text-align: left; padding: 0.6rem 0.8rem; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .cmd-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); vertical-align: top; }
+        .cmd-table tr:last-child td { border-bottom: none; }
+        .cmd-table tr:hover td { background: var(--accent-dim); }
+
+        .cmd-name {
+            font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--accent);
+            white-space: nowrap;
+        }
+        .cmd-usage {
+            font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted);
+        }
+        .cmd-desc { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* --- TOC --- */
+        .toc {
+            display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center;
+            margin-bottom: 2rem;
+        }
+        .toc a {
+            padding: 0.4rem 1rem; border: 1px solid var(--border-subtle); border-radius: 20px;
+            color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; font-weight: 700;
+            transition: all 0.2s;
+        }
+        .toc a:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center; padding: 2rem;
+            border-top: 1px solid var(--border-subtle); color: var(--text-muted); font-size: 0.85rem;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .top-bar { flex-direction: column; gap: 0.5rem; padding: 0.6rem 1rem; }
+            .top-bar nav { justify-content: center; }
+            .hero { padding: 2.5rem 1rem 1.5rem; }
+            .content { padding: 1rem 1rem 3rem; }
+            .cmd-category { padding: 1rem; }
+            .cmd-table th:nth-child(2), .cmd-table td:nth-child(2) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-bar">
+        <a href="../index.html" class="logo">
+            <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Logo LDH" width="40" height="40">
+            <span>Legion de Hierro</span>
+        </a>
+        <nav>
+            <a href="../index.html">Inicio</a>
+            <a href="general.html">Guias PR</a>
+            <a href="commands.html" class="active">Comandos Bot</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Comandos del Bot</h1>
+        <p>Referencia completa de todos los comandos disponibles para consultar estadisticas de Project Reality.</p>
+    </section>
+
+    <div class="content">
+
+        <!-- Quick nav -->
+        <div class="toc">
+            <a href="#stats">Stats</a>
+            <a href="#compare">Comparacion</a>
+            <a href="#rankings">Rankings</a>
+            <a href="#demo">Demo Stats</a>
+            <a href="#charts">Graficos</a>
+        </div>
+
+        <!-- STATS -->
+        <section class="cmd-category" id="stats">
+            <h2>Stats de Jugador</h2>
+            <p class="cat-desc">Consulta y analisis de estadisticas individuales.</p>
+            <table class="cmd-table">
+                <thead>
+                    <tr><th>Comando</th><th>Uso</th><th>Descripcion</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cmd-name">-stats</td>
+                        <td class="cmd-usage">-stats nombre</td>
+                        <td class="cmd-desc">Muestra las estadisticas generales del jugador: kills, deaths, K/D, score y mas.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-perfil</td>
+                        <td class="cmd-usage">-perfil nombre</td>
+                        <td class="cmd-desc">Perfil completo del jugador con resumen visual de rendimiento, clan y actividad.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-historial</td>
+                        <td class="cmd-usage">-historial nombre</td>
+                        <td class="cmd-desc">Historial de rendimiento a lo largo del tiempo. Muestra la evolucion del jugador.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-tendencia</td>
+                        <td class="cmd-usage">-tendencia nombre</td>
+                        <td class="cmd-desc">Analisis de tendencia: si el jugador esta mejorando, estable o empeorando.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-mejora</td>
+                        <td class="cmd-usage">-mejora nombre</td>
+                        <td class="cmd-desc">Sugerencias de mejora personalizadas basadas en las estadisticas del jugador.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-buscar</td>
+                        <td class="cmd-usage">-buscar texto</td>
+                        <td class="cmd-desc">Busca jugadores por nombre parcial. Util si no recordas el nombre exacto.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- COMPARE -->
+        <section class="cmd-category" id="compare">
+            <h2>Comparacion</h2>
+            <p class="cat-desc">Compara jugadores, arma equipos y predice resultados.</p>
+            <table class="cmd-table">
+                <thead>
+                    <tr><th>Comando</th><th>Uso</th><th>Descripcion</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cmd-name">-compare</td>
+                        <td class="cmd-usage">-compare nombre1 nombre2</td>
+                        <td class="cmd-desc">Comparacion directa entre dos jugadores con todas las metricas.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-compare_tops</td>
+                        <td class="cmd-usage">-compare_tops clan1 clan2</td>
+                        <td class="cmd-desc">Compara los mejores jugadores de dos clanes.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-predict</td>
+                        <td class="cmd-usage">-predict equipoA vs equipoB</td>
+                        <td class="cmd-desc">Predice el resultado de un enfrentamiento entre dos equipos.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-team</td>
+                        <td class="cmd-usage">-team jugador1 jugador2 ...</td>
+                        <td class="cmd-desc">Analiza la composicion y fortalezas de un equipo.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-suggest</td>
+                        <td class="cmd-usage">-suggest jugador1 jugador2 ...</td>
+                        <td class="cmd-desc">Sugiere roles ideales para los miembros del equipo segun sus stats.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-teamvs</td>
+                        <td class="cmd-usage">-teamvs equipoA vs equipoB</td>
+                        <td class="cmd-desc">Analisis detallado de enfrentamiento entre dos equipos armados.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- RANKINGS -->
+        <section class="cmd-category" id="rankings">
+            <h2>Rankings</h2>
+            <p class="cat-desc">Tops y promedios por clan, periodo o metrica.</p>
+            <table class="cmd-table">
+                <thead>
+                    <tr><th>Comando</th><th>Uso</th><th>Descripcion</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cmd-name">-top</td>
+                        <td class="cmd-usage">-top [clan] [n]</td>
+                        <td class="cmd-desc">Top N jugadores general o de un clan especifico por performance score.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-top_periodo</td>
+                        <td class="cmd-usage">-top_periodo periodo</td>
+                        <td class="cmd-desc">Top jugadores filtrado por un periodo de tiempo especifico.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-weekly</td>
+                        <td class="cmd-usage">-weekly [clan]</td>
+                        <td class="cmd-desc">Ranking semanal de los mejores jugadores.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-avg</td>
+                        <td class="cmd-usage">-avg clan</td>
+                        <td class="cmd-desc">Promedios generales de un clan: K/D, kills, score promedio, etc.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-avgtop</td>
+                        <td class="cmd-usage">-avgtop</td>
+                        <td class="cmd-desc">Ranking de clanes por promedio de rendimiento de sus mejores jugadores.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- DEMO STATS -->
+        <section class="cmd-category" id="demo">
+            <h2>Demo Stats</h2>
+            <p class="cat-desc">Estadisticas extraidas de demos de partidas: kits, vehiculos, mapas y mas.</p>
+            <table class="cmd-table">
+                <thead>
+                    <tr><th>Comando</th><th>Uso</th><th>Descripcion</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cmd-name">-kits</td>
+                        <td class="cmd-usage">-kits nombre</td>
+                        <td class="cmd-desc">Kits mas usados por el jugador con porcentaje de uso y rendimiento por kit.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-vehiculos</td>
+                        <td class="cmd-usage">-vehiculos nombre</td>
+                        <td class="cmd-desc">Vehiculos mas usados, kills con vehiculos y tiempo de uso.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-revives</td>
+                        <td class="cmd-usage">-revives nombre</td>
+                        <td class="cmd-desc">Estadisticas de revives: cuantos hizo, promedio por ronda, etc.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-armas</td>
+                        <td class="cmd-usage">-armas nombre</td>
+                        <td class="cmd-desc">Armas mas usadas por el jugador con kills y precision.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-mapa</td>
+                        <td class="cmd-usage">-mapa nombre_mapa</td>
+                        <td class="cmd-desc">Estadisticas de un mapa: winrates por faccion, tickets promedio, jugadores frecuentes.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-perfil_demo</td>
+                        <td class="cmd-usage">-perfil_demo nombre</td>
+                        <td class="cmd-desc">Perfil completo del jugador basado en datos de demos.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-rol</td>
+                        <td class="cmd-usage">-rol nombre</td>
+                        <td class="cmd-desc">Identifica el rol principal del jugador (infanteria, vehiculos, soporte, etc.).</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-winrate</td>
+                        <td class="cmd-usage">-winrate nombre</td>
+                        <td class="cmd-desc">Winrate general y por mapa del jugador.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-consistencia</td>
+                        <td class="cmd-usage">-consistencia nombre</td>
+                        <td class="cmd-desc">Analisis de consistencia: que tan estable es el rendimiento ronda a ronda.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-mapa_perfil</td>
+                        <td class="cmd-usage">-mapa_perfil nombre</td>
+                        <td class="cmd-desc">Rendimiento del jugador desglosado por mapa.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-teamwork</td>
+                        <td class="cmd-usage">-teamwork nombre</td>
+                        <td class="cmd-desc">Metricas de trabajo en equipo: revives, heals, reparaciones, soporte.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-clan_fortalezas</td>
+                        <td class="cmd-usage">-clan_fortalezas clan</td>
+                        <td class="cmd-desc">Fortalezas y debilidades de un clan basadas en datos de demos.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- CHARTS -->
+        <section class="cmd-category" id="charts">
+            <h2>Graficos</h2>
+            <p class="cat-desc">Visualizaciones graficas de estadisticas.</p>
+            <table class="cmd-table">
+                <thead>
+                    <tr><th>Comando</th><th>Uso</th><th>Descripcion</th></tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="cmd-name">-graph</td>
+                        <td class="cmd-usage">-graph nombre [metrica]</td>
+                        <td class="cmd-desc">Genera un grafico visual de la metrica seleccionada del jugador.</td>
+                    </tr>
+                    <tr>
+                        <td class="cmd-name">-historial</td>
+                        <td class="cmd-usage">-historial nombre</td>
+                        <td class="cmd-desc">Grafico de evolucion historica del rendimiento del jugador.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+
+    <footer>
+        <p>Legion de Hierro &copy; 2026 &mdash; <a href="../index.html">Volver al inicio</a> | <a href="general.html">Guias de PR</a></p>
+    </footer>
+
+</body>
+</html>

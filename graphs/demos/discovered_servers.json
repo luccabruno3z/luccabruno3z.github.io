@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "[LATINO] REALITYBRASIL.org | Sierra": {
+      "prstats_url": "https://prstats.realitymod.org/server/212/latino-realitybrasilorg-sierra",
+      "demo_url": "https://files.realitybrasil.org/PRServer/BattleRecorder/Server02/demos/"
+    },
+    "[RU] Loss of Reality | lossofreality.ru": {
+      "prstats_url": "https://prstats.realitymod.org/server/252/ru-loss-of-reality-lossofrealityru",
+      "demo_url": "http://lossofreality.ru/"
+    },
+    "[BR] ARES | SulAmerica - discord.gg/YszZCqnxnu": {
+      "prstats_url": "https://prstats.realitymod.org/server/254/br-ares-sulamerica-discordggyszzcqnxnu",
+      "demo_url": "http://45.149.153.196/trackers/"
+    }
+  },
+  "last_updated": "2026-04-17 15:36:37"
+}

@@ -1,0 +1,4 @@
+# Git LFS was removed: GitHub Pages serves the LFS *pointer* instead of the
+# file content, which broke the site, and the free LFS quota is tiny. JSON data
+# is now kept small via daily-partitioned rounds + precomputed aggregates, so
+# plain git handles it fine. Do NOT re-add `*.json filter=lfs` here.

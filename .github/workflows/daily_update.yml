@@ -1,0 +1,68 @@
+name: Actualización de estadísticas PR
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  # Cada hora (reduce el churn de los charts; MAX_DEMOS_PER_RUN cubre el backlog)
+
+jobs:
+  update-stats:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Configurar repositorio
+      uses: actions/checkout@v4
+
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Cache de dependencias pip
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements-scraper.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+
+    - name: Instalar dependencias
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-scraper.txt
+
+    - name: Verificar conectividad con PRStats
+      run: curl --fail --max-time 15 https://prstats.realitymod.org/clan/11204/ldh || echo "PRStats no disponible, continuando de todos modos"
+
+    - name: Ejecutar scraper
+      run: python -m scraper
+      timeout-minutes: 5
+
+    - name: Validar output JSON
+      run: |
+        python -c "import json; json.load(open('graphs/all_players_clusters.json')); print('JSON válido')"
+
+    - name: Configurar credenciales de Git
+      run: |
+        git config --global user.name "GitHub Actions Bot"
+        git config --global user.email "github-actions@github.com"
+
+    - name: Commit y push de los cambios
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      run: |
+        git remote set-url origin https://x-access-token:${GH_PAT}@github.com/luccabruno3z/luccabruno3z.github.io.git
+        git add graphs/
+        git diff --staged --quiet || git commit -m "Actualización horaria de estadísticas PR"
+        git pull --rebase origin main || true
+        git push origin HEAD:main
+
+    - name: Notificar error por Discord
+      if: failure()
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      run: |
+        if [ -n "$DISCORD_WEBHOOK" ]; then
+          curl -H "Content-Type: application/json" \
+            -d "{\"content\":\"⚠️ El scraper falló. Ver: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
+            "$DISCORD_WEBHOOK"
+        fi

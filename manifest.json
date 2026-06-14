@@ -1,0 +1,22 @@
+{
+  "name": "Legion de Hierro — Stats Tracker",
+  "short_name": "LDH Stats",
+  "description": "Estadisticas avanzadas de jugadores y clanes de Project Reality.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#00FFFF",
+  "background_color": "#0a0a0f",
+  "icons": [
+    {
+      "src": "logos/Logo_LDH.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logos/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
