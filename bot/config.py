@@ -96,10 +96,10 @@ CLAN_EMOJIS = {
     "SAE": "<:Logo_SAE:1330790573061312542>",
     "FI": "<:Logo_FI:1330790559601659924>",
     "FI-R": "<:Logo_FI:1330790559601659924>",
-    "141": "<:Logo_141:emoji_id5>",
+    "141": "",  # se completa via -setup_emojis (Application Emoji)
     "R-LDH": "<:Logo_R_LDH:1331795559291551877>",
     "A-LDH": "<:Logo_R_LDH:1331795559291551877>",
-    "WD": "<:Logo_WD:emoji_id7>",
+    "WD": "",  # se completa via -setup_emojis (Application Emoji)
     "300": "<:Logo_300:1330790501460213770>",
     "E-LAM": "<:Logo_E_LAM:1330790544263217243>",
     "RIM:LA": "<:Logo_RIM_LA:1330790529214185472>",

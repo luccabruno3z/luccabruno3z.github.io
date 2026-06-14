@@ -25,6 +25,7 @@ EXTENSIONS = [
     "bot.cogs.misc",
     "bot.cogs.automation",
     "bot.cogs.detailed_stats",
+    "bot.cogs.polls",
 ]
 
 
@@ -44,7 +45,16 @@ async def main():
     intents.members = True
     intents.reactions = True
 
-    bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
+    # Make slash commands user-installable and usable in DMs / any server,
+    # not just guilds where the bot is added (discord.py 2.4+).
+    bot = commands.Bot(
+        command_prefix=COMMAND_PREFIX,
+        intents=intents,
+        allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=True),
+        allowed_contexts=discord.app_commands.AppCommandContext(
+            guild=True, dm_channel=True, private_channel=True
+        ),
+    )
 
     # Disable the built-in help so our custom -ayuda works without conflict
     bot.remove_command("help")
@@ -58,8 +68,10 @@ async def main():
     # Load emoji caches (kits + ranks)
     from bot.assets.kit_mapping import load_emoji_cache
     from bot.assets.rank_mapping import load_rank_emoji_cache
+    from bot.assets.clan_mapping import load_clan_emoji_cache
     load_emoji_cache()
     load_rank_emoji_cache()
+    load_clan_emoji_cache()
 
     # Load all cogs
     for ext in EXTENSIONS:

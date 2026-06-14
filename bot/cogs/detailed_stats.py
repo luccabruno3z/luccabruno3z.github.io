@@ -10,6 +10,7 @@ from discord import app_commands
 from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
+from bot.ui.leaderboard_card import LeaderboardView
 from bot.utils import format_number, find_player, standard_footer, progress_bar
 from bot.views.explain import ExplainView
 
@@ -1144,98 +1145,15 @@ class DetailedStats(commands.Cog):
 
         await ctx.defer()
 
-        # Fetch the precomputed leaderboard. The scraper aggregates rounds per
-        # period into a tiny file, so this is instant (no more 100 MB download).
-        try:
-            data = await self.fetcher.fetch_leaderboard(period_file)
-        except Exception:
-            await ctx.send("No hay datos de rondas disponibles.")
-            return
-
-        if isinstance(data, dict):
-            players_list = data.get("players", []) or []
-            period_total_rounds = data.get("total_rounds", 0)
-        else:  # unexpected/legacy shape — treat as a bare player list
-            players_list = data or []
-            period_total_rounds = 0
-
-        if not players_list:
-            period_label = periodo if periodo != "todo" else "todo el historial"
-            await ctx.send(f"No hay rondas en el período **{period_label}**.")
-            return
-
-        # Key by ign so the existing metric-sort code below works unchanged. The
-        # leaderboard already holds only clan players with kills/deaths/score/
-        # rounds/revives/teamwork_score per player.
-        players: dict[str, dict] = {p["ign"]: p for p in players_list}
-
-        # Sort by metric
-        metric_lower = metrica.lower()
-        if metric_lower == "kd":
-            for p in players.values():
-                p["_sort"] = p["kills"] / p["deaths"] if p["deaths"] > 0 else float(p["kills"])
-            sort_key = "_sort"
-            metric_label = "K/D"
-            fmt = lambda p: f"{p['_sort']:.2f}"
-        elif metric_lower == "score":
-            sort_key = "score"
-            metric_label = "Score"
-            fmt = lambda p: format_number(p["score"])
-        elif metric_lower == "revives":
-            sort_key = "revives"
-            metric_label = "Revives"
-            fmt = lambda p: str(p["revives"])
-        elif metric_lower == "teamwork":
-            sort_key = "teamwork_score"
-            metric_label = "Teamwork Score"
-            fmt = lambda p: format_number(p["teamwork_score"])
-        else:  # kills (default)
-            sort_key = "kills"
-            metric_label = "Kills"
-            fmt = lambda p: str(p["kills"])
-
-        ranked = sorted(players.values(), key=lambda p: p.get(sort_key, 0), reverse=True)[:cantidad]
-
-        # Build embed
-        period_labels = {
-            "dia": "Hoy", "hoy": "Hoy", "day": "Hoy",
-            "semana": "Última semana", "week": "Última semana", "semanal": "Última semana",
-            "mes": "Último mes", "month": "Último mes", "mensual": "Último mes",
-            "todo": "Todo el historial", "all": "Todo el historial",
-        }
-        period_label = period_labels.get(periodo.lower(), periodo)
-
-        medals = ["🥇", "🥈", "🥉"]
-        lines = []
-        for i, p in enumerate(ranked):
-            medal = medals[i] if i < 3 else f"`{i+1}.`"
-            lines.append(
-                f"{medal} **{p['ign']}** — {fmt(p)} "
-                f"({p['rounds']}R · {p['kills']}K/{p['deaths']}D)"
-            )
-
-        embed = discord.Embed(
-            title=f"🏆 Top {metric_label} — {period_label}",
-            description="\n".join(lines),
-            color=discord.Color.gold(),
+        view = LeaderboardView(
+            self.fetcher,
+            period=period_file,
+            metric=metrica.lower(),
+            count=cantidad,
+            author_id=ctx.author.id,
         )
-        embed.add_field(
-            name="📊 Resumen del período",
-            value=f"**{period_total_rounds}** rondas · **{len(players)}** jugadores de clanes",
-            inline=False,
-        )
-        embed.set_footer(text=f"Datos de demos (.PRdemo) | {standard_footer()}")
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-
-        # Build chart
-        title = f"Top {metric_label} — {period_label}"
-        chart_names = [p["ign"] for p in ranked][:15]
-        chart_values = [p.get(sort_key, 0) for p in ranked][:15]
-        buf = render_bar_chart(chart_names, chart_values, title, "Jugadores", metric_label)
-        file = discord.File(buf, filename="top_periodo.png")
-        embed.set_image(url="attachment://top_periodo.png")
-
-        await ctx.send(embed=embed, file=file)
+        await view.load()
+        view.message = await ctx.send(view=view)
 
 
 async def setup(bot: commands.Bot) -> None:

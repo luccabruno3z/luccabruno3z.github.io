@@ -94,15 +94,18 @@ class Misc(commands.Cog):
         import aiohttp, base64
         from bot.assets.kit_mapping import get_all_assets, update_emoji_cache
         from bot.assets.rank_mapping import get_all_rank_assets, update_rank_emoji_cache
+        from bot.assets.clan_mapping import get_all_clan_assets, update_clan_emoji_cache
 
-        # Combine kit + rank assets
+        # Combine kit + rank + clan assets
         kit_assets = get_all_assets()
         rank_assets = get_all_rank_assets()
-        assets = kit_assets + rank_assets
-        # Track which are ranks for correct cache update
+        clan_assets = get_all_clan_assets()
+        assets = kit_assets + rank_assets + clan_assets
+        # Track which names belong to which cache.
         rank_names = {name for name, _ in rank_assets}
+        clan_names = {name for name, _ in clan_assets}
         if not assets:
-            await ctx.send("No se encontraron assets de kits.")
+            await ctx.send("No se encontraron assets para subir.")
             return
 
         token = os.getenv("DISCORD_TOKEN")
@@ -129,17 +132,23 @@ class Misc(commands.Cog):
             failed = 0
 
             def _save_emoji(name, emoji_str):
-                """Save to correct cache (kit or rank)."""
+                """Save to the correct cache (kit / rank / clan)."""
                 if name in rank_names:
                     update_rank_emoji_cache(name, emoji_str)
+                elif name in clan_names:
+                    update_clan_emoji_cache(name, emoji_str)
                 else:
                     update_emoji_cache(name, emoji_str)
+
+            def _emoji_str(e):
+                """Build the inline emoji token, animated-aware (<a:..> for gifs)."""
+                prefix = "a" if e.get("animated") else ""
+                return f"<{prefix}:{e['name']}:{e['id']}>"
 
             for emoji_name, path in assets:
                 if emoji_name in existing:
                     e = existing[emoji_name]
-                    emoji_str = f"<:{e['name']}:{e['id']}>"
-                    _save_emoji(emoji_name, emoji_str)
+                    _save_emoji(emoji_name, _emoji_str(e))
                     skipped += 1
                     continue
 
@@ -147,9 +156,10 @@ class Misc(commands.Cog):
                     with open(path, "rb") as f:
                         img_data = f.read()
                     b64 = base64.b64encode(img_data).decode("utf-8")
+                    mime = "image/gif" if path.lower().endswith(".gif") else "image/png"
                     payload = {
                         "name": emoji_name,
-                        "image": f"data:image/png;base64,{b64}",
+                        "image": f"data:{mime};base64,{b64}",
                     }
                     async with session.post(
                         f"https://discord.com/api/v10/applications/{app_id}/emojis",
@@ -158,8 +168,7 @@ class Misc(commands.Cog):
                     ) as resp:
                         if resp.status in (200, 201):
                             e = await resp.json()
-                            emoji_str = f"<:{e['name']}:{e['id']}>"
-                            _save_emoji(emoji_name, emoji_str)
+                            _save_emoji(emoji_name, _emoji_str(e))
                             uploaded += 1
                         else:
                             body = await resp.text()

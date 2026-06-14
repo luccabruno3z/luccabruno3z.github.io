@@ -6,6 +6,7 @@ import discord
 from discord.ext import commands, tasks
 
 from bot.config import CLAN_EMOJIS
+from bot.assets.clan_mapping import get_clan_emoji
 from bot.services.storage import JSONStorage
 
 logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class Automation(commands.Cog):
         ranking_text = ""
         for i, p in enumerate(top10, 1):
             clan = p.get("Clan", "")
-            emoji = CLAN_EMOJIS.get(clan, "")
+            emoji = get_clan_emoji(clan)
             name = p.get("Player", "???")
             score = p.get("Performance Score", 0)
             ranking_text += f"**#{i}** {emoji} {name} — {score:.2f}\n"

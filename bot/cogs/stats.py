@@ -26,6 +26,7 @@ from bot.config import (
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
+from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
     format_number,
     find_player,
@@ -470,7 +471,7 @@ class Stats(commands.Cog):
             nombre = jugador_entry.get("Player", "Desconocido")
             valor_metrica = jugador_entry.get(metric_key, 0)
             clan = jugador_entry.get("Clan", "N/A")
-            clan_emoji = CLAN_EMOJIS.get(clan, "")
+            clan_emoji = get_clan_emoji(clan)
             medal = rank_medal(index)
             tier = " " + tier_emoji(valor_metrica) if metrica == "performance" else ""
             lines.append(f"{medal} **{nombre}** [{clan}] — {format_number(valor_metrica)}{tier}")
@@ -577,7 +578,7 @@ class Stats(commands.Cog):
             embed.set_thumbnail(url=BOT_THUMBNAIL)
             for jugador_entry in players:
                 clan = jugador_entry.get("Clan", "N/A")
-                clan_emoji = CLAN_EMOJIS.get(clan, "")
+                clan_emoji = get_clan_emoji(clan)
                 ps_val = jugador_entry.get("Performance Score", 0)
                 embed.add_field(
                     name=f"{clan_emoji} {jugador_entry['Player']}",
@@ -644,7 +645,7 @@ class Stats(commands.Cog):
             clan_names.append(clan_name)
             performance_scores.append(ps)
 
-            clan_emoji = CLAN_EMOJIS.get(clan_name, "")
+            clan_emoji = get_clan_emoji(clan_name)
             medal = rank_medal(rank_idx)
             bar = progress_bar(ps, max_ps, 8)
 
@@ -742,7 +743,7 @@ class Stats(commands.Cog):
         for rank_idx, (cn, avg, total) in enumerate(clan_averages, start=1):
             clan_names.append(cn)
             avg_values.append(avg)
-            clan_emoji = CLAN_EMOJIS.get(cn, "")
+            clan_emoji = get_clan_emoji(cn)
             medal = rank_medal(rank_idx)
             bar = progress_bar(avg, max_avg, 8)
             embed.add_field(
@@ -1090,7 +1091,7 @@ class Stats(commands.Cog):
         exp_badge = experience_badge(rounds_played)
         reliability = sample_reliability(rounds_played)
 
-        clan_emoji = CLAN_EMOJIS.get(clan, "")
+        clan_emoji = get_clan_emoji(clan)
         embed = discord.Embed(
             title=f"📋 Perfil de {jugador}",
             description=(
@@ -1748,7 +1749,7 @@ class Stats(commands.Cog):
             similarity = max(0, (1 - dist / max_possible_dist)) * 100
             ps_val = p.get("Performance Score", 0)
             p_clan = p.get("Clan", "N/A")
-            clan_emoji = CLAN_EMOJIS.get(p_clan, "")
+            clan_emoji = get_clan_emoji(p_clan)
             badge = tier_badge(ps_val, thresholds)
             lines.append(
                 f"{medal_emojis[i]} **{p['Player']}** ({clan_emoji}{p_clan}) — "
@@ -1843,7 +1844,7 @@ class Stats(commands.Cog):
             tier_config = None
         thresholds = tier_config.get("thresholds") if isinstance(tier_config, dict) else None
 
-        clan_emoji = CLAN_EMOJIS.get(actual_clan, "")
+        clan_emoji = get_clan_emoji(actual_clan)
         embed = discord.Embed(
             title=f"📋 Plantel de {clan_emoji}{actual_clan} ({len(clan_players)} jugadores)",
             color=discord.Color.blue(),
