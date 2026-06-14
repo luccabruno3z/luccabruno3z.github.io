@@ -1,10 +1,10 @@
 {
   "version": "v3",
-  "generated_at": "2026-06-14 05:39:11",
+  "generated_at": "2026-06-14 08:26:26",
   "thresholds": {
-    "elite": 0.8286749999999999,
-    "veterano": 0.6813,
-    "experimentado": 0.54506,
+    "elite": 0.82789,
+    "veterano": 0.6815249999999999,
+    "experimentado": 0.54488,
     "soldado": 0.38371
   },
   "target_distribution": [
@@ -21,9 +21,9 @@
     "winrate": 0.2
   },
   "ps_stats": {
-    "mean": 0.5347,
-    "median": 0.5592,
-    "p95": 0.8193,
-    "max": 0.9068
+    "mean": 0.5346,
+    "median": 0.5581,
+    "p95": 0.8165,
+    "max": 0.9046
   }
 }
