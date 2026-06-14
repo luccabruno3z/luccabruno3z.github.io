@@ -24,6 +24,8 @@ from bot.config import (
     clan_logo_url,
 )
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
+from bot.ui.player_card import PlayerCard
+from bot.ui.player_card_actions import build_actions
 from bot.utils import (
     format_number,
     find_player,
@@ -32,6 +34,7 @@ from bot.utils import (
     rank_medal,
     tier_badge,
     tier_emoji,
+    _tier_name,
     classify_playstyle,
     experience_badge,
     sample_reliability,
@@ -215,163 +218,112 @@ class Stats(commands.Cog):
         if arch_desc:
             desc_lines.insert(1, f"*{arch_desc}*")
 
-        embed = discord.Embed(
-            title=f"📊 Estadísticas de {jugador}",
-            description="\n".join(desc_lines),
-            color=color,
-        )
-        embed.set_thumbnail(url=clan_image_url)
+        # ── Build the Components V2 player card ────────────────────────────
+        tname = _tier_name(ps, thresholds)
+        temoji = tier_emoji(ps, thresholds)
+        archetype = f"{style_emoji} {style_name}"
 
-        embed.add_field(
-            name="**📊 Datos Totales**",
-            value=(
-                f"💥 **K/D Ratio**: {kd:.2f}\n"
-                f"☠️ **Total Kills**: {format_number(total_kills)}\n"
-                f"💀 **Total Muertes**: {format_number(total_deaths)}\n"
-                f"🏆 **Total Score**: {format_number(total_score)}\n"
-                f"🎮 **Rounds**: {format_number(rounds_played)}"
-            ),
-            inline=True,
-        )
-
-        embed.add_field(
-            name="**📈 Rendimiento**",
-            value=(
-                f"🔫 **Kills/Ronda**: {kpr:.2f} ({percentile(kpr, all_kpr)})\n"
-                f"📉 **Muertes/Ronda**: {deaths_per_round:.2f}\n"
-                f"🎯 **Score/Ronda**: {spr:.2f}\n"
-                f"🌟 **Performance**: {ps:.2f}{trend}"
-            ),
-            inline=True,
-        )
-
-        # Build horizontal bar chart for score breakdown + ratings
+        # Breakdown bars: normalized components + rating indices (0-100).
         norm_kd = jugador_encontrado.get("Normalized_KD", 0)
         norm_score = jugador_encontrado.get("Normalized_Score", 0)
         norm_kpr = jugador_encontrado.get("Normalized_Kills_Per_Round", 0)
         norm_rounds = jugador_encontrado.get("Normalized_Rounds", 0)
-
-        chart_items = [
-            ("Combate (K/D)", norm_kd * 100, "#00FFFF"),
-            ("Puntuación (SPR)", norm_score * 100, "#00BBFF"),
-            ("Agresividad (KPR)", norm_kpr * 100, "#00FF88"),
-            ("Experiencia", norm_rounds * 100, "#FFA500"),
+        breakdown = [
+            ("Combate (K/D)", norm_kd * 100),
+            ("Puntuación (SPR)", norm_score * 100),
+            ("Agresividad (KPR)", norm_kpr * 100),
+            ("Experiencia", norm_rounds * 100),
         ]
         ratings = get_player_ratings(jugador_encontrado)
         if ratings:
-            chart_items.extend([
-                ("Índice Combate", ratings.get("combat", 0), "#FF4466"),
-                ("Índice Táctico", ratings.get("tactical", 0), "#FFAA00"),
-                ("Índice Fiabilidad", ratings.get("reliability", 0), "#00FF88"),
-                ("Índice Impacto", ratings.get("impact", 0), "#00BBFF"),
-            ])
-
-        buf = render_horizontal_bars(chart_items, title="Desglose Performance", max_value=100)
-        file = discord.File(buf, filename="breakdown.png")
-        embed.set_image(url="attachment://breakdown.png")
-
-        # Penalty and activity info as text fields
-        penalty_info = sigmoid_penalty_display(rounds_played)
-        ai = jugador_encontrado.get("Activity Index")
-        ai_text = activity_index_display(ai) if ai is not None else ""
-        extra_lines = []
-        if penalty_info:
-            extra_lines.append(penalty_info)
-        if ai_text:
-            extra_lines.append(f"📊 **Actividad**: {ai_text}")
-        if extra_lines:
-            embed.add_field(
-                name="**🔍 Info Adicional**",
-                value="\n".join(extra_lines),
-                inline=False,
-            )
-
-        # Next tier progress
-        if thresholds and ps < thresholds.get("elite", 0.70):
-            tier_order = [
-                ("soldado", "Soldado"),
-                ("experimentado", "Experimentado"),
-                ("veterano", "Veterano"),
-                ("elite", "Elite"),
+            breakdown += [
+                ("Índice Combate", ratings.get("combat", 0)),
+                ("Índice Táctico", ratings.get("tactical", 0)),
+                ("Índice Fiabilidad", ratings.get("reliability", 0)),
+                ("Índice Impacto", ratings.get("impact", 0)),
             ]
-            next_tier_name = None
-            next_tier_val = None
-            for key, name in tier_order:
-                t_val = thresholds.get(key, 0)
-                if ps < t_val:
-                    next_tier_name = name
-                    next_tier_val = t_val
-                    break
-            if next_tier_name and next_tier_val:
-                diff = next_tier_val - ps
-                embed.add_field(
-                    name="📈 Siguiente Tier",
-                    value=f"**{next_tier_name}** ({next_tier_val:.2f}) — te faltan **{diff:.2f}** puntos",
-                    inline=False,
-                )
 
+        # Next-tier progress.
+        next_tier = None
+        if thresholds and ps < thresholds.get("elite", 0.70):
+            for _key, _name in (("soldado", "Soldado"), ("experimentado", "Experimentado"),
+                                ("veterano", "Veterano"), ("elite", "Elite")):
+                _val = thresholds.get(_key, 0)
+                if ps < _val:
+                    next_tier = (_name, _val - ps)
+                    break
+
+        # Cautions (low sample / confidence / penalty).
+        warn_lines = []
         if rounds_played < 50:
-            embed.add_field(
-                name="⚠️ Muestra Insuficiente",
-                value=(
-                    f"Con **{rounds_played} rondas** tus stats aún no son representativos.\n"
-                    f"Necesitás **{50 - rounds_played} rondas más** para aparecer en los rankings (`-top`).\n"
-                    f"*Los rankings requieren mínimo 50 rondas para datos confiables.*"
-                ),
-                inline=False,
+            warn_lines.append(
+                f"Con {rounds_played} rondas tus stats aún no son representativos — "
+                f"necesitás {50 - rounds_played} más para aparecer en `-top`."
             )
         else:
-            confidence_warn = stat_confidence_warning(rounds_played)
-            if confidence_warn:
-                embed.add_field(
-                    name="\u200b",
-                    value=confidence_warn.strip(),
-                    inline=False,
-                )
+            _cw = stat_confidence_warning(rounds_played)
+            if _cw:
+                warn_lines.append(_cw.strip())
+        _penalty = sigmoid_penalty_display(rounds_played)
+        if _penalty:
+            warn_lines.append(_penalty)
+        warning = "\n".join(warn_lines) or None
 
-        embed.set_footer(text=standard_footer(jugador_encontrado))
-        view = StatsView(jugador, self.fetcher)
-
-        # Add demo details button if mode allows
-        mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-        if mode in ("combined", "demos"):
-            demo_view = DemoDetailsView(jugador, self.bot)
-            for item in demo_view.children:
-                view.add_item(item)
-
-        # Best/worst round from demo data
+        # Highlights: best/worst round from demo data (optional).
+        highlights = None
         try:
             demo_data = await self.fetcher.fetch_player_details()
+            demo_player = None
             if demo_data:
-                name_lower = jugador_encontrado["Player"].lower()
-                demo_player = None
+                _nl = jugador_encontrado["Player"].lower()
                 for dp in demo_data:
-                    dp_ign = dp.get("ign", "").lower()
-                    if dp_ign == name_lower or name_lower in dp_ign:
+                    _ign = dp.get("ign", "").lower()
+                    if _ign == _nl or _nl in _ign:
                         demo_player = dp
                         break
-                if demo_player:
-                    best = demo_player.get("best_round")
-                    worst = demo_player.get("worst_round")
-                    highlights = []
-                    if best and isinstance(best, dict) and best.get("kills", 0) > 0:
-                        bmap = best.get("map", "?")
-                        bkills = best.get("kills", 0)
-                        highlights.append(f"🏆 **Mejor:** {bkills} kills en {bmap}")
-                    if worst and isinstance(worst, dict):
-                        wmap = worst.get("map", "?")
-                        wkills = worst.get("kills", 0)
-                        highlights.append(f"💀 **Peor:** {wkills} kills en {wmap}")
-                    if highlights:
-                        embed.add_field(
-                            name="🎯 Rondas Destacadas",
-                            value="\n".join(highlights),
-                            inline=False,
-                        )
+            if demo_player:
+                _hl = []
+                _best = demo_player.get("best_round")
+                _worst = demo_player.get("worst_round")
+                if isinstance(_best, dict) and _best.get("kills", 0) > 0:
+                    _hl.append(f"🏆 Mejor: {_best.get('kills', 0)} kills en {_best.get('map', '?')}")
+                if isinstance(_worst, dict):
+                    _hl.append(f"💀 Peor: {_worst.get('kills', 0)} kills en {_worst.get('map', '?')}")
+                if _hl:
+                    highlights = "🎯 **Rondas destacadas**\n" + "\n".join(_hl)
         except Exception:
-            pass  # Demo data optional
+            pass  # demo data optional
 
-        await ctx.send(embed=embed, file=file, view=view)
+        footer = standard_footer(jugador_encontrado)
+        _ai = jugador_encontrado.get("Activity Index")
+        _ai_text = activity_index_display(_ai) if _ai is not None else ""
+        if _ai_text:
+            footer = f"{footer} · {_ai_text}"
+
+        # Action buttons — demo-based actions only in demos/combined modes.
+        mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
+        actions = build_actions(jugador_encontrado["Player"])
+        if mode not in ("combined", "demos"):
+            actions = [a for a in actions if a.action in ("hist", "cmp")]
+
+        card = PlayerCard(
+            jugador_encontrado,
+            tier_name=tname,
+            tier_emoji=temoji,
+            archetype=archetype,
+            ranking_global=ranking_global,
+            ranking_clan=ranking_clan,
+            clan_logo_url=clan_image_url,
+            breakdown=breakdown,
+            footer=footer,
+            trend=trend,
+            next_tier=next_tier,
+            warning=warning,
+            highlights=highlights,
+            accent=color.value,
+            actions=actions,
+        )
+        await ctx.send(view=card)
 
     # ── -top <cantidad> <categoria> <metrica> ─────────────────────────────
 

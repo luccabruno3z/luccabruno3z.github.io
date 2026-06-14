@@ -66,6 +66,12 @@ async def main():
         await bot.load_extension(ext)
         logger.info("  Cog cargado: %s", ext)
 
+    # Register persistent (DynamicItem) components so player-card buttons keep
+    # working across restarts/redeploys instead of going dead.
+    from bot.ui.player_card_actions import PlayerCardActionButton
+    bot.add_dynamic_items(PlayerCardActionButton)
+    logger.info("  DynamicItems registrados: PlayerCardActionButton")
+
     # Run the bot; ensure clean shutdown of aiohttp session
     try:
         await bot.start(token)
