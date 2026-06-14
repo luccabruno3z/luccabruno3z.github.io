@@ -43,18 +43,34 @@
 
 ---
 
-## Pendiente / diferido (no incluido en este deploy)
-Lo dejé fuera a propósito para no romper cosas que no puedo probar en vivo:
+## 2.b Compare a V2 (`-compare <j1> <j2>`) — jugador vs jugador
+- [ ] Tarjeta morada con el head-to-head métrica por métrica — _Notas:_
+- [ ] Veredicto (quién gana cuántas categorías) — _Notas:_
+- [ ] Aviso de muestra chica si algún jugador tiene <50 rondas — _Notas:_
+- [ ] Botón **🔁 Invertir** rehace la comparación al revés — _Notas:_
+- [ ] Botones **Demo \<jugador\>** por cada uno (persistentes) — _Notas:_
+- [ ] El **radar** (segundo mensaje) sigue apareciendo — _Notas:_
+- [ ] Clan vs clan / jugador vs clan: siguen en embed (sin migrar) — _Notas:_
 
-- **Fase 2 — `-compare` a V2**: sigue funcionando con embed + chart. Migrar a
-  `comparison_card` es interacción-pesado (3 ramas + botón invertir); lo dejo
-  para cuando podamos probar en vivo. _¿Avanzar? [ ]_
-- **Fase 3 — Localización es-419**: evaluado, **valor marginal** (los comandos
-  ya están en español). Se puede hacer si querés nombres slash localizados. _[ ]_
-- **Fase 3 — Ephemeral por defecto (amplio)**: aplicado ya a las acciones de la
-  player card. Hacerlo global es delicado (los comandos por prefijo no soportan
-  efímero). _Definir alcance [ ]_
-- **Fase 3 — Modales con Select**: menor; útil si rehacemos filtros. _[ ]_
+---
+
+## Fase 3 — evaluación (no implementado, por decisión de diseño)
+Tras revisarlos contra este bot, el ROI es bajo o es decisión de producto:
+
+- **es-419 (localización)**: el bot **ya está en español** (nombres y
+  descripciones). Localizar a es-419 es redundante y de alto esfuerzo (requiere
+  `name_localizations` por comando) para ganancia casi nula. **Recomiendo no hacerlo.**
+  _¿Igual lo querés? [ ]_
+- **Ephemeral por defecto (amplio)**: es una **decisión de producto** (¿querés
+  que `-stats` sea privado o compartible en el canal?). La infra ya está: las
+  acciones de las cards responden efímeras. Si me decís qué comandos querés
+  privados, los aplico. _Comandos a hacer efímeros: __________ [ ]_
+- **Modales con Select**: valor marginal; útil solo si rehacemos algún flujo de
+  filtros. _[ ]_
+
+## Otros diferidos opcionales
+- **Compare clan-vs-clan / jugador-vs-clan a V2**: las ramas de clan siguen en
+  embed (más complejas). _¿Avanzar? [ ]_
 
 ## Bugs / feedback general
 > (escribí acá lo que notes)
