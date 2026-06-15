@@ -27,5 +27,10 @@
         "Date": "2026-03-22",
         "Performance Score": 0.4938,
         "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-06-15",
+        "Performance Score": 0.461,
+        "scoring_version": "v3"
     }
 ]
