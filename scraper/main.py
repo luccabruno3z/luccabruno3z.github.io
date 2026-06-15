@@ -70,10 +70,11 @@ def run() -> None:
     all_players = []
     all_warnings = []
 
-    for clan_name, html in html_pages.items():
-        players, warnings = parse_clan_html(html, clan_name)
-        all_players.extend(players)
-        all_warnings.extend(warnings)
+    for clan_name, pages in html_pages.items():
+        for html in pages:
+            players, warnings = parse_clan_html(html, clan_name)
+            all_players.extend(players)
+            all_warnings.extend(warnings)
 
     if all_warnings:
         logger.warning("Total parsing warnings: %d", len(all_warnings))
