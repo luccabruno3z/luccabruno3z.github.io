@@ -11,6 +11,67 @@ import re
 
 os.environ["OMP_NUM_THREADS"] = "1"
 
+# ── Site theme palette (keep in sync with scraper/charts.py) ──────────────────
+THEME_BG = "#0a0a0f"
+THEME_SURFACE = "#0f0f19"
+THEME_CYAN = "#00FFFF"
+THEME_ORANGE = "#FFA500"
+THEME_GREEN = "#00FF88"
+THEME_TEXT = "#ffffff"
+THEME_MUTED = "#a0a0b0"
+THEME_GRID = "rgba(255, 255, 255, 0.08)"
+THEME_ZERO = "rgba(255, 255, 255, 0.18)"
+COLOR_SEQUENCE = [THEME_CYAN, THEME_ORANGE, THEME_GREEN, "#FF4D6D", "#9D4EDD", "#FFD60A"]
+PERFORMANCE_COLORSCALE = [
+    [0.0, "#0b3d4d"],
+    [0.45, "#0c93a8"],
+    [0.7, THEME_CYAN],
+    [1.0, THEME_GREEN],
+]
+
+
+def _apply_dark_theme(fig, title_text):
+    """Apply the site's dark/cyan theme on top of the plotly_dark template."""
+    fig.update_traces(marker=dict(line=dict(width=1, color="rgba(0,0,0,0.6)"), opacity=0.9))
+    fig.update_layout(
+        title=dict(text=title_text, font=dict(size=26, color=THEME_CYAN, family="Bebas Neue"),
+                   x=0.5, xanchor="center"),
+        font=dict(color=THEME_TEXT, family="Roboto"),
+        paper_bgcolor=THEME_BG,
+        plot_bgcolor=THEME_BG,
+        colorway=COLOR_SEQUENCE,
+        margin=dict(l=70, r=40, t=80, b=60),
+        hoverlabel=dict(bgcolor=THEME_SURFACE, bordercolor=THEME_CYAN,
+                        font=dict(color=THEME_TEXT, family="Roboto", size=13)),
+        legend=dict(bgcolor="rgba(15,15,25,0.8)", bordercolor="rgba(0,255,255,0.3)",
+                    borderwidth=1, font=dict(color=THEME_TEXT, family="Roboto")),
+        xaxis=dict(gridcolor=THEME_GRID, zerolinecolor=THEME_ZERO,
+                   linecolor="rgba(255,255,255,0.15)",
+                   title_font=dict(size=16, color=THEME_CYAN, family="Roboto"),
+                   tickfont=dict(size=12, color=THEME_MUTED, family="Roboto")),
+        yaxis=dict(gridcolor=THEME_GRID, zerolinecolor=THEME_ZERO,
+                   linecolor="rgba(255,255,255,0.15)",
+                   title_font=dict(size=16, color=THEME_CYAN, family="Roboto"),
+                   tickfont=dict(size=12, color=THEME_MUTED, family="Roboto")),
+        coloraxis=dict(colorscale=PERFORMANCE_COLORSCALE,
+                       colorbar=dict(title=dict(text="Performance Score",
+                                                font=dict(size=14, color=THEME_CYAN, family="Roboto")),
+                                     tickfont=dict(size=11, color=THEME_MUTED, family="Roboto"),
+                                     outlinewidth=0, bgcolor="rgba(0,0,0,0)")),
+    )
+
+
+def _add_top_annotations(fig, df, n=3):
+    """Annotate the top N players by Performance Score with on-theme labels."""
+    for _, row in df.nlargest(n, "Performance Score").iterrows():
+        fig.add_annotation(
+            x=row["K/D Ratio"], y=row["Score per Round"], text=f"⭐ {row['Player']}",
+            showarrow=True, arrowhead=2, arrowcolor=THEME_CYAN, arrowwidth=1.5,
+            ax=0, ay=-32, font=dict(color="#000000", size=12, family="Roboto"),
+            bgcolor=THEME_CYAN, bordercolor=THEME_CYAN, borderpad=4, opacity=0.95,
+        )
+
+
 # Crear carpeta 'graphs' si no existe
 output_dir = "graphs"
 os.makedirs(output_dir, exist_ok=True)
@@ -110,62 +171,28 @@ df_general["Performance Score"] *= df_general["Rounds"].apply(lambda x: 0.2 if x
 
 # Crear gráfico general interactivo basado en el Performance Score
 fig_general = px.scatter(
-    df_general, 
-    x="K/D Ratio", 
-    y="Score per Round", 
-    size="Kills per Round", 
-    hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1), 
+    df_general,
+    x="K/D Ratio",
+    y="Score per Round",
+    size="Rounds",
+    size_max=42,
+    hover_name=df_general.apply(lambda row: f"{row['Player']} ({row['Clan']})", axis=1),
     color="Performance Score",
-    title="Desempeño General de Todos los Jugadores (Basado en Performance Score)",
-    template="plotly_dark",  # Plantilla oscura
+    title="Desempeño General · Todos los Jugadores",
+    template="plotly_dark",
     labels={
         "K/D Ratio": "K/D Ratio",
         "Score per Round": "Puntuación por Ronda",
-        "Kills per Round": "Asesinatos por Ronda",
-        "Performance Score": "Puntuación de Desempeño"
+        "Performance Score": "Performance Score"
     }
 )
 
-# Personalización de colores y estilo
-fig_general.update_layout(
-    title_font=dict(size=24, color="#00FFFF", family="Bebas Neue"),
-    font=dict(color="#00FFFF", family="Roboto"),
-    paper_bgcolor="#121212",
-    plot_bgcolor="#121212",
-    xaxis=dict(
-        gridcolor="rgba(255, 255, 255, 0.1)",
-        title_font=dict(size=18, color="#00FFFF", family="Roboto"),
-        tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
-    ),
-    yaxis=dict(
-        gridcolor="rgba(255, 255, 255, 0.1)",
-        title_font=dict(size=18, color="#00FFFF", family="Roboto"),
-        tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
-    ),
-    coloraxis_colorbar=dict(
-        title="Performance Score",
-        title_font=dict(size=16, color="#00FFFF", family="Roboto"),
-        tickfont=dict(size=12, color="#FFFFFF", family="Roboto"),
-        bgcolor="#121212"
-    )
-)
+_apply_dark_theme(fig_general, "Desempeño General · Todos los Jugadores")
+_add_top_annotations(fig_general, df_general)
 
-# Añadir anotaciones para destacar puntos específicos (por ejemplo, los jugadores con mayor Performance Score)
-top_players = df_general.nlargest(3, "Performance Score")
-for i, row in top_players.iterrows():
-    fig_general.add_annotation(
-        x=row["K/D Ratio"],
-        y=row["Score per Round"],
-        text=f"Top Player: {row['Player']}",
-        showarrow=True,
-        arrowhead=1,
-        ax=-10,
-        ay=-10,
-        font=dict(color="#000000", size=12, family="Roboto"),  # Cambiar color del texto a negro
-        bgcolor="#00FFFF"  # Cambiar color de fondo a celeste
-    )
-
-fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"))
+fig_general.write_html(os.path.join(output_dir, "all_players_interactive_chart.html"),
+                       include_plotlyjs="cdn", full_html=True,
+                       config={"responsive": True, "displaylogo": False})
 
 # Guardar archivos JSON y gráficos individuales
 df_general.to_json(os.path.join(output_dir, "all_players_clusters.json"), orient="records", lines=False)
@@ -196,79 +223,64 @@ for clan_name in clan_urls.keys():
         
         # Gráfico interactivo individual por clan
         fig_clan = px.scatter(
-            df_clan, 
-            x="K/D Ratio", 
-            y="Score per Round", 
-            size="Kills per Round", 
-            hover_name="Player", 
+            df_clan,
+            x="K/D Ratio",
+            y="Score per Round",
+            size="Rounds",
+            size_max=42,
+            hover_name="Player",
             color="Performance Score",
-            title=f"Gráfico Interactivo del Clan {clan_name}",
-            template="plotly_dark",  # Plantilla oscura
+            title=f"Clan {clan_name} · Desempeño de Jugadores",
+            template="plotly_dark",
             labels={
                 "K/D Ratio": "K/D Ratio",
                 "Score per Round": "Puntuación por Ronda",
-                "Kills per Round": "Asesinatos por Ronda",
-                "Performance Score": "Puntuación de Desempeño"
+                "Performance Score": "Performance Score"
             }
         )
-        
-        # Personalización de colores y estilo
-        fig_clan.update_layout(
-            title_font=dict(size=24, color="#00FFFF", family="Bebas Neue"),
-            font=dict(color="#00FFFF", family="Roboto"),
-            paper_bgcolor="#121212",
-            plot_bgcolor="#121212",
-            xaxis=dict(
-                gridcolor="rgba(255, 255, 255, 0.1)",
-                title_font=dict(size=18, color="#00FFFF", family="Roboto"),
-                tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
-            ),
-            yaxis=dict(
-                gridcolor="rgba(255, 255, 255, 0.1)",
-                title_font=dict(size=18, color="#00FFFF", family="Roboto"),
-                tickfont=dict(size=12, color="#FFFFFF", family="Roboto")
-            ),
-            coloraxis_colorbar=dict(
-                title="Performance Score",
-                title_font=dict(size=16, color="#00FFFF", family="Roboto"),
-                tickfont=dict(size=12, color="#FFFFFF", family="Roboto"),
-                bgcolor="#121212"
-            )
-        )
 
-        # Añadir anotaciones para destacar puntos específicos en gráficos individuales
-        top_clan_players = df_clan.nlargest(3, "Performance Score")
-        for i, row in top_clan_players.iterrows():
-            fig_clan.add_annotation(
-                x=row["K/D Ratio"],
-                y=row["Score per Round"],
-                text=f"Top Player: {row['Player']}",
-                showarrow=True,
-                arrowhead=1,
-                ax=-10,
-                ay=-10,
-                font=dict(color="#000000", size=12, family="Roboto"),  # Cambiar color del texto a negro
-                bgcolor="#00FFFF"  # Cambiar color de fondo a celeste
-            )
+        _apply_dark_theme(fig_clan, f"Clan {clan_name} · Desempeño de Jugadores")
+        _add_top_annotations(fig_clan, df_clan)
 
-        fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"))
+        fig_clan.write_html(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"),
+                            include_plotlyjs="cdn", full_html=True,
+                            config={"responsive": True, "displaylogo": False})
 
-# Agregar botón de "regresar" con ícono
-html_button = '''
-<div style="position: absolute; top: 20px; left: 20px;">
-    <a href="https://luccabruno3z.github.io" style="padding: 10px 20px; background-color: #00FFFF; color: #000; text-decoration: none; border-radius: 5px; font-weight: bold;">
-        <i class="fas fa-arrow-left"></i>
-    </a>
-</div>
+# Full-bleed dark body styling + back button injected into the generated HTML.
+HTML_HEAD_INJECT = f'''
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  html, body {{ margin:0; padding:0; height:100%; background-color:{THEME_BG};
+    color:{THEME_TEXT}; font-family:'Roboto',sans-serif; overflow:hidden; }}
+  .plotly-graph-div {{ background-color:{THEME_BG}; }}
+  .pr-back-btn {{ position:fixed; top:18px; left:18px; z-index:1000; display:inline-flex;
+    align-items:center; justify-content:center; width:42px; height:42px; background:{THEME_CYAN};
+    color:#000; text-decoration:none; border-radius:8px; font-weight:700;
+    box-shadow:0 0 12px rgba(0,255,255,0.45); transition:transform .15s ease, box-shadow .15s ease; }}
+  .pr-back-btn:hover {{ transform:translateY(-2px); box-shadow:0 0 18px rgba(0,255,255,0.7); }}
+</style>
+'''
+HTML_BACK_BUTTON = '''
+<a class="pr-back-btn" href="https://luccabruno3z.github.io" title="Volver"><i class="fas fa-arrow-left"></i></a>
 '''
 
-with open(os.path.join(output_dir, "all_players_interactive_chart.html"), "a") as file:
-    file.write(html_button)
 
+def _inject_theme(path):
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
+    html = html.replace("</head>", HTML_HEAD_INJECT + "</head>", 1)
+    html = html.replace("<body>", "<body>" + HTML_BACK_BUTTON, 1)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+_inject_theme(os.path.join(output_dir, "all_players_interactive_chart.html"))
 for clan_name in clan_urls.keys():
-    with open(os.path.join(output_dir, f"{clan_name}_interactive_chart.html"), "a") as file:
-        file.write(html_button)
+    clan_path = os.path.join(output_dir, f"{clan_name}_interactive_chart.html")
+    if os.path.exists(clan_path):
+        _inject_theme(clan_path)
 
 # Guardar historial de Performance Score de cada jugador
 for _, row in df_general.iterrows():

@@ -3,24 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Legion de Hierro — Stats Tracker</title>
-    <meta name="description" content="Analiza, compara y mejora tu rendimiento en Project Reality. Estadisticas avanzadas de jugadores y clanes — Legion de Hierro.">
+    <script>document.documentElement.classList.add('js');</script>
+    <title>Legión de Hierro — Stats Tracker</title>
+    <meta name="description" content="Analizá, compará y mejorá tu rendimiento en Project Reality. Estadísticas avanzadas de jugadores y clanes — Legión de Hierro.">
     <meta name="theme-color" content="#00FFFF">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://luccabruno3z.github.io/">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Legion de Hierro — Stats Tracker">
-    <meta property="og:description" content="Analiza, compara y mejora tu rendimiento en Project Reality. Estadisticas avanzadas de jugadores y clanes.">
+    <meta property="og:title" content="Legión de Hierro — Stats Tracker">
+    <meta property="og:description" content="Analizá, compará y mejorá tu rendimiento en Project Reality. Estadísticas avanzadas de jugadores y clanes.">
     <meta property="og:image" content="https://luccabruno3z.github.io/logos/Logo_LDH.png">
     <meta property="og:url" content="https://luccabruno3z.github.io/">
     <meta property="og:type" content="website">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Legion de Hierro — Stats Tracker">
-    <meta name="twitter:description" content="Analiza, compara y mejora tu rendimiento en Project Reality. Estadisticas avanzadas de jugadores y clanes.">
+    <meta name="twitter:title" content="Legión de Hierro — Stats Tracker">
+    <meta name="twitter:description" content="Analizá, compará y mejorá tu rendimiento en Project Reality. Estadísticas avanzadas de jugadores y clanes.">
     <meta name="twitter:image" content="https://luccabruno3z.github.io/logos/Logo_LDH.png">
 
     <!-- Schema.org JSON-LD -->
@@ -28,16 +29,16 @@
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "Legion de Hierro — Stats Tracker",
+      "name": "Legión de Hierro — Stats Tracker",
       "url": "https://luccabruno3z.github.io/",
-      "description": "Analiza, compara y mejora tu rendimiento en Project Reality. Estadisticas avanzadas de jugadores y clanes.",
+      "description": "Analizá, compará y mejorá tu rendimiento en Project Reality. Estadísticas avanzadas de jugadores y clanes.",
       "applicationCategory": "GameApplication",
       "operatingSystem": "Web",
       "inLanguage": "es",
       "image": "https://luccabruno3z.github.io/logos/Logo_LDH.png",
       "author": {
         "@type": "Organization",
-        "name": "Legion de Hierro"
+        "name": "Legión de Hierro"
       }
     }
     </script>
@@ -48,7 +49,7 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     <!-- Favicon -->
     <link rel="icon" href="logos/favicon.ico" type="image/x-icon">
@@ -56,81 +57,110 @@
     <!-- Styles -->
     <link rel="stylesheet" href="web/css/styles.css">
 
-    <!-- Chart.js -->
+    <!-- Chart.js (global, used by web/js/charts.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- App (ES modules) -->
+    <script type="module" src="web/js/main.js"></script>
 </head>
 <body>
 
-    <a href="#player-search-section" class="skip-link">Saltar al contenido</a>
+    <a href="#main" class="skip-link">Saltar al contenido</a>
 
     <!-- ===== HEADER ===== -->
     <header class="glass-header">
-        <div class="logo">
-            <img src="https://luccabruno3z.github.io/logos/Logo_LDH.png" alt="Logo Legion de Hierro" width="48" height="48">
-            <span>Legion de Hierro</span>
-        </div>
+        <a class="logo" href="#hero" aria-label="Inicio — Legión de Hierro">
+            <img src="logos/Logo_LDH.png" alt="" width="48" height="48">
+            <span>Legión de Hierro</span>
+        </a>
 
         <input type="checkbox" id="nav-toggle" aria-hidden="true">
-        <label for="nav-toggle" class="hamburger-label" aria-label="Abrir menu de navegacion">&#9776;</label>
+        <label for="nav-toggle" class="hamburger-label" aria-label="Abrir menú de navegación">&#9776;</label>
 
-        <nav role="navigation" aria-label="Navegacion principal">
+        <nav role="navigation" aria-label="Navegación principal">
+            <a href="#dashboard">Dashboard</a>
             <a href="#player-search-section">Jugadores</a>
             <a href="#rankings">Rankings</a>
             <a href="#leaderboards">Leaderboards</a>
             <a href="#team-analysis">Equipos</a>
             <a href="#demo-stats">Demos</a>
             <a href="#recent-matches">Partidas</a>
-            <a href="#charts">Graficos</a>
-            <a href="#guides">Guias</a>
+            <a href="#charts">Gráficos</a>
+            <a href="#guides">Guías</a>
         </nav>
     </header>
 
-    <main role="main">
+    <main role="main" id="main">
 
         <!-- ===== HERO ===== -->
-        <section class="hero" id="hero">
-            <h1>Legion de Hierro &mdash; Stats Tracker</h1>
-            <p class="hero-subtitle">Analiza, compara y mejora tu rendimiento en Project Reality</p>
+        <section class="hero" id="hero" aria-labelledby="hero-title">
+            <div class="hero-grid">
+                <div class="hero-intro">
+                    <p class="hero-eyebrow">Project Reality · LATAM</p>
+                    <h1 id="hero-title">Legión de Hierro<br><span class="accent">Stats Tracker</span></h1>
+                    <p class="hero-subtitle">Analizá, compará y mejorá tu rendimiento con estadísticas avanzadas de jugadores y clanes.</p>
 
-            <div class="hero-counters">
-                <div class="counter-item">
-                    <span class="counter-value" id="counter-players">0</span>
-                    <span class="counter-label">Jugadores</span>
+                    <div class="hero-counters">
+                        <div class="counter-item">
+                            <span class="counter-value" id="counter-players">0</span>
+                            <span class="counter-label">Jugadores</span>
+                        </div>
+                        <div class="counter-item">
+                            <span class="counter-value" id="counter-clans">0</span>
+                            <span class="counter-label">Clanes</span>
+                        </div>
+                        <div class="counter-item">
+                            <span class="counter-value" id="counter-rounds">0</span>
+                            <span class="counter-label">Rondas</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-actions">
+                        <a href="#player-search-section" class="cta-button">Buscar jugador</a>
+                        <a href="#dashboard" class="cta-button ghost">Ver dashboard</a>
+                    </div>
+                    <p class="last-updated"><small>Última actualización: <time id="last-updated-time" datetime="">cargando…</time></small></p>
                 </div>
-                <div class="counter-item">
-                    <span class="counter-value" id="counter-clans">0</span>
-                    <span class="counter-label">Clanes</span>
-                </div>
-                <div class="counter-item">
-                    <span class="counter-value" id="counter-rounds">0</span>
-                    <span class="counter-label">Rondas totales</span>
-                </div>
+
+                <aside class="hero-featured" id="hero-featured" aria-label="Jugador destacado" aria-live="polite">
+                    <div class="skeleton skeleton-featured"></div>
+                </aside>
             </div>
-
-            <a href="#player-search-section" class="cta-button">Buscar Jugador</a>
-            <p class="last-updated" id="last-updated" aria-label="Ultima actualizacion de datos">
-                <small>Ultima actualizacion: <time id="last-updated-time" datetime="">cargando...</time></small>
-            </p>
         </section>
 
-        <!-- ===== SECTION 1: PLAYER SEARCH ===== -->
-        <section class="section" id="player-search-section">
-            <h2>Buscar Jugador</h2>
+        <!-- ===== DASHBOARD (bento) ===== -->
+        <section class="section dashboard" id="dashboard" aria-labelledby="dashboard-title">
+            <h2 class="section-title" id="dashboard-title">📊 Dashboard</h2>
+            <p class="section-subtitle">Un vistazo en vivo a la comunidad — se actualiza solo.</p>
+            <div class="bento">
+                <article class="bento-tile tile-lg" aria-labelledby="tile-top-title">
+                    <header class="tile-head"><h3 id="tile-top-title">🏆 Top jugadores</h3><a href="#rankings" class="tile-link">Ver ranking →</a></header>
+                    <div class="tile-body" id="tile-top-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
+                </article>
+                <article class="bento-tile" aria-labelledby="tile-lb-title">
+                    <header class="tile-head"><h3 id="tile-lb-title">🎯 Líderes (demos)</h3><a href="#leaderboards" class="tile-link">Ver más →</a></header>
+                    <div class="tile-body" id="tile-lb-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
+                </article>
+                <article class="bento-tile" aria-labelledby="tile-clans-title">
+                    <header class="tile-head"><h3 id="tile-clans-title">⚔️ Top clanes</h3><a href="#clan-averages" class="tile-link">Ver más →</a></header>
+                    <div class="tile-body" id="tile-clans-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
+                </article>
+                <article class="bento-tile tile-wide" aria-labelledby="tile-matches-title">
+                    <header class="tile-head"><h3 id="tile-matches-title">📋 Partidas recientes</h3><a href="#recent-matches" class="tile-link">Ver todas →</a></header>
+                    <div class="tile-body" id="tile-matches-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ===== SECTION: PLAYER SEARCH ===== -->
+        <section class="section" id="player-search-section" aria-labelledby="player-search-title">
+            <h2 class="section-title" id="player-search-title">Buscar Jugador</h2>
+            <p class="section-subtitle">Perfil completo, radar de habilidades e historial de rendimiento.</p>
 
             <form class="search-form" id="search-form">
                 <div class="search-input-wrapper">
                     <label for="player-name" class="sr-only">Nombre del jugador</label>
-                    <input
-                        type="text"
-                        id="player-name"
-                        name="player-name"
-                        placeholder="Escribe un nombre de jugador..."
-                        required
-                        autocomplete="off"
-                        aria-label="Nombre del jugador a buscar"
-                        aria-autocomplete="list"
-                        aria-controls="suggestions"
-                    >
+                    <input type="text" id="player-name" name="player-name" placeholder="Escribí un nombre de jugador…" required autocomplete="off" aria-label="Nombre del jugador a buscar" aria-autocomplete="list" aria-controls="suggestions">
                     <div class="suggestions" id="suggestions" role="listbox" aria-label="Sugerencias de jugadores"></div>
                     <button type="submit">Buscar</button>
                 </div>
@@ -139,14 +169,15 @@
             <div id="player-profile-card" class="player-profile-card" aria-live="polite"></div>
 
             <div class="charts-row">
-                <canvas id="radarChart" aria-label="Grafico radar de estadisticas del jugador"></canvas>
-                <canvas id="historyChart" style="display:none;" aria-label="Grafico de historial de rendimiento"></canvas>
+                <canvas id="radarChart" aria-label="Gráfico radar de estadísticas del jugador"></canvas>
+                <canvas id="historyChart" style="display:none;" aria-label="Gráfico de historial de rendimiento"></canvas>
             </div>
         </section>
 
-        <!-- ===== SECTION 2: PLAYER COMPARISON ===== -->
-        <section class="section" id="comparison">
-            <h2>Comparar Jugadores o Clanes</h2>
+        <!-- ===== SECTION: PLAYER / CLAN COMPARISON ===== -->
+        <section class="section" id="comparison" aria-labelledby="comparison-title">
+            <h2 class="section-title" id="comparison-title">Comparar Jugadores o Clanes</h2>
+            <p class="section-subtitle">Enfrentá dos jugadores o dos clanes y mirá quién gana cada métrica.</p>
 
             <form id="compare-form" class="compare-form">
                 <div class="compare-inputs">
@@ -167,15 +198,16 @@
             <div id="compare-results" class="compare-results" aria-live="polite"></div>
         </section>
 
-        <!-- ===== SECTION 3: TOP RANKINGS ===== -->
-        <section class="section" id="rankings">
-            <h2>Top Rankings</h2>
+        <!-- ===== SECTION: TOP RANKINGS ===== -->
+        <section class="section" id="rankings" aria-labelledby="rankings-title">
+            <h2 class="section-title" id="rankings-title">Top Rankings</h2>
+            <p class="section-subtitle">Ranking de jugadores por métrica, filtrable por clan (mínimo 50 rondas).</p>
 
             <form id="top-players-form" class="top-players-form">
                 <div class="form-row">
                     <div class="input-group">
-                        <label for="category">Categoria</label>
-                        <select id="category" name="category" aria-label="Seleccionar categoria de clan">
+                        <label for="category">Categoría</label>
+                        <select id="category" name="category" aria-label="Seleccionar categoría de clan">
                             <option value="general">General</option>
                             <option value="ldh">LDH</option>
                             <option value="fi">FI</option>
@@ -201,8 +233,8 @@
                         </select>
                     </div>
                     <div class="input-group">
-                        <label for="metric">Metrica</label>
-                        <select id="metric" name="metric" aria-label="Seleccionar metrica de rendimiento">
+                        <label for="metric">Métrica</label>
+                        <select id="metric" name="metric" aria-label="Seleccionar métrica de rendimiento">
                             <option value="performance">Performance Score</option>
                             <option value="kd">K/D Ratio</option>
                             <option value="kills">Total Kills</option>
@@ -221,46 +253,48 @@
             <div id="top-results" class="top-results" aria-live="polite"></div>
         </section>
 
-        <!-- ===== LEADERBOARDS POR PERIODO ===== -->
-        <section class="section" id="leaderboards">
-            <h2>Leaderboards por Periodo</h2>
-            <p class="section-subtitle">Ranking de jugadores de clanes segun las rondas de demos (.PRdemo).</p>
+        <!-- ===== SECTION: LEADERBOARDS POR PERÍODO ===== -->
+        <section class="section" id="leaderboards" aria-labelledby="leaderboards-title">
+            <h2 class="section-title" id="leaderboards-title">Leaderboards por Período</h2>
+            <p class="section-subtitle">Ranking de jugadores según las rondas de demos (.PRdemo).</p>
             <form id="leaderboard-form" class="top-players-form" onsubmit="return false">
-                <div class="form-group">
-                    <label for="lb-period">Periodo</label>
-                    <select id="lb-period" aria-label="Seleccionar periodo">
-                        <option value="dia">Hoy</option>
-                        <option value="semana" selected>Semana</option>
-                        <option value="mes">Mes</option>
-                        <option value="todo">Todo el historial</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="lb-metric">Metrica</label>
-                    <select id="lb-metric" aria-label="Seleccionar metrica">
-                        <option value="kills" selected>Kills</option>
-                        <option value="kd">K/D</option>
-                        <option value="score">Score</option>
-                        <option value="revives">Revives</option>
-                        <option value="teamwork_score">Teamwork</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="lb-count">Cantidad</label>
-                    <input type="number" id="lb-count" min="1" max="50" value="15" aria-label="Cantidad de jugadores">
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="lb-period">Período</label>
+                        <select id="lb-period" aria-label="Seleccionar período">
+                            <option value="dia">Hoy</option>
+                            <option value="semana" selected>Semana</option>
+                            <option value="mes">Mes</option>
+                            <option value="todo">Todo el historial</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="lb-metric">Métrica</label>
+                        <select id="lb-metric" aria-label="Seleccionar métrica">
+                            <option value="kills" selected>Kills</option>
+                            <option value="kd">K/D</option>
+                            <option value="score">Score</option>
+                            <option value="revives">Revives</option>
+                            <option value="teamwork_score">Teamwork</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="lb-count">Cantidad</label>
+                        <input type="number" id="lb-count" min="1" max="50" value="15" aria-label="Cantidad de jugadores">
+                    </div>
                 </div>
             </form>
             <div id="leaderboard-results" class="top-results" aria-live="polite"></div>
         </section>
 
-        <!-- ===== SECTION 4: MATCH PREDICTOR ===== -->
-        <section class="section" id="match-predictor">
-            <h2>Predictor de Partida</h2>
+        <!-- ===== SECTION: MATCH PREDICTOR ===== -->
+        <section class="section" id="match-predictor" aria-labelledby="predictor-title">
+            <h2 class="section-title" id="predictor-title">Predictor de Partida</h2>
+            <p class="section-subtitle">Estimá la probabilidad de victoria entre dos equipos de hasta 8 jugadores.</p>
 
             <form id="prediction-form" class="prediction-form">
                 <div class="predictor-teams">
-                    <!-- Team A -->
-                    <div class="predictor-team-box">
+                    <div class="predictor-team-box" data-team="A">
                         <h3>Equipo A</h3>
                         <div class="input-group">
                             <label for="teamA-p1">Jugador 1</label>
@@ -304,8 +338,7 @@
                         </div>
                     </div>
 
-                    <!-- Team B -->
-                    <div class="predictor-team-box">
+                    <div class="predictor-team-box" data-team="B">
                         <h3>Equipo B</h3>
                         <div class="input-group">
                             <label for="teamB-p1">Jugador 1</label>
@@ -356,9 +389,10 @@
             <div id="prediction-results" class="prediction-results" aria-live="polite"></div>
         </section>
 
-        <!-- ===== SECTION 5: TEAM ANALYSIS ===== -->
-        <section class="section" id="team-analysis">
-            <h2>Analisis de Composicion de Equipo</h2>
+        <!-- ===== SECTION: TEAM ANALYSIS ===== -->
+        <section class="section" id="team-analysis" aria-labelledby="team-title">
+            <h2 class="section-title" id="team-title">Análisis de Composición de Equipo</h2>
+            <p class="section-subtitle">Agregados, composición y radar promedio de hasta 8 jugadores.</p>
 
             <form id="team-analysis-form" class="team-analysis-form">
                 <div class="team-inputs-grid">
@@ -409,151 +443,130 @@
             <div id="team-results" class="team-results"></div>
         </section>
 
-        <!-- ===== SECTION 6: CLAN AVERAGES ===== -->
-        <section class="section" id="clan-averages">
-            <h2>Promedios de Clanes</h2>
+        <!-- ===== SECTION: CLAN AVERAGES ===== -->
+        <section class="section" id="clan-averages" aria-labelledby="clan-averages-title">
+            <h2 class="section-title" id="clan-averages-title">Promedios de Clanes</h2>
+            <p class="section-subtitle">Performance Score promedio por clan y estadísticas agregadas.</p>
             <div class="clan-averages-container">
                 <div class="clan-averages-chart-wrapper">
-                    <canvas id="clanAveragesChart" aria-label="Grafico de promedios de clanes"></canvas>
+                    <canvas id="clanAveragesChart" aria-label="Gráfico de promedios de clanes"></canvas>
                 </div>
                 <div id="clan-averages-results" class="clan-averages-stats"></div>
             </div>
         </section>
 
-        <!-- ===== SECTION 7: DEMO STATS ===== -->
-        <section class="section" id="demo-stats">
-            <h2>Estadisticas de Demos</h2>
+        <!-- ===== SECTION: DEMO STATS ===== -->
+        <section class="section" id="demo-stats" aria-labelledby="demo-stats-title">
+            <h2 class="section-title" id="demo-stats-title">Estadísticas de Demos</h2>
+            <p class="section-subtitle">Datos derivados de los archivos .PRdemo de servidores LATAM.</p>
 
             <div class="demo-stats-container">
-                <!-- Player demo search -->
                 <div class="demo-player-search">
-                    <h3>Buscar Stats de Demos por Jugador</h3>
+                    <h3>Buscar stats de demos por jugador</h3>
                     <form id="demo-player-form" class="search-form">
                         <div class="search-input-wrapper">
                             <label for="demo-player-name" class="sr-only">Nombre del jugador</label>
-                            <input
-                                type="text"
-                                id="demo-player-name"
-                                name="demo-player-name"
-                                placeholder="Escribe un nombre de jugador..."
-                                autocomplete="off"
-                                aria-label="Buscar estadisticas de demos por jugador"
-                                aria-autocomplete="list"
-                                aria-controls="demo-suggestions"
-                            >
+                            <input type="text" id="demo-player-name" name="demo-player-name" placeholder="Escribí un nombre de jugador…" autocomplete="off" aria-label="Buscar estadísticas de demos por jugador" aria-autocomplete="list" aria-controls="demo-suggestions">
                             <div class="suggestions" id="demo-suggestions" role="listbox" aria-label="Sugerencias de jugadores para demos"></div>
                             <button type="submit">Buscar</button>
                         </div>
                     </form>
-                    <div id="demo-player-results" class="demo-player-results">
-                        <!-- JS will populate: winrate, top kits, rounds played from demos -->
-                    </div>
+                    <div id="demo-player-results" class="demo-player-results" aria-live="polite"></div>
                 </div>
 
-                <!-- Map stats browser -->
                 <div class="demo-map-stats">
-                    <h3>Estadisticas por Mapa</h3>
+                    <h3>Estadísticas por mapa</h3>
                     <form id="demo-map-form" class="search-form">
                         <div class="search-input-wrapper">
                             <label for="demo-map-name" class="sr-only">Nombre del mapa</label>
-                            <input
-                                type="text"
-                                id="demo-map-name"
-                                name="demo-map-name"
-                                placeholder="Escribe un nombre de mapa..."
-                                autocomplete="off"
-                                aria-label="Buscar estadisticas por mapa"
-                                aria-autocomplete="list"
-                                aria-controls="demo-map-suggestions"
-                            >
+                            <input type="text" id="demo-map-name" name="demo-map-name" placeholder="Escribí un nombre de mapa…" autocomplete="off" aria-label="Buscar estadísticas por mapa" aria-autocomplete="list" aria-controls="demo-map-suggestions">
                             <div class="suggestions" id="demo-map-suggestions" role="listbox" aria-label="Sugerencias de mapas"></div>
                             <button type="submit">Buscar</button>
                         </div>
                     </form>
-                    <div id="demo-map-results" class="demo-map-results">
-                        <!-- JS will populate: map winrates, most played factions, avg tickets -->
-                    </div>
+                    <div id="demo-map-results" class="demo-map-results" aria-live="polite"></div>
                 </div>
             </div>
         </section>
 
-        <!-- ===== PARTIDAS RECIENTES ===== -->
-        <section class="section" id="recent-matches">
-            <h2>Partidas Recientes</h2>
-            <p class="section-subtitle">Ultimas rondas registradas en los demos procesados.</p>
+        <!-- ===== SECTION: RECENT MATCHES ===== -->
+        <section class="section" id="recent-matches" aria-labelledby="recent-matches-title">
+            <h2 class="section-title" id="recent-matches-title">Partidas Recientes</h2>
+            <p class="section-subtitle">Últimas rondas registradas en los demos procesados.</p>
             <div id="recent-matches-results" class="recent-matches-results" aria-live="polite"></div>
         </section>
 
-        <!-- ===== SECTION 8: INTERACTIVE CHARTS ===== -->
-        <section class="section" id="charts">
-            <h2>Graficos Interactivos</h2>
+        <!-- ===== SECTION: INTERACTIVE CHARTS ===== -->
+        <section class="section" id="charts" aria-labelledby="charts-title">
+            <h2 class="section-title" id="charts-title">Gráficos Interactivos</h2>
+            <p class="section-subtitle">Visualizaciones interactivas por clan (se abren en una pestaña nueva).</p>
             <div class="charts-grid">
-                <a href="https://luccabruno3z.github.io/graphs/LDH_interactive_chart.html" class="chart-card">LDH</a>
-                <a href="https://luccabruno3z.github.io/graphs/SAE_interactive_chart.html" class="chart-card">SAE</a>
-                <a href="https://luccabruno3z.github.io/graphs/FI_interactive_chart.html" class="chart-card">FI</a>
-                <a href="https://luccabruno3z.github.io/graphs/FI-R_interactive_chart.html" class="chart-card">FI-R</a>
-                <a href="https://luccabruno3z.github.io/graphs/141_interactive_chart.html" class="chart-card">141</a>
-                <a href="https://luccabruno3z.github.io/graphs/R-LDH_interactive_chart.html" class="chart-card">R-LDH</a>
-                <a href="https://luccabruno3z.github.io/graphs/300_interactive_chart.html" class="chart-card">300</a>
-                <a href="https://luccabruno3z.github.io/graphs/E-LAM_interactive_chart.html" class="chart-card">E-LAM</a>
-                <a href="https://luccabruno3z.github.io/graphs/RIM:LA_interactive_chart.html" class="chart-card">RIM:LA</a>
-                <a href="https://luccabruno3z.github.io/graphs/ADG_interactive_chart.html" class="chart-card">ADG</a>
-                <a href="https://luccabruno3z.github.io/graphs/WD_interactive_chart.html" class="chart-card">WD</a>
-                <a href="https://luccabruno3z.github.io/graphs/A-LDH_interactive_chart.html" class="chart-card">A-LDH</a>
-                <a href="https://luccabruno3z.github.io/graphs/FASO_interactive_chart.html" class="chart-card">FASO</a>
-                <a href="https://luccabruno3z.github.io/graphs/PORN_interactive_chart.html" class="chart-card">PORN</a>
-                <a href="https://luccabruno3z.github.io/graphs/E-102_interactive_chart.html" class="chart-card">E-102</a>
-                <a href="https://luccabruno3z.github.io/graphs/PTFS_interactive_chart.html" class="chart-card">PTFS</a>
-                <a href="https://luccabruno3z.github.io/graphs/ARA_interactive_chart.html" class="chart-card">ARA</a>
-                <a href="https://luccabruno3z.github.io/graphs/TANGO_interactive_chart.html" class="chart-card">TANGO</a>
-                <a href="https://luccabruno3z.github.io/graphs/SF_interactive_chart.html" class="chart-card">SF</a>
-                <a href="https://luccabruno3z.github.io/graphs/KKCK_interactive_chart.html" class="chart-card">KKCK</a>
-                <a href="https://luccabruno3z.github.io/graphs/SPTS_interactive_chart.html" class="chart-card">SPTS</a>
-                <a href="https://luccabruno3z.github.io/graphs/all_players_interactive_chart.html" class="chart-card">All Players</a>
+                <a href="graphs/LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="LDH"><img src="logos/Logo_LDH.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>LDH</span></a>
+                <a href="graphs/SAE_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="SAE"><img src="logos/Logo_SAE.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>SAE</span></a>
+                <a href="graphs/FI_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="FI"><img src="logos/Logo_FI.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>FI</span></a>
+                <a href="graphs/FI-R_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="FI-R"><img src="logos/Logo_FI-R.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>FI-R</span></a>
+                <a href="graphs/141_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="141"><img src="logos/Logo_141.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>141</span></a>
+                <a href="graphs/R-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="R-LDH"><img src="logos/Logo_R-LDH.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>R-LDH</span></a>
+                <a href="graphs/300_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="300"><img src="logos/Logo_300.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>300</span></a>
+                <a href="graphs/E-LAM_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="E-LAM"><img src="logos/Logo_E-LAM.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>E-LAM</span></a>
+                <a href="graphs/RIM:LA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="RIM:LA"><img src="logos/Logo_RIM:LA.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>RIM:LA</span></a>
+                <a href="graphs/ADG_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="ADG"><img src="logos/Logo_ADG.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>ADG</span></a>
+                <a href="graphs/WD_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="WD"><img src="logos/Logo_WD.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>WD</span></a>
+                <a href="graphs/A-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="A-LDH"><img src="logos/Logo_A-LDH.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>A-LDH</span></a>
+                <a href="graphs/FASO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="FASO"><img src="logos/Logo_FASO.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>FASO</span></a>
+                <a href="graphs/PORN_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="PORN"><img src="logos/Logo_PORN.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>PORN</span></a>
+                <a href="graphs/E-102_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="E-102"><img src="logos/Logo_E-102.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>E-102</span></a>
+                <a href="graphs/PTFS_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="PTFS"><img src="logos/Logo_PTFS.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>PTFS</span></a>
+                <a href="graphs/ARA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="ARA"><img src="logos/Logo_ARA.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>ARA</span></a>
+                <a href="graphs/TANGO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="TANGO"><img src="logos/Logo_TANGO.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>TANGO</span></a>
+                <a href="graphs/SF_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="SF"><img src="logos/Logo_SF.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>SF</span></a>
+                <a href="graphs/KKCK_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="KKCK"><img src="logos/Logo_KKCK.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>KKCK</span></a>
+                <a href="graphs/SPTS_interactive_chart.html" target="_blank" rel="noopener" class="chart-card" data-clan="SPTS"><img src="logos/Logo_SPTS.png" alt="" class="chart-card-logo" loading="lazy" onerror="this.style.display='none'"><span>SPTS</span></a>
+                <a href="graphs/all_players_interactive_chart.html" target="_blank" rel="noopener" class="chart-card chart-card-all"><span>🌎 Todos</span></a>
             </div>
         </section>
 
-        <!-- ===== SECTION 9: GUIDES ===== -->
-        <section class="section" id="guides">
-            <h2>Guias de Project Reality</h2>
+        <!-- ===== SECTION: GUIDES ===== -->
+        <section class="section" id="guides" aria-labelledby="guides-title">
+            <h2 class="section-title" id="guides-title">Guías de Project Reality</h2>
             <div class="guides-grid">
-                <a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing" class="guide-card">
-                    <h3>Guia de Kits Basicos</h3>
-                    <p>Aprende los fundamentos de cada kit disponible en el campo de batalla.</p>
+                <a href="https://docs.google.com/document/d/1t10VZhnPuOVsLd347JnWuiP4T6Xsn0WGbiqmPKqrRl0/edit?usp=sharing" target="_blank" rel="noopener" class="guide-card">
+                    <h3>Guía de Kits Básicos</h3>
+                    <p>Aprendé los fundamentos de cada kit disponible en el campo de batalla.</p>
                 </a>
-                <a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing" class="guide-card">
-                    <h3>Guia Avanzada de Infanteria</h3>
-                    <p>Tacticas y estrategias avanzadas para dominar el combate a pie.</p>
+                <a href="https://docs.google.com/document/d/17pNflOjVVt-qdngxX8c7OsApK0K6SRVYAZiR39oi5p0/edit?usp=sharing" target="_blank" rel="noopener" class="guide-card">
+                    <h3>Guía Avanzada de Infantería</h3>
+                    <p>Tácticas y estrategias avanzadas para dominar el combate a pie.</p>
                 </a>
-                <a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing" class="guide-card">
-                    <h3>Tacticas de Combate Urbano</h3>
-                    <p>Domina el combate en areas urbanas con tacticas probadas en el campo.</p>
+                <a href="https://docs.google.com/document/d/1pVo8qq8U22hE-5bUcKPe_Bb8rBGeN1xb8-ji3SroWfg/edit?usp=sharing" target="_blank" rel="noopener" class="guide-card">
+                    <h3>Tácticas de Combate Urbano</h3>
+                    <p>Dominá el combate en áreas urbanas con tácticas probadas en el campo.</p>
                 </a>
-                <a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing" class="guide-card">
-                    <h3>Guia de CQB</h3>
-                    <p>Close Quarter Battle: tecnicas para enfrentamientos a corta distancia.</p>
+                <a href="https://docs.google.com/document/d/1G33qCzOpVMuTH5bDexqAwtYWM2sYqUyfNUPHE_7N2fY/edit?usp=sharing" target="_blank" rel="noopener" class="guide-card">
+                    <h3>Guía de CQB</h3>
+                    <p>Close Quarter Battle: técnicas para enfrentamientos a corta distancia.</p>
                 </a>
             </div>
         </section>
 
-        <!-- ===== SECTION 10: SOCIAL ===== -->
-        <section class="section" id="social">
-            <h2>Siguenos en nuestras redes</h2>
+        <!-- ===== SECTION: SOCIAL ===== -->
+        <section class="section" id="social" aria-labelledby="social-title">
+            <h2 class="section-title" id="social-title">Seguinos en nuestras redes</h2>
             <div class="social-buttons">
-                <a href="https://www.youtube.com/@L.D.H_CLAN" class="social-button social-youtube" aria-label="Canal de YouTube">
-                    <img src="https://luccabruno3z.github.io/logos/YT_logo.png" alt="YouTube" width="32" height="32">
+                <a href="https://www.youtube.com/@L.D.H_CLAN" target="_blank" rel="noopener" class="social-button social-youtube" aria-label="Canal de YouTube">
+                    <img src="logos/YT_logo.png" alt="" width="32" height="32" onerror="this.style.display='none'">
                     YouTube
                 </a>
-                <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" class="social-button social-tiktok" aria-label="TikTok Grozny">
-                    <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="TikTok" width="32" height="32">
+                <a href="https://www.tiktok.com/@.___grozny___?_t=8qo4e1mqRUL&_r=1" target="_blank" rel="noopener" class="social-button social-tiktok" aria-label="TikTok Grozny">
+                    <img src="logos/TT_logo.png" alt="" width="32" height="32" onerror="this.style.display='none'">
                     TikTok Grozny
                 </a>
-                <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" class="social-button social-tiktok" aria-label="TikTok Doc">
-                    <img src="https://luccabruno3z.github.io/logos/TT_logo.png" alt="TikTok" width="32" height="32">
+                <a href="https://www.tiktok.com/@ldh.haselhurst?_t=8qo4majG3bq&_r=1" target="_blank" rel="noopener" class="social-button social-tiktok" aria-label="TikTok Doc">
+                    <img src="logos/TT_logo.png" alt="" width="32" height="32" onerror="this.style.display='none'">
                     TikTok Doc
                 </a>
-                <a href="https://discord.gg/legionhierro" class="social-button social-discord" aria-label="Servidor de Discord">
-                    <img src="https://luccabruno3z.github.io/logos/Discord_logo.png" alt="Discord" width="32" height="32" onerror="this.onerror=null;this.src='https://luccabruno3z.github.io/logos/Logo_default.png';">
+                <a href="https://discord.gg/legionhierro" target="_blank" rel="noopener" class="social-button social-discord" aria-label="Servidor de Discord">
+                    <img src="logos/Discord_logo.png" alt="" width="32" height="32" onerror="this.style.display='none'">
                     Discord
                 </a>
             </div>
@@ -563,13 +576,12 @@
 
     <!-- ===== FOOTER ===== -->
     <footer>
-        <p>Legion de Hierro &copy; 2026</p>
+        <p>Legión de Hierro &copy; 2026</p>
         <p><a href="mailto:luccabruno96@gmail.com">luccabruno96@gmail.com</a></p>
         <p class="powered-by">Powered by PRStats</p>
-        <p class="discord-bot-invite"><a href="https://discord.com/oauth2/authorize?client_id=1344003302859800637&permissions=277025770560&integration_type=0&scope=bot" target="_blank" rel="noopener noreferrer">Invita al bot a tu servidor de Discord</a></p>
+        <p class="discord-bot-invite"><a href="https://discord.com/oauth2/authorize?client_id=1344003302859800637&permissions=277025770560&integration_type=0&scope=bot" target="_blank" rel="noopener noreferrer">Invitá al bot a tu servidor de Discord</a></p>
     </footer>
 
-    <script src="web/js/app.js" defer></script>
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("/sw.js").catch(() => {});
