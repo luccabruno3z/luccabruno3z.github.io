@@ -194,13 +194,19 @@ const CLAN_LOGOS = {
     'FI': 'png', 'LDH': 'png', 'RIM:LA': 'png', 'SAE': 'png',
 };
 
-/** Clan logo <img>; falls back to Logo_default.png for clans without a file. */
+/** Clan logo: a real <img> when the clan has a logo file, otherwise a clean
+ *  monogram chip with the clan tag (avoids the ugly loose default-image box). */
 export function clanLogoHTML(clan, size = 24) {
     const safe = escapeHtml(clan);
     const ext = CLAN_LOGOS[clan];
-    const src = ext ? `logos/Logo_${safe}.${ext}` : 'logos/Logo_default.png';
-    return `<img class="clan-logo" src="${src}" alt="" width="${size}" height="${size}" ` +
-        `loading="lazy" onerror="this.onerror=null;this.src='logos/Logo_default.png';">`;
+    if (ext) {
+        return `<img class="clan-logo" src="logos/Logo_${safe}.${ext}" alt="" width="${size}" height="${size}" ` +
+            `loading="lazy" onerror="this.onerror=null;this.src='logos/Logo_default.png';">`;
+    }
+    const mono = escapeHtml(String(clan).replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase() || '?');
+    const fs = Math.max(8, Math.round(size * 0.38));
+    return `<span class="clan-logo clan-mono" style="width:${size}px;height:${size}px;font-size:${fs}px;" ` +
+        `title="${safe}" aria-hidden="true">${mono}</span>`;
 }
 
 // ── Comparison helpers ───────────────────────────────────────────────────────

@@ -1138,6 +1138,28 @@ table.data-table { display: table; }
     transform: scale(1.08);
 }
 
+/* Monogram chip for clans without a logo file (replaces the loose default box). */
+.clan-mono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0 2px;
+    border-radius: 6px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid var(--border-medium);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0;
+    filter: none;
+    flex: 0 0 auto;
+}
+.clan-mono:hover {
+    transform: none;
+}
+
 /* ----------------------------------------------------------------------------
    13. Skeletons (GPU-friendly shimmer via translateX)
 ---------------------------------------------------------------------------- */
