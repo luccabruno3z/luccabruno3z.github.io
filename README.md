@@ -14,7 +14,10 @@ Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores 
 
 ```
 luccabruno3z.github.io/
-├── index.html + web/          # Frontend (SPA vanilla JS + Chart.js)
+├── index.html + web/          # Frontend (vanilla JS en ES modules + Chart.js)
+│   ├── css/styles.css         #   Design system (dark/cyan, bento, glassmorphism)
+│   └── js/                    #   Módulos ES: config, data, utils, charts,
+│                              #   autocomplete, main + un módulo por feature
 ├── bot/                       # Bot de Discord (discord.py 2.0, 8 cogs)
 ├── scraper/                   # Pipeline de datos (scraping + parser de demos)
 ├── graphs/                    # Datos generados (JSONs, charts Plotly, historial)
@@ -31,13 +34,14 @@ luccabruno3z.github.io/
 
 | Componente | Stack | Lineas |
 |---|---|---|
-| **Frontend** | HTML5, CSS3 (glassmorphism), Vanilla JS, Chart.js | ~5,100 |
+| **Frontend** | HTML5, CSS3 (dark/cyan, bento, glassmorphism), Vanilla JS (ES modules), Chart.js | ~5,500 |
 | **Bot** | discord.py 2.0, aiohttp, matplotlib | ~8,400 |
 | **Scraper** | BeautifulSoup, pandas, numpy, plotly, cloudscraper | ~3,400 |
 
 ## Features
 
 ### Web Dashboard
+- **Dashboard bento** con vistazo en vivo (top jugadores, lideres, top clanes, partidas)
 - Busqueda de jugadores con radar chart de 6 ejes y 4 indices de rating
 - Comparacion lado a lado (jugador vs jugador, clan vs clan)
 - Rankings filtrables por clan y metrica
@@ -47,7 +51,7 @@ luccabruno3z.github.io/
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills)
 - **Historial de rondas por jugador** en su perfil de demos
-- 21 graficos interactivos Plotly (uno por clan + global)
+- 21 graficos interactivos Plotly (uno por clan + global), con tema dark/cyan
 
 ### Sistema de Scoring (v3)
 - **Performance Score**: 7 componentes ponderados (Combat 20%, Effectiveness 15%, Score 10%, Winrate 20%, Teamwork 15%, Consistency 10%, Experience 10%)
@@ -66,7 +70,7 @@ luccabruno3z.github.io/
 - `countdown` — Countdowns
 
 ### Pipeline de Datos
-1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (21 clanes)
+1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (21 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
 2. **Parsing** de archivos `.PRdemo` (formato binario BF2) de servidores LATAM
 3. **Scoring** con normalizacion y clustering
 4. **Generacion** de JSONs, charts Plotly e historial de jugadores
