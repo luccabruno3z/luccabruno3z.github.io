@@ -951,7 +951,7 @@ class Stats(commands.Cog):
 
     # ── -perfil <jugador> ────────────────────────────────────────────────
 
-    @commands.hybrid_command(aliases=["perfil", "profile", "p"])
+    @commands.hybrid_command(name="perfil", aliases=["profile", "p"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     @app_commands.describe(jugador="Nombre del jugador")
     @app_commands.autocomplete(jugador=player_name_autocomplete)

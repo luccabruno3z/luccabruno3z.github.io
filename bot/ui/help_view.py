@@ -23,6 +23,8 @@ _COG_LABELS = {
     "Misc": "ℹ️ General",
 }
 _HIDDEN = {"apagar", "setup_emojis", "help_redirect", "ayuda"}  # internos / el help mismo
+# Comandos que viven en otro cog pero conceptualmente van en otra categoría del help.
+_CMD_CATEGORY = {"perfil": "📈 Gráficos"}  # el radar es un gráfico, aunque esté en Stats
 _ACCENT = 0x00FFFF
 
 
@@ -38,7 +40,7 @@ def build_help_categories(bot) -> dict[str, list[tuple[str, str]]]:
         if cmd.name.startswith("grafico") and cmd.name != "grafico":
             graph_shortcuts += 1
             continue
-        label = _COG_LABELS.get(cmd.cog_name or "", "🧩 Otros")
+        label = _CMD_CATEGORY.get(cmd.name) or _COG_LABELS.get(cmd.cog_name or "", "🧩 Otros")
         invocation = f"`-{cmd.name}`"
         if cmd.aliases:
             invocation += "  " + " ".join(f"`-{a}`" for a in cmd.aliases[:3])

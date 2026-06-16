@@ -379,7 +379,7 @@ class DetailedStats(commands.Cog):
 
     @commands.hybrid_command(
         name="rol",
-        aliases=["role", "kit_analysis"],
+        aliases=["role"],
         description="Análisis de efectividad por kit/rol de un jugador (datos de demos)",
     )
     @app_commands.describe(jugador="Nombre del jugador")
