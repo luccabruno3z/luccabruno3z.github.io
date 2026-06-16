@@ -3,19 +3,11 @@
    See .rebuild/CONTRACT.md §2.10 / §1.5 / §1.6 / §1.12 and FEATURE_API.md.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { state, loadDemoData, loadPlayerRounds } from './data.js';
+import { state, loadDemoData, loadPlayerRounds, getDemoInfo } from './data.js';
 import { setupAutocomplete } from './autocomplete.js';
 import { escapeHtml, prettifyToken, formatNumber } from './utils.js';
 
 // ── Player demo tool ─────────────────────────────────────────────────────────
-
-/** Case-insensitive lookup on `ign` in the demo player list. */
-function findDemoPlayer(name) {
-    const list = state.demoPlayerDetails;
-    if (!Array.isArray(list) || !name) return null;
-    const lower = name.toLowerCase();
-    return list.find(p => p.ign && p.ign.toLowerCase() === lower) || null;
-}
 
 /** Top kits from a kits_used dict (descending count). */
 function topKits(kits, limit = 5) {
@@ -27,7 +19,7 @@ async function renderDemoPlayer(name) {
     const results = document.getElementById('demo-player-results');
     if (!results) return;
 
-    const p = findDemoPlayer(name);
+    const p = getDemoInfo(name);
     if (!p) {
         results.innerHTML = `<div class="empty-state">No se encontraron datos de demos para "${escapeHtml(name)}".</div>`;
         return;

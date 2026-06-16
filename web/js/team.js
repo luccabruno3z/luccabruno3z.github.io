@@ -7,7 +7,7 @@ import { state } from './data.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 import { renderTeamRadar } from './charts.js';
 import {
-    escapeHtml, findPlayer, clanLogoHTML, tierBadge, getPlayerArchetype, formatNumber,
+    escapeHtml, findPlayer, clanLogoHTML, tierBadge, getPlayerArchetype, formatNumber, teamAverage,
 } from './utils.js';
 
 /** Collect resolved, deduped players from the 8 inputs. */
@@ -57,10 +57,9 @@ function performTeamAnalysis() {
     const totalKills = team.reduce((s, p) => s + (p['Total Kills'] || 0), 0);
     const totalDeaths = team.reduce((s, p) => s + (p['Total Deaths'] || 0), 0);
     const teamKD = totalDeaths === 0 ? totalKills : totalKills / totalDeaths;
-    const avg = key => team.reduce((s, p) => s + (p[key] || 0), 0) / team.length;
-    const avgPS = avg('Performance Score');
-    const avgKPR = avg('Kills per Round');
-    const avgDPR = avg('Deaths per Round');
+    const avgPS = teamAverage(team, 'Performance Score');
+    const avgKPR = teamAverage(team, 'Kills per Round');
+    const avgDPR = teamAverage(team, 'Deaths per Round');
 
     const cards = team.map(playerCard).join('');
 

@@ -6,7 +6,7 @@
 import { state } from './data.js';
 import { NORM_CAPS } from './config.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
-import { escapeHtml, findPlayer, clanLogoHTML, formatNumber } from './utils.js';
+import { escapeHtml, findPlayer, clanLogoHTML, formatNumber, teamAverage } from './utils.js';
 
 const FALLBACK_WEIGHTS = { ps: 0.50, kd: 0.30, kpr: 0.20 };
 
@@ -39,17 +39,15 @@ function collectTeam(side) {
 /** Composite score for a team using the renormalized weights. */
 function teamComposite(team, w) {
     if (!team.length) return 0;
-    const avg = key => team.reduce((s, p) => s + (p[key] || 0), 0) / team.length;
-    const avgPS = avg('Performance Score');
-    const avgKD = avg('K/D Ratio');
-    const avgKPR = avg('Kills per Round');
+    const avgPS = teamAverage(team, 'Performance Score');
+    const avgKD = teamAverage(team, 'K/D Ratio');
+    const avgKPR = teamAverage(team, 'Kills per Round');
     return w.ps * avgPS + w.kd * (avgKD / NORM_CAPS.kd) + w.kpr * (avgKPR / NORM_CAPS.kpr);
 }
 
 /** Small roster summary for one team's result column. */
 function teamSummary(side, team) {
     if (!team.length) return `<div class="empty-state">Equipo ${side} vacío.</div>`;
-    const avg = key => team.reduce((s, p) => s + (p[key] || 0), 0) / team.length;
     const members = team.map((p) => {
         const clan = p.Clan ? clanLogoHTML(p.Clan, 16) : '';
         return `<li>${clan} ${escapeHtml(p.Player)}</li>`;
@@ -58,9 +56,9 @@ function teamSummary(side, team) {
         <div class="predictor-team-summary">
             <h4>Equipo ${side}</h4>
             <ul class="predictor-roster">${members}</ul>
-            <div class="stat-row"><span class="stat-label">PS promedio</span><span class="stat-value">${formatNumber(avg('Performance Score'))}</span></div>
-            <div class="stat-row"><span class="stat-label">K/D promedio</span><span class="stat-value">${formatNumber(avg('K/D Ratio'))}</span></div>
-            <div class="stat-row"><span class="stat-label">KPR promedio</span><span class="stat-value">${formatNumber(avg('Kills per Round'))}</span></div>
+            <div class="stat-row"><span class="stat-label">PS promedio</span><span class="stat-value">${formatNumber(teamAverage(team, 'Performance Score'))}</span></div>
+            <div class="stat-row"><span class="stat-label">K/D promedio</span><span class="stat-value">${formatNumber(teamAverage(team, 'K/D Ratio'))}</span></div>
+            <div class="stat-row"><span class="stat-label">KPR promedio</span><span class="stat-value">${formatNumber(teamAverage(team, 'Kills per Round'))}</span></div>
         </div>`;
 }
 

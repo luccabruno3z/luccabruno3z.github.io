@@ -5,14 +5,8 @@
 
 import { state, loadLeaderboard, loadRecentMatches } from './data.js';
 import {
-    escapeHtml, prettifyToken, formatNumber, rankMedal, tierBadge, clanLogoHTML,
+    escapeHtml, prettifyToken, formatNumber, rankMedal, tierBadge, clanLogoHTML, matchDateLabel,
 } from './utils.js';
-
-/** Parse "tracker_2025_10_15_..." → "2025-10-15" (or '' if no match). */
-function matchDateLabel(filename) {
-    const m = /tracker_(\d{4})_(\d{2})_(\d{2})/.exec(String(filename || ''));
-    return m ? `${m[1]}-${m[2]}-${m[3]}` : '';
-}
 
 function emptyState(host, msg) {
     host.innerHTML = `<div class="empty-state">${escapeHtml(msg)}</div>`;

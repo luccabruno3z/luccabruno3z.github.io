@@ -5,9 +5,22 @@
 
 import { state } from './data.js';
 import {
-    escapeHtml, formatNumber, findPlayer, highlightWinner, advantagePct, clanLogoHTML,
+    escapeHtml, formatNumber, findPlayer, highlightWinner, advantagePct, clanLogoHTML, teamAverage,
 } from './utils.js';
 import { setupAutocomplete } from './autocomplete.js';
+
+/** Tally per-metric wins and build the verdict line, shared by both comparisons.
+ *  `metrics` rows are [label, v1, v2, higherBetter]. */
+function comparisonVerdict(metrics, name1, name2) {
+    let wins1 = 0, wins2 = 0;
+    metrics.forEach(([, v1, v2, hb]) => {
+        if (v1 === v2) return;
+        if (hb ? v1 > v2 : v1 < v2) wins1++; else wins2++;
+    });
+    if (wins1 > wins2) return `Gana <strong>${escapeHtml(name1)}</strong> (${wins1}–${wins2})`;
+    if (wins2 > wins1) return `Gana <strong>${escapeHtml(name2)}</strong> (${wins2}–${wins1})`;
+    return `Empate (${wins1}–${wins2})`;
+}
 
 /** Autocomplete source: players (with clan meta) + clan names. */
 function entitySource(query) {
@@ -46,13 +59,6 @@ function renderPlayerComparison(p1, p2) {
         ['Rondas', p1['Rounds'] || 0, p2['Rounds'] || 0, true],
     ];
 
-    let wins1 = 0, wins2 = 0;
-    metrics.forEach(([, v1, v2, hb]) => {
-        if (v1 === v2) return;
-        const oneWins = hb ? v1 > v2 : v1 < v2;
-        if (oneWins) wins1++; else wins2++;
-    });
-
     const rows = metrics.map(([label, v1, v2, hb]) => {
         const { class1, class2 } = highlightWinner(v1, v2, hb);
         return `<div class="compare-row">
@@ -62,10 +68,7 @@ function renderPlayerComparison(p1, p2) {
         </div>`;
     }).join('');
 
-    let verdict;
-    if (wins1 > wins2) verdict = `Gana <strong>${escapeHtml(p1.Player)}</strong> (${wins1}–${wins2})`;
-    else if (wins2 > wins1) verdict = `Gana <strong>${escapeHtml(p2.Player)}</strong> (${wins2}–${wins1})`;
-    else verdict = `Empate (${wins1}–${wins2})`;
+    const verdict = comparisonVerdict(metrics, p1.Player, p2.Player);
 
     return `<div class="card compare-card">
         <div class="compare-header">
@@ -82,7 +85,7 @@ function renderPlayerComparison(p1, p2) {
 function clanAggregate(members) {
     const n = members.length;
     const sum = key => members.reduce((s, p) => s + (p[key] || 0), 0);
-    const avg = key => (n ? sum(key) / n : 0);
+    const avg = key => teamAverage(members, key);
     return {
         count: n,
         avgPS: avg('Performance Score'),
@@ -112,19 +115,9 @@ function renderClanComparison(name1, members1, name2, members2) {
         ['Total Rondas', a.totalRounds, b.totalRounds, true],
     ];
 
-    let wins1 = 0, wins2 = 0;
-    metrics.forEach(([, v1, v2, hb]) => {
-        if (v1 === v2) return;
-        const oneWins = hb ? v1 > v2 : v1 < v2;
-        if (oneWins) wins1++; else wins2++;
-    });
-
     const rows = metrics.map(([label, v1, v2, hb]) => metricRow(label, v1, v2, num, hb)).join('');
 
-    let verdict;
-    if (wins1 > wins2) verdict = `Gana <strong>${escapeHtml(name1)}</strong> (${wins1}–${wins2})`;
-    else if (wins2 > wins1) verdict = `Gana <strong>${escapeHtml(name2)}</strong> (${wins2}–${wins1})`;
-    else verdict = `Empate (${wins1}–${wins2})`;
+    const verdict = comparisonVerdict(metrics, name1, name2);
 
     return `<div class="card compare-card">
         <div class="compare-header">
@@ -151,19 +144,21 @@ function performComparison(input1, input2) {
     if (!host) return;
 
     const players = state.playersData || [];
-    const p1 = findPlayer(players, input1);
-    const p2 = findPlayer(players, input2);
 
-    if (p1 && p2) {
-        host.innerHTML = renderPlayerComparison(p1, p2);
-        return;
-    }
-
-    // Try clan-vs-clan.
+    // Clan-vs-clan first: a clan tag (e.g. "FI") is short and would otherwise be
+    // grabbed by findPlayer's substring fallback (utils.js), silently turning a
+    // clan comparison into two unrelated players.
     const [name1, members1] = clanMembers(input1);
     const [name2, members2] = clanMembers(input2);
     if (members1.length && members2.length) {
         host.innerHTML = renderClanComparison(name1, members1, name2, members2);
+        return;
+    }
+
+    const p1 = findPlayer(players, input1);
+    const p2 = findPlayer(players, input2);
+    if (p1 && p2) {
+        host.innerHTML = renderPlayerComparison(p1, p2);
         return;
     }
 

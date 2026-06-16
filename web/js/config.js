@@ -15,6 +15,7 @@ export const LEADERBOARDS_URL  = `${DEMOS_URL}/leaderboards`;
 export const ROUNDS_URL        = `${DEMOS_URL}/rounds`;
 export const PLAYER_ROUNDS_URL = `${DEMOS_URL}/player_rounds`;
 export const TIER_CONFIG_URL   = `${GRAPHS_URL}/tier_config.json`;
+export const LOGO_MANIFEST_URL = `${BASE_URL}/logos/manifest.json`;
 
 // A player needs at least this many rounds to qualify for the rankings.
 export const MIN_ROUNDS_FOR_RANKING = 50;

@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { state } from './data.js';
-import { p95 } from './utils.js';
+import { p95, teamAverage } from './utils.js';
 import { COLORS } from './config.js';
 
 const RADAR_LABELS = ['Letalidad', 'Supervivencia', 'Teamwork', 'Impacto', 'Consistencia', 'Versatilidad'];
@@ -32,14 +32,21 @@ function radarScale(max) {
 
 const whiteLegend = { labels: { color: '#ffffff', font: { family: 'Roboto' } } };
 
-/** Tear down the player-profile charts (radar + history) and their trend note.
- *  Used when a search returns no player, so stale charts don't linger. */
-export function clearPlayerCharts() {
-    if (radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+/** Tear down only the history chart + its trend note. Used when a profile has no
+ *  history, so the previous player's chart/"Tendencia…" note doesn't linger while
+ *  keeping the freshly-rendered radar intact. */
+export function clearHistoryChart() {
     if (historyChartInstance) { historyChartInstance.destroy(); historyChartInstance = null; }
     const hc = document.getElementById('historyChart');
     if (hc) hc.style.display = 'none';
     document.querySelectorAll('.trend-info').forEach(el => el.remove());
+}
+
+/** Tear down the player-profile charts (radar + history) and their trend note.
+ *  Used when a search returns no player, so stale charts don't linger. */
+export function clearPlayerCharts() {
+    if (radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+    clearHistoryChart();
 }
 
 // ── Player radar ─────────────────────────────────────────────────────────────
@@ -110,7 +117,9 @@ export function renderHistoryChart(historyData, canvas) {
     if (historyChartInstance) historyChartInstance.destroy();
 
     const labels = historyData.map(d => d.Date);
-    const scores = historyData.map(d => d['Performance Score']);
+    // Guard against a missing/null 'Performance Score' on any row: an undefined
+    // value would turn sumY/sumXY → NaN and blank the whole trend line.
+    const scores = historyData.map(d => Number(d['Performance Score']) || 0);
     const n = scores.length;
 
     // Least-squares trend.
@@ -206,7 +215,7 @@ export function renderTeamRadar(team, container) {
         max = 1.0;
     } else {
         labels = ['Combate (K/D)', 'Eficiencia (KPR)', 'Puntuación (SPR)', 'Experiencia', 'Performance'];
-        const avg = key => team.reduce((s, p) => s + (p[key] || 0), 0) / team.length;
+        const avg = key => teamAverage(team, key);
         const all = key => state.playersData.map(p => p[key]);
         values = [
             Math.min(avg('K/D Ratio') / p95(all('K/D Ratio')), 1.5),

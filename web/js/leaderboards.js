@@ -25,7 +25,7 @@ function metricValue(player, metric) {
 
 async function renderLeaderboard() {
     const results = document.getElementById('leaderboard-results');
-    if (!results) return;
+    if (!results) return false;
 
     const period = document.getElementById('lb-period')?.value || 'semana';
     const metric = document.getElementById('lb-metric')?.value || 'kills';
@@ -37,14 +37,14 @@ async function renderLeaderboard() {
     try {
         data = await loadLeaderboard(period);
     } catch (_) {
-        results.innerHTML = '<div class="error-state">No se pudo cargar el leaderboard.</div>';
-        return;
+        results.innerHTML = '<div class="error-state">No se pudo cargar el leaderboard. Reintentando al volver a la sección…</div>';
+        return false;
     }
 
     const players = Array.isArray(data?.players) ? data.players : [];
     if (!players.length) {
         results.innerHTML = '<div class="empty-state">No hay datos para este período.</div>';
-        return;
+        return false;
     }
 
     const label = LB_METRIC_LABELS[metric] || metric;
@@ -70,6 +70,7 @@ async function renderLeaderboard() {
     results.innerHTML = `
         <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${data.total_rounds || 0} rondas en total</div>
         <div class="rank-list">${rows}</div>`;
+    return true;
 }
 
 /** Leaderboards init: lazy-load on scroll, re-render on control change. */
@@ -77,10 +78,10 @@ export function initLeaderboards() {
     const section = document.getElementById('leaderboards');
     let rendered = false;
 
-    const ensureRendered = () => {
+    const ensureRendered = async () => {
         if (rendered) return;
-        rendered = true;
-        renderLeaderboard();
+        // Only latch on success, so a transient fetch error retries on re-entry.
+        rendered = !!(await renderLeaderboard());
     };
 
     // Re-render on control changes (only after first load).
@@ -96,8 +97,9 @@ export function initLeaderboards() {
         const obs = new IntersectionObserver((entries) => {
             entries.forEach((e) => {
                 if (e.isIntersecting) {
-                    ensureRendered();
-                    obs.unobserve(e.target);
+                    ensureRendered().then(() => {
+                        if (rendered) obs.unobserve(e.target);
+                    });
                 }
             });
         }, { threshold: 0.1 });

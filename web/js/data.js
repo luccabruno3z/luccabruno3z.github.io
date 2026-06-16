@@ -7,7 +7,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import {
-    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL,
+    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
     CACHE_TTL,
 } from './config.js';
@@ -21,6 +21,7 @@ export const state = {
     demoPlayerDetails: null,  // demos/player_details.json (list keyed by `ign`)
     demoMapStats: null,       // demos/map_stats.json
     leaderboardCache: {},     // period → leaderboard json
+    logoManifest: null,       // logos/manifest.json: {clan: ext} (or null → built-in fallback)
 };
 
 // ── 3-layer cache (in-memory + stale fallback) ───────────────────────────────
@@ -97,6 +98,13 @@ export async function loadTierConfig() {
     } catch (_) {
         console.warn('tier_config.json no disponible; usando umbrales por defecto');
     }
+}
+
+/** Load the logo manifest ({clan: ext}) so clanLogoHTML knows which clans ship a
+ *  logo file without a hardcoded list. Non-fatal: falls back to the built-in map. */
+export async function loadLogoManifest() {
+    const data = await cachedFetch(LOGO_MANIFEST_URL, { silent: true });
+    if (data && typeof data === 'object') state.logoManifest = data;
 }
 
 // ── Demo data (player details + map stats) ───────────────────────────────────

@@ -11,7 +11,7 @@ import {
     experienceBadge, sampleReliability, percentile, scoreBreakdown,
     activityIndex, activityTier, sigmoidPenalty, clanLogoHTML,
 } from './utils.js';
-import { renderRadarChart, renderHistoryChart, clearPlayerCharts } from './charts.js';
+import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
 /** A labelled stat row, optionally with a percentile note. */
@@ -125,8 +125,9 @@ async function renderPlayerProfile(player) {
     if (Array.isArray(history) && history.length) {
         renderHistoryChart(history, document.getElementById('historyChart'));
     } else {
-        const hc = document.getElementById('historyChart');
-        if (hc) hc.style.display = 'none';
+        // No history: tear down only the history chart + trend note (keep the
+        // radar just rendered above) so the previous player's "Tendencia…" doesn't linger.
+        clearHistoryChart();
     }
 }
 

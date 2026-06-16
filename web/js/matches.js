@@ -4,14 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRecentMatches } from './data.js';
-import { escapeHtml, prettifyToken, formatNumber } from './utils.js';
-
-/** Parse a date label from a `tracker_YYYY_MM_DD_...` filename. */
-function matchDateLabel(filename) {
-    const m = /tracker_(\d{4})_(\d{2})_(\d{2})/.exec(String(filename || ''));
-    if (!m) return 'N/A';
-    return `${m[1]}-${m[2]}-${m[3]}`;
-}
+import { escapeHtml, prettifyToken, formatNumber, matchDateLabel } from './utils.js';
 
 /** Winner cell from numeric winner code (1=blufor, 2=opfor, -1=none). */
 function winnerLabel(round) {
@@ -43,7 +36,7 @@ async function renderRecentMatches() {
 
     const rows = matches.map((r) => `
         <tr>
-            <td>${matchDateLabel(r.filename)}</td>
+            <td>${matchDateLabel(r.filename) || 'N/A'}</td>
             <td>${prettifyToken(r.map_name)}</td>
             <td>${prettifyToken(r.gamemode)}</td>
             <td>${winnerLabel(r)}</td>
