@@ -186,11 +186,21 @@ export function scoreBreakdown(player) {
     }).join('');
 }
 
-/** Clan logo <img> with .png → .gif fallback. */
+// Clans that actually ship a logo file (and its extension). Everything else
+// uses Logo_default.png, so we never request a 404 or show a broken-image icon.
+// onerror still degrades to the default as a safety net if a file goes missing.
+const CLAN_LOGOS = {
+    '300': 'png', 'ADG': 'gif', 'E-LAM': 'png', 'FASO': 'png',
+    'FI': 'png', 'LDH': 'png', 'RIM:LA': 'png', 'SAE': 'png',
+};
+
+/** Clan logo <img>; falls back to Logo_default.png for clans without a file. */
 export function clanLogoHTML(clan, size = 24) {
     const safe = escapeHtml(clan);
-    return `<img class="clan-logo" src="logos/Logo_${safe}.png" alt="" width="${size}" height="${size}" ` +
-        `loading="lazy" onerror="this.onerror=null;this.src='logos/Logo_${safe}.gif';this.classList.add('logo-fallback');">`;
+    const ext = CLAN_LOGOS[clan];
+    const src = ext ? `logos/Logo_${safe}.${ext}` : 'logos/Logo_default.png';
+    return `<img class="clan-logo" src="${src}" alt="" width="${size}" height="${size}" ` +
+        `loading="lazy" onerror="this.onerror=null;this.src='logos/Logo_default.png';">`;
 }
 
 // ── Comparison helpers ───────────────────────────────────────────────────────

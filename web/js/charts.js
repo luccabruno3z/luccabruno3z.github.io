@@ -32,6 +32,16 @@ function radarScale(max) {
 
 const whiteLegend = { labels: { color: '#ffffff', font: { family: 'Roboto' } } };
 
+/** Tear down the player-profile charts (radar + history) and their trend note.
+ *  Used when a search returns no player, so stale charts don't linger. */
+export function clearPlayerCharts() {
+    if (radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+    if (historyChartInstance) { historyChartInstance.destroy(); historyChartInstance = null; }
+    const hc = document.getElementById('historyChart');
+    if (hc) hc.style.display = 'none';
+    document.querySelectorAll('.trend-info').forEach(el => el.remove());
+}
+
 // ── Player radar ─────────────────────────────────────────────────────────────
 
 /** Radar of one player vs. their clan average. */

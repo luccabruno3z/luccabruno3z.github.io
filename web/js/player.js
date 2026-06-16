@@ -11,7 +11,7 @@ import {
     experienceBadge, sampleReliability, percentile, scoreBreakdown,
     activityIndex, activityTier, sigmoidPenalty, clanLogoHTML,
 } from './utils.js';
-import { renderRadarChart, renderHistoryChart } from './charts.js';
+import { renderRadarChart, renderHistoryChart, clearPlayerCharts } from './charts.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
 /** A labelled stat row, optionally with a percentile note. */
@@ -182,6 +182,7 @@ export function initPlayerSearch() {
             const host = document.getElementById('player-profile-card');
             if (!player) {
                 if (host) host.innerHTML = `<div class="empty-state">No se encontró ningún jugador con "${escapeHtml(name)}".</div>`;
+                clearPlayerCharts();
                 return;
             }
             renderPlayerProfile(player);
