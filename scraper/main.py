@@ -54,10 +54,31 @@ def setup_logging() -> None:
     )
 
 
+def generate_logo_manifest(logos_dir: str = "logos") -> None:
+    """Write logos/manifest.json = {clan: ext} from the actual logo files.
+
+    The web reads this so clanLogoHTML knows which clans ship a logo without a
+    hardcoded list (avoids both drift and 404s for logo-less clans)."""
+    if not os.path.isdir(logos_dir):
+        logger.warning("logos/ dir not found; skipping logo manifest.")
+        return
+    manifest: dict[str, str] = {}
+    for fname in os.listdir(logos_dir):
+        name, _, ext = fname.partition(".")
+        if name.startswith("Logo_") and ext and name != "Logo_default":
+            manifest[name[len("Logo_"):]] = ext.lower()
+    path = os.path.join(logos_dir, "manifest.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2, sort_keys=True)
+    logger.info("Wrote %s (%d logos).", path, len(manifest))
+
+
 def run() -> None:
     """Main scraper pipeline."""
     setup_logging()
     logger.info("Starting PR Stats scraper...")
+
+    generate_logo_manifest()
 
     # 1. Fetch all clan pages in parallel
     html_pages = asyncio.run(fetch_all_clans())
@@ -86,7 +107,16 @@ def run() -> None:
     logger.info("Parsed %d total players from %d clans.", len(all_players), len(html_pages))
 
     # 3. Build DataFrame and clean
-    df = pd.DataFrame(all_players).dropna()
+    df = pd.DataFrame(all_players)
+
+    # Drop any player counted twice across pages (defensive: a roster row that
+    # appears on a page boundary, or future pager quirks). Keep first occurrence.
+    before = len(df)
+    df = df.drop_duplicates(subset=["Player", "Clan"])
+    if before != len(df):
+        logger.warning("Removed %d duplicate player rows.", before - len(df))
+
+    df = df.dropna()
 
     # Replace infinities (safety net — parser already handles division)
     df = df.replace([np.inf, -np.inf], np.nan).dropna()

@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List
 
 import cloudscraper
+from bs4 import BeautifulSoup
 
 from .config import CLAN_URLS, MAX_RETRIES, REQUEST_TIMEOUT
 
@@ -16,15 +17,32 @@ logger = logging.getLogger(__name__)
 _executor = ThreadPoolExecutor(max_workers=4)
 
 # prstats clan rosters paginate at 50 members/page and expose the rest via a
-# `?page=N` pagination block. We must follow it or we only ever see the top 50.
+# `?page=N` pagination block (`<ul class="pagination">`). We must follow it or we
+# only ever see the top 50.
 _PAGE_RE = re.compile(r"[?&]page=(\d+)")
 _MAX_PAGES = 50  # safety cap against malformed pagination
 
 
 def _max_page(html: str) -> int:
-    """Highest page number referenced in a clan page's pagination block (>=1)."""
-    pages = [int(n) for n in _PAGE_RE.findall(html)]
+    """Highest page number from the roster's pagination control (>=1).
+
+    Scoped to the `<ul class="pagination">` block on purpose: scanning the whole
+    document for `?page=N` would pick up unrelated links and request out-of-range
+    pages (prstats returns HTTP 500 for those, now retried, so the waste matters).
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    pager = soup.select_one("ul.pagination") or soup.select_one(".pagination")
+    if pager is None:
+        return 1
+    pages = [int(m) for a in pager.find_all("a")
+             for m in _PAGE_RE.findall(a.get("href", ""))]
     return min(max(pages, default=1), _MAX_PAGES)
+
+
+def _page_url(url: str, page: int) -> str:
+    """Append `page=N`, respecting any query string already on the base URL."""
+    sep = "&" if "?" in url else "?"
+    return f"{url}{sep}page={page}"
 
 
 def _fetch_sync(url: str, timeout: int = REQUEST_TIMEOUT) -> str:
@@ -74,14 +92,24 @@ async def _fetch_one(
 
     pages = [first]
     total = _max_page(first)
+    missing = 0
     for pg in range(2, total + 1):
-        page_url = f"{url}?page={pg}"
-        html = await _fetch_page(f"{clan_name} p{pg}", page_url, loop)
+        html = await _fetch_page(f"{clan_name} p{pg}", _page_url(url, pg), loop)
         if html:
             pages.append(html)
+        else:
+            missing += 1
 
     if total > 1:
-        logger.info("[%s] fetched %d/%d pages.", clan_name, len(pages), total)
+        if missing:
+            # A dropped page silently truncates the roster (~50 members). Surface
+            # it loudly rather than reporting an incomplete roster as complete.
+            logger.error(
+                "[%s] INCOMPLETE roster: fetched %d/%d pages (%d failed).",
+                clan_name, len(pages), total, missing,
+            )
+        else:
+            logger.info("[%s] fetched %d/%d pages.", clan_name, len(pages), total)
     return clan_name, pages
 
 
