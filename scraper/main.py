@@ -22,6 +22,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "scraper"
 
+from .aliases import build_aliases
 from .charts import generate_all_players_chart, generate_clan_charts
 from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
@@ -354,6 +355,15 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
         with open(map_path, "w") as f:
             json.dump(map_stats, f)
         logger.info("Saved %s (%d maps)", map_path, len(map_stats))
+
+        # Humanized aliases for every raw asset code present (kits/weapons/
+        # vehicles/maps/gamemodes). Single source of truth for web + bot.
+        aliases = build_aliases(player_details, map_stats)
+        aliases_path = os.path.join(DEMOS_DIR, "aliases.json")
+        with open(aliases_path, "w", encoding="utf-8") as f:
+            json.dump(aliases, f, ensure_ascii=False)
+        logger.info("Saved %s (%s)", aliases_path,
+                    ", ".join(f"{k}:{len(v)}" for k, v in aliases.items()))
 
         # Per-player round timelines for the web profile view (diff-based write,
         # so only players with new rounds get their file rewritten).

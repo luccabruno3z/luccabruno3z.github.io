@@ -44,7 +44,7 @@ class PlayerStats:
     teamwork_score: int = 0
     revives_given: int = 0
     revives_received: int = 0
-    kits_used: Dict[str, int] = field(default_factory=dict)  # kit_name -> pickup count
+    kits_used: Dict[str, int] = field(default_factory=dict)  # kit_name -> veces que cambió a ese kit (≈ pickups)
     vehicle_kills: Dict[str, int] = field(default_factory=dict)  # vehicle_name -> kills
     vehicles_destroyed: int = 0
     flags_captured: int = 0
@@ -82,6 +82,8 @@ class RoundStats:
     total_revives: int = 0
     total_vehicles_destroyed: int = 0
     total_flags_captured: int = 0
+    total_teamkills: int = 0   # bajas a compañeros (no cuentan para el marcador)
+    total_suicides: int = 0    # atacante == víctima
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a JSON-compatible dict."""
@@ -104,6 +106,8 @@ class RoundStats:
             "total_revives": self.total_revives,
             "total_vehicles_destroyed": self.total_vehicles_destroyed,
             "total_flags_captured": self.total_flags_captured,
+            "total_teamkills": self.total_teamkills,
+            "total_suicides": self.total_suicides,
             "players": {
                 pid: {
                     "ign": ps.ign,
@@ -134,6 +138,7 @@ def parse_demo(reader: DemoReader) -> RoundStats:
     player_names: Dict[int, str] = {}  # player_id -> ign
     vehicle_names: Dict[int, str] = {}  # vehicle_id -> name
     player_vehicles: Dict[int, int] = {}  # player_id -> vehicle_id
+    last_kit: Dict[int, str] = {}  # player_id -> último kit conocido (para contar solo cambios)
     flag_owners: Dict[int, int] = {}  # cp_id -> team
     total_ticks = 0
     tickets1_latest = 0
@@ -198,8 +203,11 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                     ps.score = pu.score
                 if pu.teamwork_score is not None:
                     ps.teamwork_score = pu.teamwork_score
-                if pu.kit_name is not None and pu.kit_name:
+                # Contar solo cuando el kit CAMBIA: PLAYER_UPDATE llega muchas veces
+                # por jugador (no es un pickup cada vez) → antes inflaba 2–20x/ronda.
+                if pu.kit_name and last_kit.get(pu.id) != pu.kit_name:
                     ps.kits_used[pu.kit_name] = ps.kits_used.get(pu.kit_name, 0) + 1
+                    last_kit[pu.id] = pu.kit_name
                 if pu.vehicle is not None and pu.vehicle.id >= 0:
                     player_vehicles[pu.id] = pu.vehicle.id
 
@@ -210,6 +218,16 @@ def parse_demo(reader: DemoReader) -> RoundStats:
 
             attacker = get_player(kill.attacker_id)
             attacker.kill_weapons[kill.weapon] = attacker.kill_weapons.get(kill.weapon, 0) + 1
+
+            # Distinguir suicidio / teamkill: el marcador (total_kills via PLAYER_UPDATE)
+            # los excluye, pero el evento KILL los cuenta — de ahí que sum(kill_weapons)
+            # supere a total_kills. Los tallamos para poder mostrarlo honesto.
+            victim_ps = stats.players.get(kill.victim_id)
+            if kill.attacker_id == kill.victim_id:
+                stats.total_suicides += 1
+            elif (victim_ps is not None and attacker.team != -1
+                  and attacker.team == victim_ps.team):
+                stats.total_teamkills += 1
 
             # Track vehicle kills
             if kill.attacker_id in player_vehicles:
@@ -231,7 +249,11 @@ def parse_demo(reader: DemoReader) -> RoundStats:
         elif raw_msg.msg_type == MessageType.KIT_ALLOCATED:
             ka: KitAllocated = decoded
             ps = get_player(ka.player_id)
-            ps.kits_used[ka.kit_name] = ps.kits_used.get(ka.kit_name, 0) + 1
+            # Misma deduplicación que PLAYER_UPDATE: un cambio de kit se cuenta una vez,
+            # lo reporte el mensaje que lo reporte (antes se contaba por ambas vías).
+            if ka.kit_name and last_kit.get(ka.player_id) != ka.kit_name:
+                ps.kits_used[ka.kit_name] = ps.kits_used.get(ka.kit_name, 0) + 1
+                last_kit[ka.player_id] = ka.kit_name
 
         # ── Vehicle Add ──────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.VEHICLE_ADD:
