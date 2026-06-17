@@ -5,7 +5,7 @@
 
 import { state, loadLeaderboard, loadRecentMatches } from './data.js';
 import {
-    escapeHtml, prettifyToken, formatNumber, rankMedal, tierBadge, clanLogoHTML, matchDateLabel,
+    escapeHtml, formatNumber, rankMedal, tierBadge, clanLogoHTML, matchDateLabel, mapLabel,
 } from './utils.js';
 
 function emptyState(host, msg) {
@@ -83,7 +83,7 @@ async function renderRecentMatches() {
 
         host.innerHTML = matches.map((m) => {
             const date = matchDateLabel(m.filename) || '—';
-            const map = prettifyToken(m.map_name);
+            const map = escapeHtml(mapLabel(m.map_name));
             let winner;
             if (m.winner === 1) winner = escapeHtml(m.blufor_team || 'BLUFOR');
             else if (m.winner === 2) winner = escapeHtml(m.opfor_team || 'OPFOR');

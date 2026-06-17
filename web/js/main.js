@@ -3,7 +3,7 @@
    Loaded as <script type="module"> (deferred), so the DOM is ready here.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { loadData, loadTierConfig, loadLogoManifest } from './data.js';
+import { loadData, loadTierConfig, loadLogoManifest, loadAliases } from './data.js';
 
 import { initHero } from './hero.js';
 import { initDashboard } from './dashboard.js';
@@ -62,7 +62,7 @@ async function boot() {
     }
     // Non-fatal config/manifest, in parallel, before the immediate renders below
     // (so clan logos use the manifest on first paint).
-    await Promise.all([loadTierConfig(), loadLogoManifest()]);
+    await Promise.all([loadTierConfig(), loadLogoManifest(), loadAliases()]);
 
     // Features that render immediately from core data.
     safe('hero', initHero);

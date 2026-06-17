@@ -7,7 +7,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import {
-    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL,
+    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
     CACHE_TTL,
 } from './config.js';
@@ -22,6 +22,7 @@ export const state = {
     demoMapStats: null,       // demos/map_stats.json
     leaderboardCache: {},     // period → leaderboard json
     logoManifest: null,       // logos/manifest.json: {clan: ext} (or null → built-in fallback)
+    aliases: null,            // demos/aliases.json: {kits, weapons, vehicles, maps, gamemodes}
 };
 
 // ── 3-layer cache (in-memory + stale fallback) ───────────────────────────────
@@ -105,6 +106,13 @@ export async function loadTierConfig() {
 export async function loadLogoManifest() {
     const data = await cachedFetch(LOGO_MANIFEST_URL, { silent: true });
     if (data && typeof data === 'object') state.logoManifest = data;
+}
+
+/** Load humanized asset aliases (kits/weapons/vehicles/maps/gamemodes). Non-fatal:
+ *  helpers fall back to prettifyToken when absent. */
+export async function loadAliases() {
+    const data = await cachedFetch(ALIASES_URL, { silent: true });
+    if (data && typeof data === 'object') state.aliases = data;
 }
 
 // ── Demo data (player details + map stats) ───────────────────────────────────

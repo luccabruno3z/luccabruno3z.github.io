@@ -5,14 +5,20 @@
 
 import { state, loadDemoData, loadPlayerRounds, getDemoInfo } from './data.js';
 import { setupAutocomplete } from './autocomplete.js';
-import { escapeHtml, prettifyToken, formatNumber } from './utils.js';
+import {
+    escapeHtml, formatNumber, aggregateByLabel,
+    kitLabel, weaponModel, weaponKind, vehicleLabel, mapLabel, gamemodeLabel,
+} from './utils.js';
 
-// ── Player demo tool ─────────────────────────────────────────────────────────
+// Weapons that aren't a personal firearm choice (environmental, vehicle-mounted).
+const _NON_INFANTRY = (code) => code === '?' || weaponKind(code) === 'vehicle' || weaponKind(code) === 'unknown';
 
-/** Top kits from a kits_used dict (descending count). */
-function topKits(kits, limit = 5) {
-    if (!kits || typeof kits !== 'object') return [];
-    return Object.entries(kits).sort((a, b) => b[1] - a[1]).slice(0, limit);
+/** Render a top-N list of [label, count] pairs as <li> items. */
+function topList(pairs, limit = 5, emptyMsg = 'Sin datos.') {
+    if (!pairs.length) return `<li class="empty-state">${escapeHtml(emptyMsg)}</li>`;
+    return pairs.slice(0, limit)
+        .map(([label, n]) => `<li>${escapeHtml(label)} <span class="stat-value">${formatNumber(n)}</span></li>`)
+        .join('');
 }
 
 async function renderDemoPlayer(name) {
@@ -25,10 +31,13 @@ async function renderDemoPlayer(name) {
         return;
     }
 
-    const kits = topKits(p.kits_used);
-    const kitsHTML = kits.length
-        ? kits.map(([k, n]) => `<li>${prettifyToken(k)} <span class="stat-value">${formatNumber(n)}</span></li>`).join('')
-        : '<li class="empty-state">Sin datos de kits.</li>';
+    // Kits grouped by role; weapons grouped by model (infantry firearms only, so
+    // "arma favorita" isn't the environment "?" or a vehicle gun); vehicles by name.
+    const kits = aggregateByLabel(p.kits_used, kitLabel);
+    const weapons = aggregateByLabel(p.kill_weapons, weaponModel, { exclude: _NON_INFANTRY });
+    const vehicles = aggregateByLabel(p.vehicle_kills, vehicleLabel);
+    const favKit = kits.length ? kits[0][0] : '—';
+    const favWeapon = weapons.length ? weapons[0][0] : '—';
 
     results.innerHTML = `
         <div class="card demo-player-card">
@@ -39,8 +48,13 @@ async function renderDemoPlayer(name) {
             <div class="stat-row"><span class="stat-label">Score</span><span class="stat-value">${formatNumber(p.total_score || 0)}</span></div>
             <div class="stat-row"><span class="stat-label">Revives dados</span><span class="stat-value">${formatNumber(p.total_revives_given || 0)}</span></div>
             <div class="stat-row"><span class="stat-label">Vehículos destruidos</span><span class="stat-value">${formatNumber(p.total_vehicles_destroyed || 0)}</span></div>
+            <div class="stat-row"><span class="stat-label">Kit favorito</span><span class="stat-value">${escapeHtml(favKit)}</span></div>
+            <div class="stat-row"><span class="stat-label">Arma favorita</span><span class="stat-value">${escapeHtml(favWeapon)}</span></div>
             <h4>Kits más usados</h4>
-            <ul class="demo-kits-list">${kitsHTML}</ul>
+            <ul class="demo-kits-list">${topList(kits, 5, 'Sin datos de kits.')}</ul>
+            <h4>Armas más letales</h4>
+            <ul class="demo-kits-list">${topList(weapons, 5, 'Sin datos de armas.')}</ul>
+            ${vehicles.length ? `<h4>Vehículos (kills)</h4><ul class="demo-kits-list">${topList(vehicles, 5)}</ul>` : ''}
             <div class="demo-rounds-timeline"><div class="empty-state">Cargando timeline…</div></div>
         </div>`;
 
@@ -58,8 +72,8 @@ async function renderDemoPlayer(name) {
         return `
             <tr>
                 <td>${escapeHtml(r.date)}</td>
-                <td>${prettifyToken(r.map)}</td>
-                <td>${prettifyToken(r.gamemode)}</td>
+                <td>${escapeHtml(mapLabel(r.map))}</td>
+                <td>${escapeHtml(gamemodeLabel(r.gamemode))}</td>
                 <td>${formatNumber(r.kills || 0)}</td>
                 <td>${formatNumber(r.deaths || 0)}</td>
                 <td>${formatNumber(r.score || 0)}</td>
@@ -104,7 +118,7 @@ function renderDemoMap(name) {
         const opforWR = rounds > 0 ? (opforWins / rounds) * 100 : 0;
         return `
             <div class="card demo-map-card">
-                <h4>${prettifyToken(m.map_name)} · ${prettifyToken(m.gamemode)}</h4>
+                <h4>${escapeHtml(mapLabel(m.map_name))} · ${escapeHtml(gamemodeLabel(m.gamemode))}</h4>
                 <div class="stat-row"><span class="stat-label">Rondas jugadas</span><span class="stat-value">${formatNumber(rounds)}</span></div>
                 <div class="stat-row"><span class="stat-label">Winrate BLUFOR</span><span class="stat-value">${bluforWR.toFixed(1)}%</span></div>
                 <div class="stat-row"><span class="stat-label">Winrate OPFOR</span><span class="stat-value">${opforWR.toFixed(1)}%</span></div>
@@ -163,7 +177,7 @@ export async function initDemoStats() {
                 const key = m.map_name.toLowerCase();
                 if (seen.has(key) || !key.includes(q)) continue;
                 seen.add(key);
-                out.push({ label: m.map_name, value: m.map_name });
+                out.push({ label: mapLabel(m.map_name), value: m.map_name });
                 if (out.length >= 8) break;
             }
             return out;

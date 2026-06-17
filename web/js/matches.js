@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRecentMatches } from './data.js';
-import { escapeHtml, prettifyToken, formatNumber, matchDateLabel } from './utils.js';
+import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel } from './utils.js';
 
 /** Winner cell from numeric winner code (1=blufor, 2=opfor, -1=none). */
 function winnerLabel(round) {
@@ -37,8 +37,8 @@ async function renderRecentMatches() {
     const rows = matches.map((r) => `
         <tr>
             <td>${matchDateLabel(r.filename) || 'N/A'}</td>
-            <td>${prettifyToken(r.map_name)}</td>
-            <td>${prettifyToken(r.gamemode)}</td>
+            <td>${escapeHtml(mapLabel(r.map_name))}</td>
+            <td>${escapeHtml(gamemodeLabel(r.gamemode))}</td>
             <td>${winnerLabel(r)}</td>
             <td>${formatNumber(r.total_kills || 0)}</td>
         </tr>`).join('');
