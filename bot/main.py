@@ -66,12 +66,14 @@ async def main():
     bot.guild_settings = GuildSettings()
 
     # Load emoji caches (kits + ranks)
-    from bot.assets.kit_mapping import load_emoji_cache
+    from bot.assets.kit_mapping import load_emoji_cache, load_aliases
     from bot.assets.rank_mapping import load_rank_emoji_cache
     from bot.assets.clan_mapping import load_clan_emoji_cache
     load_emoji_cache()
     load_rank_emoji_cache()
     load_clan_emoji_cache()
+    # Humanized asset aliases (kits/weapons/vehicles/maps) shared with the web.
+    await load_aliases()
 
     # Load all cogs
     for ext in EXTENSIONS:

@@ -2,7 +2,18 @@
 
 import discord
 
-from bot.assets.kit_mapping import get_kit_emoji, normalize_kits, clean_weapon_name, clean_vehicle_name
+from bot.assets.kit_mapping import get_kit_emoji, normalize_kits, clean_vehicle_name, weapon_model_name, is_personal_weapon
+
+
+def _group_counts(raw: dict, namer, exclude=None) -> dict:
+    """Agrupa {code:count} por nombre legible (colapsa variantes) → {nombre:count}."""
+    out: dict[str, int] = {}
+    for code, cnt in (raw or {}).items():
+        if exclude and exclude(code):
+            continue
+        name = namer(code)
+        out[name] = out.get(name, 0) + cnt
+    return out
 from bot.config import BOT_THUMBNAIL
 from bot.utils import format_number, standard_footer
 
@@ -112,16 +123,17 @@ class DemoDetailsView(discord.ui.View):
                 lines.append(f"{i}. {label} ({v})")
             embed.add_field(name="\U0001f392 Top Kits", value="\n".join(lines), inline=True)
 
-        # Top 3 weapons (kill_weapons is a dict: {weapon_name: kill_count})
-        weapons_dict = player_data.get("kill_weapons", {})
+        # Top 3 weapons agrupadas por modelo (excluye entorno "?")
+        weapons_dict = _group_counts(player_data.get("kill_weapons", {}),
+                                     weapon_model_name, exclude=lambda c: not is_personal_weapon(c))
         if weapons_dict:
-            lines = [f"{i}. **{clean_weapon_name(w)}** ({c} kills)" for i, (w, c) in enumerate(self._top3(weapons_dict), 1)]
+            lines = [f"{i}. **{w}** ({c} kills)" for i, (w, c) in enumerate(self._top3(weapons_dict), 1)]
             embed.add_field(name="\U0001f52b Top Armas", value="\n".join(lines), inline=True)
 
-        # Top 3 vehicles (vehicle_kills is a dict: {vehicle_name: kill_count})
-        vehicles_dict = player_data.get("vehicle_kills", {})
+        # Top 3 vehicles agrupados por nombre
+        vehicles_dict = _group_counts(player_data.get("vehicle_kills", {}), clean_vehicle_name)
         if vehicles_dict:
-            lines = [f"{i}. **{clean_vehicle_name(v)}** ({c} kills)" for i, (v, c) in enumerate(self._top3(vehicles_dict), 1)]
+            lines = [f"{i}. **{v}** ({c} kills)" for i, (v, c) in enumerate(self._top3(vehicles_dict), 1)]
             embed.add_field(name="\U0001f681 Top Vehiculos", value="\n".join(lines), inline=True)
 
         # Flags captured

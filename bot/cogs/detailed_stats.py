@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name
+from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
 from bot.ui.leaderboard_card import LeaderboardView
@@ -61,6 +61,19 @@ def _find_demo_player(data: list[dict], name: str) -> Optional[dict]:
 def _top_items(d: dict, n: int = 5) -> list[tuple[str, int]]:
     """Return top N items from a dict sorted by value descending."""
     return sorted(d.items(), key=lambda x: x[1], reverse=True)[:n]
+
+
+def _top_named(d: dict, namer, n: int = 10, exclude=None) -> list[tuple[str, int]]:
+    """Agrupa codes crudos por su nombre legible (colapsa variantes/facciones) y
+    devuelve el top N ya nombrado. Evita listas/gráficos saturados de variantes.
+    `exclude(code)` descarta codes (p.ej. entorno '?' o armas de vehículo)."""
+    agg: dict[str, int] = {}
+    for code, cnt in (d or {}).items():
+        if exclude and exclude(code):
+            continue
+        name = namer(code)
+        agg[name] = agg.get(name, 0) + cnt
+    return sorted(agg.items(), key=lambda x: x[1], reverse=True)[:n]
 
 
 class DetailedStats(commands.Cog):
@@ -142,7 +155,7 @@ class DetailedStats(commands.Cog):
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
             return
 
-        vehicle_kills = _top_items(player.get("vehicle_kills", {}), 10)
+        vehicle_kills = _top_named(player.get("vehicle_kills", {}), clean_vehicle_name, 10)
         destroyed = player.get("total_vehicles_destroyed", 0)
 
         if not vehicle_kills and destroyed == 0:
@@ -156,7 +169,7 @@ class DetailedStats(commands.Cog):
 
         file = None
         if vehicle_kills:
-            veh_items = [(clean_vehicle_name(veh), count, "#00FFFF") for veh, count in vehicle_kills]
+            veh_items = [(veh, count, "#00FFFF") for veh, count in vehicle_kills]
             buf = render_horizontal_bars(veh_items, title=f"Kills en vehículos - {player['ign']}")
             file = discord.File(buf, filename="vehiculos.png")
             embed.set_image(url="attachment://vehiculos.png")
@@ -286,13 +299,13 @@ class DetailedStats(commands.Cog):
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
             return
 
-        weapons = _top_items(player.get("kill_weapons", {}), 10)
+        weapons = _top_named(player.get("kill_weapons", {}), weapon_model_name, 10, exclude=lambda c: not is_personal_weapon(c))
         if not weapons:
             await ctx.send(f"**{player['ign']}** no tiene datos de armas registrados.")
             return
 
         total = sum(c for _, c in weapons)
-        weapon_items = [(clean_weapon_name(w), count, "#FF4444") for w, count in weapons]
+        weapon_items = [(w, count, "#FF4444") for w, count in weapons]
         buf = render_horizontal_bars(weapon_items, title=f"Armas - {player['ign']}")
         file = discord.File(buf, filename="armas.png")
 
@@ -349,9 +362,9 @@ class DetailedStats(commands.Cog):
         else:
             kits_str = "N/A"
 
-        # Top weapon (cleaned names)
-        top_weapons = _top_items(player.get("kill_weapons", {}), 3)
-        weapons_str = ", ".join(f"**{clean_weapon_name(w)}** ({c})" for w, c in top_weapons) if top_weapons else "N/A"
+        # Top weapon (agrupado por modelo)
+        top_weapons = _top_named(player.get("kill_weapons", {}), weapon_model_name, 3, exclude=lambda c: not is_personal_weapon(c))
+        weapons_str = ", ".join(f"**{w}** ({c})" for w, c in top_weapons) if top_weapons else "N/A"
 
         # Top maps (cleaned names)
         top_maps = _top_items(player.get("maps_played", {}), 3)
