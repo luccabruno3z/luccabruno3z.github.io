@@ -195,6 +195,7 @@ def get_new_demo_urls() -> List[str]:
     logger.info("Total servers to scan: %d", len(servers))
 
     all_new_urls = []
+    deferred_urls = []  # hosts flaky/rate-limited → al final, no acaparan el cupo/run
 
     for server_name, base_url in servers.items():
         logger.info("Scanning %s: %s", server_name, base_url)
@@ -214,15 +215,24 @@ def get_new_demo_urls() -> List[str]:
 
         new_urls = [u for u in demo_urls if u.rsplit("/", 1)[-1] not in processed]
         logger.info("%d new demos from %s", len(new_urls), server_name)
-        all_new_urls.extend(new_urls)
+        host = urlparse(base_url).hostname or ""
+        (deferred_urls if host in _LOW_PRIORITY_HOSTS else all_new_urls).extend(new_urls)
 
-    return all_new_urls
+    # Servidores confiables primero; los flaky (p.ej. ARES, que rate-limitea con
+    # 503) al final, así no consumen el límite por-run con demos que mayormente
+    # fallan y bloquean el backlog valioso (AAS de LATAMSQUAD).
+    return all_new_urls + deferred_urls
 
 
 # Hosts que se atragantan con descargas concurrentes (devuelven 503/timeout) y
 # deben bajarse de a una. ARES Brasil (IP pelada, HTTP) fue agregado tras ver 503
 # en masa al pedirle 5 demos a la vez.
 _SEQUENTIAL_HOSTS = {"latamsquad.dev", "82.38.28.159"}
+
+# Hosts que rate-limitean fuerte (503 incluso secuencial + reintentos). Se difieren
+# al final de la cola para que no acaparen el límite por-run; sus demos (en su
+# mayoría gungame, bajo valor) se intentan solo si sobra cupo.
+_LOW_PRIORITY_HOSTS = {"82.38.28.159"}
 
 
 async def fetch_demo_batch(urls: List[str]) -> List[Tuple[str, bytes]]:
