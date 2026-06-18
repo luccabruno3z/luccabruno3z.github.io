@@ -1,6 +1,6 @@
 # Legion de Hierro — Stats Tracker
 
-Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores de 27 clanes latinoamericanos con estadisticas avanzadas, scoring propio y analisis de demos.
+Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores de 28 clanes latinoamericanos con estadisticas avanzadas, scoring propio y analisis de demos.
 
 **Hecho por W4RR10R para la comunidad de Project Reality LATAM.**
 
@@ -70,7 +70,7 @@ luccabruno3z.github.io/
 - `countdown` — Countdowns
 
 ### Pipeline de Datos
-1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (27 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
+1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (28 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
 2. **Parsing** de archivos `.PRdemo` (formato binario BF2) de servidores LATAM
 3. **Scoring** con normalizacion y clustering
 4. **Generacion** de JSONs, charts Plotly e historial de jugadores
@@ -95,7 +95,7 @@ Sobre esas rondas se precalculan:
 
 ## Clanes rastreados
 
-LDH, FI, SAE, FI-R, R-LDH, 141, WD, 300, E-LAM, RIM:LA, ADG, A-LDH, FASO, PORN, E-102, PTFS, ARA, TANGO, SF, KKCK, SPTS, DARE, FEB, EASY, U777, OSO, LA-9
+LDH, FI, SAE, FI-R, R-LDH, 141, WD, 300, E-LAM, RIM:LA, ADG, A-LDH, FASO, PORN, E-102, PTFS, ARA, TANGO, SF, KKCK, SPTS, DARE, FEB, EASY, U777, OSO, LA-9, WK
 
 ## Setup local
 
