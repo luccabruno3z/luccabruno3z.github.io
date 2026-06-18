@@ -5,10 +5,8 @@ import os
 CLAN_URLS = {
     "LDH": "https://prstats.realitymod.org/clan/11204/ldh",
     "FI": "https://prstats.realitymod.org/clan/8067/fi",
-    "SAE": "https://prstats.realitymod.org/clan/42817/sae",
     "FI-R": "https://prstats.realitymod.org/clan/30397/fi-r",
     "R-LDH": "https://prstats.realitymod.org/clan/37315/r-ldh",
-    "141": "https://prstats.realitymod.org/clan/7555/141",
     "WD": "https://prstats.realitymod.org/clan/11052/wd",
     "300": "https://prstats.realitymod.org/clan/36331/300",
     "E-LAM": "https://prstats.realitymod.org/clan/29486/e-lam",
@@ -18,7 +16,6 @@ CLAN_URLS = {
     "FASO": "https://prstats.realitymod.org/clan/46393/faso",
     "PORN": "https://prstats.realitymod.org/clan/47806/porn",
     "E-102": "https://prstats.realitymod.org/clan/188/e-102",
-    "PTFS": "https://prstats.realitymod.org/clan/34631/ptfs",
     "ARA": "https://prstats.realitymod.org/clan/20864/ara",
     "TANGO": "https://prstats.realitymod.org/clan/40384/tango",
     "SF": "https://prstats.realitymod.org/clan/215/sf",
