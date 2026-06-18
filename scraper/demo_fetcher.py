@@ -137,23 +137,41 @@ def _try_parse_hfs_json(text: str, base_url: str) -> List[str]:
     return urls
 
 
+def _is_transient(exc: Exception) -> bool:
+    """True para errores recuperables: 429/5xx o timeouts/cortes de conexión.
+
+    Servidores de demos caseros (HFS, IP pelada) devuelven 503 al recibir varias
+    descargas a la vez; reintentar con backoff recupera la mayoría."""
+    resp = getattr(exc, "response", None)
+    if resp is not None and getattr(resp, "status_code", None) in (429, 500, 502, 503, 504):
+        return True
+    name = type(exc).__name__.lower()
+    return "timeout" in name or "connection" in name
+
+
 async def _fetch_one_demo(
     url: str,
     loop: asyncio.AbstractEventLoop,
 ) -> Tuple[str, Optional[bytes]]:
-    """Download a single demo file (single attempt, no retries).
+    """Download a single demo file with backoff retries on transient errors.
 
     Failed demos are not marked as processed and will be retried next run.
     """
     filename = url.rsplit("/", 1)[-1]
-    try:
-        logger.info("Downloading %s", filename)
-        data = await loop.run_in_executor(_executor, _fetch_sync, url)
-        logger.info("Downloaded %s (%d bytes)", filename, len(data))
-        return filename, data
-    except Exception as exc:
-        logger.warning("Failed to download %s: %s — skipping.", filename, exc)
-        return filename, None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            suffix = "" if attempt == 1 else f" (intento {attempt}/{MAX_RETRIES})"
+            logger.info("Downloading %s%s", filename, suffix)
+            data = await loop.run_in_executor(_executor, _fetch_sync, url)
+            logger.info("Downloaded %s (%d bytes)", filename, len(data))
+            return filename, data
+        except Exception as exc:
+            if _is_transient(exc) and attempt < MAX_RETRIES:
+                await asyncio.sleep(2 ** (attempt - 1))  # 1s, 2s, …
+                continue
+            logger.warning("Failed to download %s: %s — skipping.", filename, exc)
+            return filename, None
+    return filename, None
 
 
 def get_new_demo_urls() -> List[str]:
@@ -201,8 +219,10 @@ def get_new_demo_urls() -> List[str]:
     return all_new_urls
 
 
-# Hosts that require sequential downloads (throttle concurrent connections)
-_SEQUENTIAL_HOSTS = {"latamsquad.dev"}
+# Hosts que se atragantan con descargas concurrentes (devuelven 503/timeout) y
+# deben bajarse de a una. ARES Brasil (IP pelada, HTTP) fue agregado tras ver 503
+# en masa al pedirle 5 demos a la vez.
+_SEQUENTIAL_HOSTS = {"latamsquad.dev", "82.38.28.159"}
 
 
 async def fetch_demo_batch(urls: List[str]) -> List[Tuple[str, bytes]]:
