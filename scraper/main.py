@@ -22,7 +22,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "scraper"
 
-from .aliases import build_aliases
+from .aliases import build_aliases, resolve_kit
 from .charts import generate_all_players_chart, generate_clan_charts
 from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
@@ -428,6 +428,7 @@ def _aggregate_player_details(
                     "total_vehicles_destroyed": 0,
                     "total_flags_captured": 0,
                     "kits_used": {},
+                    "kit_performance": {},  # rol -> {"kills","deaths"} (solo rondas nuevas)
                     "kill_weapons": {},
                     "death_weapons": {},
                     "vehicle_kills": {},
@@ -483,6 +484,16 @@ def _aggregate_player_details(
 
             for kit, count in pdata.get("kits_used", {}).items():
                 p["kits_used"][kit] = p["kits_used"].get(kit, 0) + count
+            # Desempeño por kit: agrupar kit_kills/kit_deaths crudos por ROL (alias),
+            # consistente con normalize_kits del bot. Solo presente en rondas nuevas.
+            for kit, count in pdata.get("kit_kills", {}).items():
+                role = resolve_kit(kit)
+                kp = p["kit_performance"].setdefault(role, {"kills": 0, "deaths": 0})
+                kp["kills"] += count
+            for kit, count in pdata.get("kit_deaths", {}).items():
+                role = resolve_kit(kit)
+                kp = p["kit_performance"].setdefault(role, {"kills": 0, "deaths": 0})
+                kp["deaths"] += count
             for weapon, count in pdata.get("kill_weapons", {}).items():
                 p["kill_weapons"][weapon] = p["kill_weapons"].get(weapon, 0) + count
             for weapon, count in pdata.get("death_weapons", {}).items():

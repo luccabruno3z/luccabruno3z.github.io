@@ -50,6 +50,8 @@ class PlayerStats:
     flags_captured: int = 0
     kill_weapons: Dict[str, int] = field(default_factory=dict)  # weapon -> count
     death_weapons: Dict[str, int] = field(default_factory=dict)  # weapon -> count
+    kit_kills: Dict[str, int] = field(default_factory=dict)   # kit_name -> kills logradas con ese kit
+    kit_deaths: Dict[str, int] = field(default_factory=dict)  # kit_name -> muertes sufridas con ese kit
 
 
 @dataclass
@@ -119,6 +121,8 @@ class RoundStats:
                     "revives_given": ps.revives_given,
                     "revives_received": ps.revives_received,
                     "kits_used": ps.kits_used,
+                    "kit_kills": ps.kit_kills,
+                    "kit_deaths": ps.kit_deaths,
                     "vehicle_kills": ps.vehicle_kills,
                     "vehicles_destroyed": ps.vehicles_destroyed,
                     "flags_captured": ps.flags_captured,
@@ -223,11 +227,21 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             # los excluye, pero el evento KILL los cuenta — de ahí que sum(kill_weapons)
             # supere a total_kills. Los tallamos para poder mostrarlo honesto.
             victim_ps = stats.players.get(kill.victim_id)
-            if kill.attacker_id == kill.victim_id:
+            is_suicide = kill.attacker_id == kill.victim_id
+            is_teamkill = (not is_suicide and victim_ps is not None
+                           and attacker.team != -1 and attacker.team == victim_ps.team)
+            if is_suicide:
                 stats.total_suicides += 1
-            elif (victim_ps is not None and attacker.team != -1
-                  and attacker.team == victim_ps.team):
+            elif is_teamkill:
                 stats.total_teamkills += 1
+
+            # Desempeño por kit: atribuir la baja al kit que el atacante tenía puesto
+            # (solo frags reales, no suicidio ni teamkill). Best-effort: requiere
+            # haber visto ya el kit del jugador.
+            if not is_suicide and not is_teamkill:
+                akit = last_kit.get(kill.attacker_id)
+                if akit:
+                    attacker.kit_kills[akit] = attacker.kit_kills.get(akit, 0) + 1
 
             # Track vehicle kills
             if kill.attacker_id in player_vehicles:
@@ -237,6 +251,10 @@ def parse_demo(reader: DemoReader) -> RoundStats:
 
             victim = get_player(kill.victim_id)
             victim.death_weapons[kill.weapon] = victim.death_weapons.get(kill.weapon, 0) + 1
+            # Muerte atribuida al kit que la víctima tenía puesto.
+            vkit = last_kit.get(kill.victim_id)
+            if vkit:
+                victim.kit_deaths[vkit] = victim.kit_deaths.get(vkit, 0) + 1
 
         # ── Revive ───────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.REVIVE:
