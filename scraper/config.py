@@ -62,12 +62,12 @@ DISCOVERED_SERVERS_FILE = os.path.join(DEMOS_DIR, "discovered_servers.json")
 # Supports standard HTML directory listings and HFS 3.x JSON API
 DEMO_SERVERS = {
     "RealityBrasil-Foxtrot": "https://files.realitybrasil.org/PRServer/BattleRecorder/Server01/demos/",
-    "LATAMSQUAD-SV1": "https://latamsquad.dev/~/api/get_file_list?uri=/Project%20Reality%20BF2/PRdemos%202D/sv1/",
+    "LATAMSQUAD-SV1": "https://latamsquad.dev/~/api/get_file_list?uri=/Project-Reality-BF2/PRdemos-2D/sv1/",
 }
 
 # HFS servers need a base URL mapping for downloads (API URL != download URL)
 HFS_DOWNLOAD_BASE = {
-    "LATAMSQUAD-SV1": "https://latamsquad.dev/Project%20Reality%20BF2/PRdemos%202D/sv1/",
+    "LATAMSQUAD-SV1": "https://latamsquad.dev/Project-Reality-BF2/PRdemos-2D/sv1/",
 }
 
 # Maximum demos to process per run (across all servers).
