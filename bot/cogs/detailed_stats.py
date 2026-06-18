@@ -7,7 +7,7 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon
+from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon, clean_gamemode
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
 from bot.ui.leaderboard_card import LeaderboardView
@@ -533,15 +533,30 @@ class DetailedStats(commands.Cog):
         # Overall winrate
         lines.append(f"**Winrate general:** **{overall_wr:.1f}%** ({wins}W / {losses}L)")
 
-        # Per-gamemode winrate
-        rounds_gm = player.get("rounds_per_gamemode", {})
-        wins_gm = player.get("wins_per_gamemode", {})
-        if rounds_gm:
+        # Per-gamemode: winrate + desempeño (K/D, KPR), nombres legibles
+        gm_stats = player.get("gamemode_stats", {})
+        if gm_stats:
             lines.append("\n**Por gamemode:**")
-            for gm, rds in sorted(rounds_gm.items(), key=lambda x: x[1], reverse=True):
-                w = wins_gm.get(gm, 0)
-                wr = (w / rds * 100) if rds > 0 else 0
-                lines.append(f"  `{gm}` — **{wr:.0f}%** ({w}W/{rds}R)")
+            for gm, gs in sorted(gm_stats.items(), key=lambda x: x[1].get("rounds", 0), reverse=True):
+                rds = gs.get("rounds", 0)
+                w = gs.get("wins", 0)
+                wr = gs.get("winrate", (w / rds * 100) if rds else 0)
+                kd = gs.get("kd", 0)
+                kpr = gs.get("avg_kpr", 0)
+                lines.append(
+                    f"  **{clean_gamemode(gm)}** — WR **{wr:.0f}%** ({w}W/{rds}R) · "
+                    f"K/D **{kd:.2f}** · KPR {kpr:.2f}"
+                )
+        else:
+            # Fallback al esquema viejo si todavía no se regeneró gamemode_stats
+            rounds_gm = player.get("rounds_per_gamemode", {})
+            wins_gm = player.get("wins_per_gamemode", {})
+            if rounds_gm:
+                lines.append("\n**Por gamemode:**")
+                for gm, rds in sorted(rounds_gm.items(), key=lambda x: x[1], reverse=True):
+                    w = wins_gm.get(gm, 0)
+                    wr = (w / rds * 100) if rds > 0 else 0
+                    lines.append(f"  **{clean_gamemode(gm)}** — **{wr:.0f}%** ({w}W/{rds}R)")
 
         # Per-faction winrate
         faction_stats = player.get("faction_stats", {})

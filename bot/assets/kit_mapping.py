@@ -251,6 +251,14 @@ def clean_map_name(raw: str) -> str:
     return raw.replace('_', ' ').title()
 
 
+def clean_gamemode(raw: str) -> str:
+    """Nombre legible del gamemode: 'gpm_cq' → 'AAS', 'gpm_insurgency' → 'Insurgencia'."""
+    alias = _aliases.get("gamemodes", {}).get(raw)
+    if alias:
+        return alias
+    return raw.replace('gpm_', '').replace('_', ' ').upper() or "—"
+
+
 def get_all_assets() -> list[tuple[str, str]]:
     seen = set()
     assets = []
