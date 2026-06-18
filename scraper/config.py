@@ -24,6 +24,13 @@ CLAN_URLS = {
     "SF": "https://prstats.realitymod.org/clan/215/sf",
     "KKCK": "https://prstats.realitymod.org/clan/180/kkck",
     "SPTS": "https://prstats.realitymod.org/clan/536/spts",
+    # Sumados a pedido (algunos europeos)
+    "DARE": "https://prstats.realitymod.org/clan/125/dare",
+    "FEB": "https://prstats.realitymod.org/clan/1806/feb",
+    "EASY": "https://prstats.realitymod.org/clan/193/easy",
+    "U777": "https://prstats.realitymod.org/clan/5296/u777",
+    "OSO": "https://prstats.realitymod.org/clan/38980/oso",
+    "LA-9": "https://prstats.realitymod.org/clan/166/la-9",
 }
 
 SCORING_VERSION = "v3"

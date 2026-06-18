@@ -1,6 +1,6 @@
 # Legion de Hierro — Stats Tracker
 
-Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores de 21 clanes latinoamericanos con estadisticas avanzadas, scoring propio y analisis de demos.
+Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores de 27 clanes latinoamericanos con estadisticas avanzadas, scoring propio y analisis de demos.
 
 **Hecho por W4RR10R para la comunidad de Project Reality LATAM.**
 
@@ -51,7 +51,7 @@ luccabruno3z.github.io/
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills)
 - **Historial de rondas por jugador** en su perfil de demos
-- 21 graficos interactivos Plotly (uno por clan + global), con tema dark/cyan
+- Graficos interactivos Plotly (uno por clan + global), con tema dark/cyan
 
 ### Sistema de Scoring (v3)
 - **Performance Score**: 7 componentes ponderados (Combat 20%, Effectiveness 15%, Score 10%, Winrate 20%, Teamwork 15%, Consistency 10%, Experience 10%)
@@ -70,7 +70,7 @@ luccabruno3z.github.io/
 - `countdown` — Countdowns
 
 ### Pipeline de Datos
-1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (21 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
+1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (27 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
 2. **Parsing** de archivos `.PRdemo` (formato binario BF2) de servidores LATAM
 3. **Scoring** con normalizacion y clustering
 4. **Generacion** de JSONs, charts Plotly e historial de jugadores
@@ -95,7 +95,7 @@ Sobre esas rondas se precalculan:
 
 ## Clanes rastreados
 
-LDH, FI, SAE, FI-R, R-LDH, 141, WD, 300, E-LAM, RIM:LA, ADG, A-LDH, FASO, PORN, E-102, PTFS, ARA, TANGO, SF, KKCK, SPTS
+LDH, FI, SAE, FI-R, R-LDH, 141, WD, 300, E-LAM, RIM:LA, ADG, A-LDH, FASO, PORN, E-102, PTFS, ARA, TANGO, SF, KKCK, SPTS, DARE, FEB, EASY, U777, OSO, LA-9
 
 ## Setup local
 
