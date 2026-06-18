@@ -44,7 +44,7 @@ jobs:
 
     - name: Ejecutar scraper
       run: python -m scraper
-      timeout-minutes: 5
+      timeout-minutes: 20  # temporal: runs más grandes (MAX_DEMOS_PER_RUN=150) para catch-up
 
     - name: Validar output JSON
       run: |
