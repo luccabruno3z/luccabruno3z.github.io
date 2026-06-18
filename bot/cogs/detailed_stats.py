@@ -133,6 +133,30 @@ class DetailedStats(commands.Cog):
             color=discord.Color.blue(),
         )
         embed.set_image(url="attachment://kits.png")
+
+        # Desempeño por kit (K/D con cada kit). Solo se calcula desde las rondas
+        # nuevas (atribución de cada baja al kit puesto), así que arranca vacío y
+        # se va llenando; filtramos roles con pocas kills para evitar ruido.
+        perf = player.get("kit_performance", {})
+        ranked = sorted(
+            ((role, d.get("kills", 0), d.get("deaths", 0)) for role, d in perf.items()
+             if d.get("kills", 0) >= 10),
+            key=lambda x: x[1] / max(x[2], 1), reverse=True,
+        )
+        if ranked:
+            lines = []
+            for role, k, dth in ranked[:8]:
+                emoji = get_kit_emoji(role) or ""
+                kd = k / max(dth, 1)
+                lines.append(f"{emoji} **{role}** — K/D {kd:.2f} ({k}/{dth})")
+            embed.add_field(name="⚔️ Desempeño por kit", value="\n".join(lines), inline=False)
+        else:
+            embed.add_field(
+                name="⚔️ Desempeño por kit",
+                value="⏳ Acumulándose — se calcula desde las partidas nuevas (≥10 kills por kit).",
+                inline=False,
+            )
+
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
         await ctx.send(embed=embed, file=file)
 
