@@ -29,6 +29,7 @@ CLAN_URLS = {
     "OSO": "https://prstats.realitymod.org/clan/38980/oso",
     "LA-9": "https://prstats.realitymod.org/clan/166/la-9",
     "WK": "https://prstats.realitymod.org/clan/26959/wk",
+    "FAL": "https://prstats.realitymod.org/clan/14393/fal",
 }
 
 SCORING_VERSION = "v3"
