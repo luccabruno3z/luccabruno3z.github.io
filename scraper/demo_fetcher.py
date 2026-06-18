@@ -246,7 +246,7 @@ def get_new_demo_urls() -> List[str]:
 # Hosts que se atragantan con descargas concurrentes (devuelven 503/timeout) y
 # deben bajarse de a una. ARES Brasil (IP pelada, HTTP) fue agregado tras ver 503
 # en masa al pedirle 5 demos a la vez.
-_SEQUENTIAL_HOSTS = {"latamsquad.dev", "82.38.28.159"}
+_SEQUENTIAL_HOSTS = {"latamsquad.dev", "82.38.28.159", "russianfrontier.ru"}
 
 # Hosts que rate-limitean fuerte (503 incluso secuencial + reintentos). Se difieren
 # al final de la cola para que no acaparen el límite por-run; sus demos (en su

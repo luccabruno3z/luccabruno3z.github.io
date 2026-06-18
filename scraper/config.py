@@ -59,15 +59,29 @@ PRSTATS_SERVERS_URL = "https://prstats.realitymod.org/servers"
 DISCOVERED_SERVERS_FILE = os.path.join(DEMOS_DIR, "discovered_servers.json")
 
 # PRDemo server sources — directory listings with .PRdemo files (fallback)
-# Supports standard HTML directory listings and HFS 3.x JSON API
+# Supports standard HTML directory listings and HFS 3.x JSON API.
+#
+# Receta para sumar un server nuevo (auto-discovery solo agarra los que tienen link
+# "Battle records" en su página de prstats):
+#   1. https://prstats.realitymod.org/servers → sacar dominios.
+#   2. GET la home del dominio y buscar links con track|demo|record|battle|prdemo.
+#   3. Clasificar el listado y mapearlo:
+#        - Apache plano (tracker_*.PRdemo)          → DEMO_SERVERS
+#        - Apache por mes (YYYY_MM/)                 → MONTHLY_DEMO_SERVERS
+#        - HFS (marcadores /~/frontend/, ?get=basic)→ DEMO_SERVERS (URL ~/api/
+#          get_file_list?uri=...) + HFS_DOWNLOAD_BASE
+#   4. Verificar que un .PRdemo baje (HTTP 200) antes de commitear.
 DEMO_SERVERS = {
     "RealityBrasil-Foxtrot": "https://files.realitybrasil.org/PRServer/BattleRecorder/Server01/demos/",
     "LATAMSQUAD-SV1": "https://latamsquad.dev/~/api/get_file_list?uri=/Project-Reality-BF2/PRdemos-2D/sv1/",
+    # Russian Frontier: HFS como latamsquad. uri = "Трекеры (.PRdemo)/" (URL-encoded).
+    "RussianFrontier": "https://russianfrontier.ru/~/api/get_file_list?uri=/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
 }
 
 # HFS servers need a base URL mapping for downloads (API URL != download URL)
 HFS_DOWNLOAD_BASE = {
     "LATAMSQUAD-SV1": "https://latamsquad.dev/Project-Reality-BF2/PRdemos-2D/sv1/",
+    "RussianFrontier": "https://russianfrontier.ru/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
 }
 
 # Servers cuyo directorio de demos está particionado por mes (YYYY_MM/), p.ej.
