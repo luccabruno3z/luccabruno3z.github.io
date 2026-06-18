@@ -197,8 +197,16 @@ def weapon_kind(raw: str) -> str:
 
 def is_personal_weapon(raw: str) -> bool:
     """True si es un arma personal (excluye entorno '?' y armas de vehículo), para
-    no contaminar el 'arma favorita'/top de un jugador con cañones de blindado."""
-    return raw != "?" and weapon_kind(raw) not in ("vehicle", "unknown")
+    no contaminar el 'arma favorita'/top de un jugador con cañones de blindado.
+
+    Si los aliases no están cargados (fetch falló) no se puede saber el kind, así
+    que solo se descarta '?' — degradar mostrando de más es mejor que vaciar la
+    lista por completo."""
+    if raw == "?":
+        return False
+    if not _aliases.get("weapons"):
+        return True
+    return weapon_kind(raw) not in ("vehicle", "unknown")
 
 
 def weapon_model_name(raw: str) -> str:

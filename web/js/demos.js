@@ -11,7 +11,14 @@ import {
 } from './utils.js';
 
 // Weapons that aren't a personal firearm choice (environmental, vehicle-mounted).
-const _NON_INFANTRY = (code) => code === '?' || weaponKind(code) === 'vehicle' || weaponKind(code) === 'unknown';
+// If aliases aren't loaded we can't know the kind, so only drop '?' (degrade by
+// showing extra rather than emptying the list).
+const _NON_INFANTRY = (code) => {
+    if (code === '?') return true;
+    if (!state.aliases?.weapons) return false;
+    const k = weaponKind(code);
+    return k === 'vehicle' || k === 'unknown';
+};
 
 /** Render a top-N list of [label, count] pairs as <li> items. */
 function topList(pairs, limit = 5, emptyMsg = 'Sin datos.') {
