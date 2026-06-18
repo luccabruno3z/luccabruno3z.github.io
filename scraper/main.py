@@ -446,6 +446,7 @@ def _aggregate_player_details(
                     "losses": 0,
                     "rounds_per_gamemode": {},
                     "wins_per_gamemode": {},
+                    "gamemode_stats": {},  # gm -> {rounds, wins, losses, kills, deaths, avg_kpr, avg_dpr}
                     "per_map_stats": {},
                     "faction_stats": {
                         "blufor": {"rounds": 0, "wins": 0, "avg_kpr": 0.0},
@@ -534,6 +535,20 @@ def _aggregate_player_details(
             p["rounds_per_gamemode"][round_gamemode] = p["rounds_per_gamemode"].get(round_gamemode, 0) + 1
             if won:
                 p["wins_per_gamemode"][round_gamemode] = p["wins_per_gamemode"].get(round_gamemode, 0) + 1
+
+            # Desempeño por gamemode (rondas/kills/deaths/wins → K/D, KPR, winrate)
+            if round_gamemode not in p["gamemode_stats"]:
+                p["gamemode_stats"][round_gamemode] = {
+                    "rounds": 0, "_kills": [], "_deaths": [], "wins": 0, "losses": 0,
+                }
+            gs = p["gamemode_stats"][round_gamemode]
+            gs["rounds"] += 1
+            gs["_kills"].append(round_kills)
+            gs["_deaths"].append(round_deaths)
+            if won:
+                gs["wins"] += 1
+            elif lost:
+                gs["losses"] += 1
 
             # Per-map stats accumulation
             if round_map not in p["per_map_stats"]:
@@ -624,6 +639,19 @@ def _aggregate_player_details(
             deaths_list = ms.pop("_deaths")
             ms["avg_kpr"] = round(sum(kills_list) / len(kills_list), 2) if kills_list else 0.0
             ms["avg_dpr"] = round(sum(deaths_list) / len(deaths_list), 2) if deaths_list else 0.0
+
+        # Per-gamemode stats: finalize KPR/DPR/KD/winrate y limpiar listas temp
+        for gm, gs in p["gamemode_stats"].items():
+            kills_list = gs.pop("_kills")
+            deaths_list = gs.pop("_deaths")
+            tk = sum(kills_list)
+            td = sum(deaths_list)
+            gs["kills"] = tk
+            gs["deaths"] = td
+            gs["avg_kpr"] = round(tk / len(kills_list), 2) if kills_list else 0.0
+            gs["avg_dpr"] = round(td / len(deaths_list), 2) if deaths_list else 0.0
+            gs["kd"] = round(tk / td, 2) if td > 0 else float(tk)
+            gs["winrate"] = round(gs["wins"] / gs["rounds"] * 100, 1) if gs["rounds"] else 0.0
 
         # Streaks
         longest_win = 0
