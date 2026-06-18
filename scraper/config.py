@@ -79,3 +79,9 @@ MAX_DEMOS_PER_RUN = 25
 # Maximum wall-clock seconds for the entire demo phase (download + parse).
 # If exceeded between batches, remaining demos are left for the next run.
 DEMO_TIME_BUDGET = 120
+
+# Gamemodes excluidos de las stats: gungame es un minijuego de ciclar armas (no son
+# rondas competitivas y distorsionan kills/kits). Se filtran tanto al descargar
+# (no consumen el cupo por-run) como al agregar (se ignoran las rondas históricas
+# ya guardadas, sin borrarlas del disco).
+EXCLUDED_GAMEMODES = {"gpm_gungame"}

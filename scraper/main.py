@@ -24,7 +24,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from .aliases import build_aliases, resolve_kit
 from .charts import generate_all_players_chart, generate_clan_charts
-from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET
+from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET, EXCLUDED_GAMEMODES
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
 from .fetcher import fetch_all_clans
 from .history import update_history
@@ -232,7 +232,15 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
 
     # Load every previously persisted round from the daily-partitioned store
     # (falls back to the legacy round_history.json before migration has run).
-    existing_rounds = load_all_rounds()
+    # Filtrar gungame (y otros modos excluidos): las rondas viejas quedan en disco
+    # pero se ignoran en TODOS los agregados (player_details, map_stats, leaderboards,
+    # player_rounds) — único punto de filtro.
+    all_rounds = load_all_rounds()
+    existing_rounds = [r for r in all_rounds if r.get("gamemode") not in EXCLUDED_GAMEMODES]
+    dropped = len(all_rounds) - len(existing_rounds)
+    if dropped:
+        logger.info("Excluidas %d rondas de modos no competitivos (%s).",
+                    dropped, ", ".join(sorted(EXCLUDED_GAMEMODES)))
     existing_filenames = {r.get("filename") for r in existing_rounds}
 
     # 1. Discover new demo URLs (lightweight — no downloads yet)

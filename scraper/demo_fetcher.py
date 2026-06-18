@@ -12,7 +12,7 @@ from urllib.parse import urljoin, urlparse, parse_qs
 import cloudscraper
 from bs4 import BeautifulSoup
 
-from .config import DEMO_SERVERS, HFS_DOWNLOAD_BASE, OUTPUT_DIR, MAX_RETRIES, REQUEST_TIMEOUT
+from .config import DEMO_SERVERS, HFS_DOWNLOAD_BASE, OUTPUT_DIR, MAX_RETRIES, REQUEST_TIMEOUT, EXCLUDED_GAMEMODES
 from .server_discovery import load_discovered_servers
 
 logger = logging.getLogger(__name__)
@@ -213,7 +213,11 @@ def get_new_demo_urls() -> List[str]:
         demo_urls = _list_demos_from_directory(html, download_base)
         logger.info("Found %d demo files on %s", len(demo_urls), server_name)
 
-        new_urls = [u for u in demo_urls if u.rsplit("/", 1)[-1] not in processed]
+        new_urls = [
+            u for u in demo_urls
+            if u.rsplit("/", 1)[-1] not in processed
+            and not any(gm in u for gm in EXCLUDED_GAMEMODES)  # saltear gungame, etc.
+        ]
         logger.info("%d new demos from %s", len(new_urls), server_name)
         host = urlparse(base_url).hostname or ""
         (deferred_urls if host in _LOW_PRIORITY_HOSTS else all_new_urls).extend(new_urls)
