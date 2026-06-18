@@ -3,7 +3,16 @@ name: Actualización de estadísticas PR
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *"  # Cada hora (reduce el churn de los charts; MAX_DEMOS_PER_RUN cubre el backlog)
+    # Temporal: cada 10 min para drenar el backlog de demos (LATAM ~4k tras el
+    # rename de carpeta). Cada run procesa hasta MAX_DEMOS_PER_RUN. Para volver al
+    # ritmo normal (menos churn de commits/charts) dejar: "0 * * * *" (cada hora).
+    - cron: "*/10 * * * *"
+
+# Evita que dos corridas se solapen (cada run commitea a main); no cancela la que
+# está en curso para no perder demos ya descargadas.
+concurrency:
+  group: scraper-update
+  cancel-in-progress: false
 
 jobs:
   update-stats:
