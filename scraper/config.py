@@ -70,6 +70,13 @@ HFS_DOWNLOAD_BASE = {
     "LATAMSQUAD-SV1": "https://latamsquad.dev/Project-Reality-BF2/PRdemos-2D/sv1/",
 }
 
+# Servers cuyo directorio de demos está particionado por mes (YYYY_MM/), p.ej.
+# TikTok War (ruttw.ru). Se expanden en runtime a las carpetas del mes actual y el
+# anterior (cubre el cambio de mes). Cada carpeta es un listado Apache plano.
+MONTHLY_DEMO_SERVERS = {
+    "TikTokWar-RU": "https://ruttw.ru/tracker/",
+}
+
 # Maximum demos to process per run (across all servers).
 # GitHub throttlea los cron sub-horarios (un "*/10" corre cada ~2-3h), así que en
 # vez de muchos runs chicos hacemos pocos runs grandes: más demos por corrida.

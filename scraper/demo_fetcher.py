@@ -12,7 +12,12 @@ from urllib.parse import urljoin, urlparse, parse_qs
 import cloudscraper
 from bs4 import BeautifulSoup
 
-from .config import DEMO_SERVERS, HFS_DOWNLOAD_BASE, OUTPUT_DIR, MAX_RETRIES, REQUEST_TIMEOUT, EXCLUDED_GAMEMODES
+from datetime import datetime, timezone, timedelta
+
+from .config import (
+    DEMO_SERVERS, HFS_DOWNLOAD_BASE, MONTHLY_DEMO_SERVERS, OUTPUT_DIR,
+    MAX_RETRIES, REQUEST_TIMEOUT, EXCLUDED_GAMEMODES,
+)
 from .server_discovery import load_discovered_servers
 
 logger = logging.getLogger(__name__)
@@ -192,6 +197,16 @@ def get_new_demo_urls() -> List[str]:
     for name, url in DEMO_SERVERS.items():
         if name not in servers and url not in discovered_urls:
             servers[name] = url
+
+    # Expand month-partitioned servers (e.g. TikTok War) into concrete folders for
+    # the current and previous month (covers the month rollover).
+    now = datetime.now(timezone.utc)
+    prev_month = now.replace(day=1) - timedelta(days=1)
+    months = [now.strftime("%Y_%m"), prev_month.strftime("%Y_%m")]
+    for name, base in MONTHLY_DEMO_SERVERS.items():
+        for m in months:
+            servers[f"{name} {m}"] = f"{base.rstrip('/')}/{m}/"
+
     logger.info("Total servers to scan: %d", len(servers))
 
     all_new_urls = []
