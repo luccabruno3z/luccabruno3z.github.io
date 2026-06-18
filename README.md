@@ -26,8 +26,9 @@ luccabruno3z.github.io/
 │       ├── rounds/            #     Rondas particionadas por dia + index.json
 │       ├── leaderboards/      #     Rankings precalculados (dia/semana/mes/todo)
 │       ├── player_rounds/     #     Timeline de rondas por jugador
-│       ├── player_details.json
-│       └── map_stats.json
+│       ├── player_details.json   #     Agregados por jugador (incl. kit_performance, gamemode_stats)
+│       ├── map_stats.json
+│       └── aliases.json          #     Nombres legibles de assets (kits/armas/vehiculos/mapas/modos)
 ├── guides/                    # Paginas de guias HTML
 └── logos/                     # Logos de clanes
 ```
@@ -47,7 +48,7 @@ luccabruno3z.github.io/
 - Rankings filtrables por clan y metrica
 - Predictor de partidas 8v8
 - Analisis de equipo y composicion de squad
-- Estadisticas de demos (rondas, mapas, rachas)
+- Estadisticas de demos (rondas, mapas, rachas) con **nombres legibles** de assets (kits, armas, vehiculos, mapas, modos) + kit y arma favoritos
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills)
 - **Historial de rondas por jugador** en su perfil de demos
@@ -61,7 +62,7 @@ luccabruno3z.github.io/
 ### Bot de Discord
 8 modulos (cogs):
 - `stats` — `-stats`, `-top10`, `-rival`, `-vs`
-- `detailed_stats` — `-demo`, `-advanced` (historial de rondas)
+- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos`, `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-advanced`
 - `compare` — `-compare` (analisis bulk de jugadores/clanes)
 - `charts` — `-graph` (graficos renderizados)
 - `tips` — `-tip` (150+ tips de gameplay)
@@ -71,10 +72,14 @@ luccabruno3z.github.io/
 
 ### Pipeline de Datos
 1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (28 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
-2. **Parsing** de archivos `.PRdemo` (formato binario BF2) de servidores LATAM
+2. **Parsing** de archivos `.PRdemo` (formato binario BF2) de varios servidores —
+   RealityBrasil, LATAMSQUAD, ARES Brasil, TikTok War y Russian Frontier — soportando
+   listados Apache planos, particionados por mes (`YYYY_MM/`) y la API JSON de HFS.
+   Descarga con reintentos/backoff; hosts inestables se difieren. Se **excluye gungame**.
 3. **Scoring** con normalizacion y clustering
-4. **Generacion** de JSONs, charts Plotly e historial de jugadores
-5. **Auto-discovery** de servidores con demos disponibles
+4. **Generacion** de JSONs, charts Plotly, historial, aliases de assets y agregados
+   por kit/gamemode
+5. **Auto-discovery** de servidores con demos + fuentes curadas en `scraper/config.py`
 
 ### Almacenamiento de rondas (escalable)
 Las rondas de demos se guardan **particionadas por dia** (`graphs/demos/rounds/<fecha>.json`)
@@ -92,6 +97,22 @@ Sobre esas rondas se precalculan:
   web leen un archivo de pocos KB en vez de procesar todo el historial.
 - **player_rounds/** — timeline por jugador (escritura por diff, sin churn).
 - **player_details.json** y **map_stats.json** — agregados por jugador y por mapa.
+
+### Humanizacion de assets (aliases)
+Los `.PRdemo` traen codes internos del juego (`mec_rifleman`, `rurif_ak74m_1p78`,
+`ru_jep_tigr_pkp`, `albasrah_2`, `gpm_cq`). `scraper/aliases.py` es la **fuente unica**
+que los traduce a nombres legibles en español (Fusilero, AK-74M (1P78), GAZ Tigr (PKP),
+Al Basrah, AAS); el scraper genera `graphs/demos/aliases.json` cada corrida y **la web
+y el bot lo consumen** (con fallback si falta). Las armas se agrupan por modelo, los
+kits por rol (sin caer en "Otro"), y el `?` (entorno) y armas de vehiculo se excluyen
+del "arma favorita".
+
+### Desempeño por kit y por modo
+- **kit_performance** (en `player_details.json`): K/D por kit, atribuyendo cada baja al
+  kit que el jugador tenia puesto en ese momento (solo rondas nuevas; se acumula). Se ve
+  en `-kits`.
+- **gamemode_stats**: rondas, K/D, KPR y winrate por modo (AAS, Insurgencia, Skirmish…),
+  calculado sobre toda la data. Se ve en `-winrate`.
 
 ## Clanes rastreados
 
@@ -123,7 +144,8 @@ Abrir `index.html` en un navegador o servir con cualquier servidor estatico.
 
 - **Frontend**: GitHub Pages (rama `main`)
 - **Bot**: Heroku / Railway (via `Procfile` o `nixpacks.toml`)
-- **Scraper**: GitHub Actions — corre cada hora, commitea datos actualizados a `main`
+- **Scraper**: GitHub Actions (cron programado; GitHub puede espaciar las corridas de
+  cron de alta frecuencia), commitea datos actualizados a `main`
 
 > **Nota:** los datos NO usan Git LFS (Pages sirve el puntero, no el contenido).
 > Si agregas datasets grandes, particionalos como `graphs/demos/rounds/`.
