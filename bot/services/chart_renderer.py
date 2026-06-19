@@ -266,9 +266,13 @@ def render_history_chart(
     dates: list[str],
     scores: list[float],
     kd_values: list | None = None,
+    bench_ps: float | None = None,
+    bench_kd: float | None = None,
+    bench_label: str = "Prom. top del clan",
 ) -> io.BytesIO:
     """Line chart of historical Performance Score (+ K/D en eje secundario) con
-    trend line y fechas formateadas. `kd_values` tolera None (snapshots viejos)."""
+    trend line y fechas formateadas. `kd_values` tolera None (snapshots viejos).
+    `bench_ps`/`bench_kd` dibujan lineas horizontales de referencia (benchmark)."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
     fig.patch.set_facecolor("#121212")
@@ -332,23 +336,33 @@ def render_history_chart(
     ax.tick_params(axis="y", colors="#00FFFF")
     ax.grid(True, linestyle="--", color="gray", alpha=0.2)
 
+    # Benchmark del clan en PS (linea horizontal de referencia, eje izquierdo).
+    if bench_ps is not None:
+        ax.axhline(bench_ps, color="#9AD0FF", linestyle=":", linewidth=1.5,
+                   alpha=0.85, label=f"{bench_label} (PS)")
+
     handles, labels = ax.get_legend_handles_labels()
 
-    # Segunda serie: K/D en eje derecho (escala distinta). Tolera huecos (None) de
-    # snapshots viejos que no guardaban K/D.
-    if kd_values is not None and any(v is not None for v in kd_values):
-        kd_arr = np.array([np.nan if v is None else float(v) for v in kd_values], dtype=float)
+    # Segunda serie/eje: K/D a la derecha (escala distinta). Se crea si hay datos de
+    # K/D o un benchmark de K/D. Tolera huecos (None) de snapshots viejos.
+    has_kd = kd_values is not None and any(v is not None for v in kd_values)
+    if has_kd or bench_kd is not None:
         ax2 = ax.twinx()
-        ax2.plot(x_numeric, kd_arr, marker=marker_style, color="#FFD700",
-                 linewidth=2, markersize=marker_size, label="K/D Ratio")
         ax2.set_ylabel("K/D Ratio", color="#FFD700")
         ax2.tick_params(axis="y", colors="#FFD700")
+        if has_kd:
+            kd_arr = np.array([np.nan if v is None else float(v) for v in kd_values], dtype=float)
+            ax2.plot(x_numeric, kd_arr, marker=marker_style, color="#FFD700",
+                     linewidth=2, markersize=marker_size, label="K/D Ratio")
+        if bench_kd is not None:
+            ax2.axhline(bench_kd, color="#FFC04D", linestyle=":", linewidth=1.5,
+                        alpha=0.85, label=f"{bench_label} (K/D)")
         h2, l2 = ax2.get_legend_handles_labels()
         handles += h2
         labels += l2
 
     if handles:
-        ax.legend(handles, labels, loc="upper left", fontsize=9)
+        ax.legend(handles, labels, loc="upper left", fontsize=8)
 
     return _save_to_buffer(fig)
 
