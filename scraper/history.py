@@ -51,6 +51,7 @@ def update_history(df: pd.DataFrame) -> None:
     for _, row in df.iterrows():
         player_name = row["Player"]
         score = row["Performance Score"]
+        kd = round(float(row.get("K/D Ratio", 0) or 0), 4)
         safe_name = safe_filename(player_name)
         filepath = os.path.join(HISTORY_DIR, f"{safe_name}_history.json")
 
@@ -64,6 +65,7 @@ def update_history(df: pd.DataFrame) -> None:
             if entry_date[:10] == today_str:
                 entry["Date"] = today_str
                 entry["Performance Score"] = score
+                entry["K/D Ratio"] = kd
                 entry["scoring_version"] = "v3"
                 found = True
                 updated_count += 1
@@ -73,6 +75,7 @@ def update_history(df: pd.DataFrame) -> None:
             history.append({
                 "Date": today_str,
                 "Performance Score": score,
+                "K/D Ratio": kd,
                 "scoring_version": "v3",
             })
             created_count += 1

@@ -265,8 +265,10 @@ def render_history_chart(
     player_name: str,
     dates: list[str],
     scores: list[float],
+    kd_values: list | None = None,
 ) -> io.BytesIO:
-    """Line chart of historical performance with trend line and formatted dates."""
+    """Line chart of historical Performance Score (+ K/D en eje secundario) con
+    trend line y fechas formateadas. `kd_values` tolera None (snapshots viejos)."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
     fig.patch.set_facecolor("#121212")
@@ -307,11 +309,12 @@ def render_history_chart(
     marker_size = 6 if n_pts <= 30 else (3 if n_pts <= 60 else 1)
     marker_style = "o" if n_pts <= 60 else ""
 
-    ax.plot(x_numeric, scores, marker=marker_style, color="#00FFFF", linewidth=2, markersize=marker_size)
+    ax.plot(x_numeric, scores, marker=marker_style, color="#00FFFF", linewidth=2,
+            markersize=marker_size, label="Performance Score")
 
-    ax.set_title(f"Performance Score Historico de {player_name}", color="white", fontsize=13)
+    ax.set_title(f"Historial de {player_name}", color="white", fontsize=13)
     ax.set_xlabel("Fecha", color="white")
-    ax.set_ylabel("Performance Score", color="white")
+    ax.set_ylabel("Performance Score", color="#00FFFF")
 
     # Smart X-axis: limit to ~15 evenly spaced ticks max
     max_ticks = min(n_pts, 15)
@@ -326,10 +329,26 @@ def render_history_chart(
         ax.set_xticks(x_numeric)
         ax.set_xticklabels(formatted_dates, rotation=45, ha="right", color="white")
 
-    ax.tick_params(axis="y", colors="white")
+    ax.tick_params(axis="y", colors="#00FFFF")
     ax.grid(True, linestyle="--", color="gray", alpha=0.2)
-    if len(scores) >= 2:
-        ax.legend(loc="upper left", fontsize=9)
+
+    handles, labels = ax.get_legend_handles_labels()
+
+    # Segunda serie: K/D en eje derecho (escala distinta). Tolera huecos (None) de
+    # snapshots viejos que no guardaban K/D.
+    if kd_values is not None and any(v is not None for v in kd_values):
+        kd_arr = np.array([np.nan if v is None else float(v) for v in kd_values], dtype=float)
+        ax2 = ax.twinx()
+        ax2.plot(x_numeric, kd_arr, marker=marker_style, color="#FFD700",
+                 linewidth=2, markersize=marker_size, label="K/D Ratio")
+        ax2.set_ylabel("K/D Ratio", color="#FFD700")
+        ax2.tick_params(axis="y", colors="#FFD700")
+        h2, l2 = ax2.get_legend_handles_labels()
+        handles += h2
+        labels += l2
+
+    if handles:
+        ax.legend(handles, labels, loc="upper left", fontsize=9)
 
     return _save_to_buffer(fig)
 

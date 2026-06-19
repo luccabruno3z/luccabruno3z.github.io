@@ -148,6 +148,8 @@ class Charts(commands.Cog):
 
             dates = [entry["Date"] for entry in history_data]
             scores = [entry["Performance Score"] for entry in history_data]
+            # K/D por snapshot (None en los viejos que no lo guardaban → hueco en el grafico)
+            kd_values = [entry.get("K/D Ratio") for entry in history_data]
 
             if len(scores) < 2:
                 embed = discord.Embed(
@@ -164,7 +166,7 @@ class Charts(commands.Cog):
                 await ctx.send(embed=embed)
                 return
 
-            buf = render_history_chart(jugador, dates, scores)
+            buf = render_history_chart(jugador, dates, scores, kd_values=kd_values)
             file = discord.File(buf, filename=f"{safe_name}_history_chart.png")
 
             # Summary stats
