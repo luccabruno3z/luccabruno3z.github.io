@@ -444,6 +444,17 @@ def _aggregate_player_details(
                     "seat_kills": {},                  # asiento → kills (artillero/conductor/piloto…)
                     "rounds_in_squad": 0,              # rondas en una escuadra (squad>0)
                     "rounds_with_squad_data": 0,       # denominador (solo rondas nuevas con dato de squad)
+                    # Métricas nuevas (se acumulan desde las rondas nuevas):
+                    "total_teamkills": 0,
+                    "total_suicides_demo": 0,
+                    "total_clutch_kills": 0,
+                    "total_first_bloods": 0,
+                    "best_killstreak": 0,              # máximo entre rondas
+                    "alive_seconds": 0.0,             # tiempo vivo acumulado
+                    "lives": 0,                        # vidas completadas (para vida promedio)
+                    "cohesion_sum": 0.0,              # distancia al centroide de su escuadra
+                    "cohesion_samples": 0,
+                    "played_seconds": 0.0,            # duración de las rondas jugadas (para kills/min)
                     "maps_played": {},
                     # New fields
                     "wins": 0,
@@ -521,6 +532,19 @@ def _aggregate_player_details(
                 p["rounds_with_squad_data"] += 1
                 if pdata["squad"]:
                     p["rounds_in_squad"] += 1
+            # Métricas nuevas (rondas nuevas; .get tolera las viejas).
+            p["total_teamkills"] += pdata.get("teamkills", 0)
+            p["total_suicides_demo"] += pdata.get("suicides", 0)
+            p["total_clutch_kills"] += pdata.get("clutch_kills", 0)
+            p["total_first_bloods"] += pdata.get("first_blood", 0)
+            p["best_killstreak"] = max(p["best_killstreak"], pdata.get("best_killstreak", 0))
+            _tpt = round_data.get("demo_time_per_tick", 0) or 0
+            p["alive_seconds"] += pdata.get("alive_ticks", 0) * _tpt
+            p["lives"] += pdata.get("life_count", 0)
+            p["cohesion_sum"] += pdata.get("cohesion_sum", 0)
+            p["cohesion_samples"] += pdata.get("cohesion_samples", 0)
+            if round_data.get("duration_seconds"):
+                p["played_seconds"] += round_data["duration_seconds"]
 
             p["maps_played"][round_map] = p["maps_played"].get(round_map, 0) + 1
 
@@ -712,6 +736,7 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
                 "total_vehicles_destroyed": 0,
                 "avg_tickets1_final": [],
                 "avg_tickets2_final": [],
+                "_durations": [],  # segundos de cada ronda (solo rondas nuevas)
             }
 
         m = maps[key]
@@ -719,6 +744,8 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
         m["total_kills"] += round_data.get("total_kills", 0)
         m["total_revives"] += round_data.get("total_revives", 0)
         m["total_vehicles_destroyed"] += round_data.get("total_vehicles_destroyed", 0)
+        if round_data.get("duration_seconds"):
+            m["_durations"].append(round_data["duration_seconds"])
 
         winner = round_data.get("winner", -1)
         if winner == 1:
@@ -736,6 +763,8 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
         t2 = m.pop("avg_tickets2_final")
         m["avg_tickets1_final"] = sum(t1) / len(t1) if t1 else 0
         m["avg_tickets2_final"] = sum(t2) / len(t2) if t2 else 0
+        durs = m.pop("_durations")
+        m["avg_duration_seconds"] = round(sum(durs) / len(durs), 1) if durs else 0
         result.append(m)
 
     return sorted(result, key=lambda m: m["rounds_played"], reverse=True)

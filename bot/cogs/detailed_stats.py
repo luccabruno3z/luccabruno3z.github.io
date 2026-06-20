@@ -413,6 +413,12 @@ class DetailedStats(commands.Cog):
         embed.add_field(name="Rondas jugadas", value=f"**{total}**", inline=True)
         embed.add_field(name="Kills promedio/ronda", value=f"**{avg_kills:.0f}**", inline=True)
         embed.add_field(name="Revives totales", value=f"**{format_number(found['total_revives'])}**", inline=True)
+        avg_dur = found.get("avg_duration_seconds", 0)
+        if avg_dur:
+            avg_dur = int(avg_dur)
+            kpm = (avg_kills / (avg_dur / 60)) if avg_dur else 0
+            embed.add_field(name="Duración promedio", value=f"**{avg_dur // 60}m {avg_dur % 60:02d}s**", inline=True)
+            embed.add_field(name="Kills/min", value=f"**{kpm:.1f}**", inline=True)
         embed.add_field(name="Vehículos destruidos", value=f"**{format_number(found['total_vehicles_destroyed'])}**", inline=True)
         embed.add_field(
             name="Tickets promedio al final",
@@ -1008,6 +1014,13 @@ class DetailedStats(commands.Cog):
         if sq_rounds:
             sq_pct = player.get("rounds_in_squad", 0) / sq_rounds * 100
             lines.append(f"👥 En escuadra: **{sq_pct:.0f}%** de las rondas ({sq_rounds} con dato)")
+        # Cohesión de escuadra: distancia media al centroide de su squad (menor = más juntos).
+        coh_n = player.get("cohesion_samples", 0)
+        if coh_n >= 20:
+            coh = player.get("cohesion_sum", 0) / coh_n
+            label = ("muy unida" if coh < 150 else "unida" if coh < 300
+                     else "dispersa" if coh < 600 else "muy dispersa")
+            lines.append(f"🧭 Cohesión de escuadra: **{label}** ({coh:.0f}m al centro)")
 
         # Compare vs benchmarks
         lines.append("\n**Comparación vs benchmark:**")
@@ -1034,6 +1047,80 @@ class DetailedStats(commands.Cog):
         embed.set_footer(text=f"Datos de {rounds} rondas | {standard_footer()}")
         view = ExplainView("teamwork")
         await ctx.send(embed=embed, file=file, view=view)
+
+    # ── -combate <jugador> ────────────────────────────────────────────
+
+    @commands.hybrid_command(
+        name="combate",
+        aliases=["combat", "ritmo"],
+        description="Ritmo y combate: racha, clutch, first blood, vida promedio, disciplina (demos)",
+    )
+    @app_commands.describe(jugador="Nombre del jugador")
+    @app_commands.autocomplete(jugador=demo_player_autocomplete)
+    async def combate(self, ctx: commands.Context, *, jugador: str):
+        """Métricas de combate fino extraídas de las demos: rachas, clutch, first
+        blood, vida promedio, kills/min y disciplina (teamkills/suicidios)."""
+        if self._check_mode(ctx):
+            await ctx.send("⚠️ Estos comandos requieren modo **Demos** o **Combinado**. Usá `-ayuda` para cambiar el modo.")
+            return
+        data = await self.fetcher.fetch_player_details()
+        player = _find_demo_player(data, jugador)
+        if not player:
+            await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        streak = player.get("best_killstreak", 0)
+        clutch = player.get("total_clutch_kills", 0)
+        first_bloods = player.get("total_first_bloods", 0)
+        teamkills = player.get("total_teamkills", 0)
+        suicides = player.get("total_suicides_demo", 0)
+        alive_s = player.get("alive_seconds", 0)
+        lives = player.get("lives", 0)
+        total_kills = player.get("total_kills", 0)
+
+        # Estas métricas se acumulan desde las rondas nuevas (parser actualizado).
+        has_data = any((streak, clutch, first_bloods, teamkills, suicides, lives))
+        if not has_data:
+            await ctx.send(
+                f"⏳ **{player['ign']}** todavía no tiene métricas de combate fino. "
+                "Se calculan desde las partidas nuevas — probá en unos días."
+            )
+            return
+
+        def _mmss(s):
+            s = int(s)
+            return f"{s // 60}m {s % 60:02d}s"
+
+        lines = []
+        # ⏱️ Ritmo
+        if lives:
+            avg_life = alive_s / lives
+            kpm_alive = total_kills / (alive_s / 60) if alive_s else 0
+            lines.append(f"⏱️ **Vida promedio:** {_mmss(avg_life)} ({lives} vidas)")
+            lines.append(f"🎯 **Kills/min (con vida):** {kpm_alive:.2f}")
+        # 🔥 Highlights
+        lines.append(f"🔥 **Mejor racha:** {streak} kills sin morir")
+        if first_bloods:
+            lines.append(f"🩸 **First bloods:** {first_bloods}")
+        if clutch:
+            lines.append(f"💥 **Kills clutch:** {clutch} (con el equipo a <25 tickets)")
+        # 🎖️ Disciplina
+        disc = []
+        if teamkills:
+            disc.append(f"🔫 Teamkills: **{teamkills}**")
+        if suicides:
+            disc.append(f"💀 Suicidios: **{suicides}**")
+        if disc:
+            lines.append("🎖️ **Disciplina:** " + " · ".join(disc))
+
+        embed = discord.Embed(
+            title=f"⚔️ Combate de {player['ign']}",
+            description="\n".join(lines),
+            color=discord.Color.dark_red(),
+        )
+        embed.set_thumbnail(url=BOT_THUMBNAIL)
+        embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
+        await ctx.send(embed=embed)
 
     # ── -clan_fortalezas <clan> ───────────────────────────────────────
 

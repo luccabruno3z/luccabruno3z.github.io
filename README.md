@@ -62,7 +62,7 @@ luccabruno3z.github.io/
 ### Bot de Discord
 8 modulos (cogs):
 - `stats` — `-stats`, `-top10`, `-rival`, `-vs`
-- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-advanced`
+- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-combate` (racha/clutch/first blood/vida promedio/disciplina), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-teamwork` (+ cohesión de escuadra), `-advanced`
 - `compare` — `-compare` (analisis bulk de jugadores/clanes)
 - `charts` — `-graph` (graficos renderizados)
 - `tips` — `-tip` (150+ tips de gameplay)
@@ -138,6 +138,17 @@ desde las rondas nuevas):
   ya (las demos se borran tras procesarse) para un **heatmap por mapa** a futuro en la web.
 - **Logger de mensajes desconocidos**: el decoder cuenta los `msg_type` que el protocolo
   no reconoce y los loguea, para descubrir contenido nuevo de versiones recientes de PR.
+
+### Combate fino, tiempo y cohesion (`-combate`, `-teamwork`, `-mapa`)
+Más señales por jugador, todas acumuladas desde las rondas nuevas:
+- **Duración de ronda**: el mensaje TICKS se leía como uint16 cuando es uint8 → se
+  descartaba y `duration_ticks` quedaba en 0. Corregido: `duration_seconds =
+  nº de TICKS × demo_time_per_tick`. Habilita **kills/min** y duración por mapa (`-mapa`).
+- **Vida promedio** y **kills/min con vida**: de las transiciones `is_alive`. (`-combate`)
+- **Mejor racha** (kills sin morir), **first blood**, **kills clutch** (con el equipo a
+  ≤25 tickets), **teamkills/suicidios por jugador**. (`-combate`)
+- **Cohesión de escuadra**: distancia media de cada jugador al centroide de su squad,
+  muestreada cada ~10s (menor = más unidos). (`-teamwork`)
 
 ## Clanes rastreados
 

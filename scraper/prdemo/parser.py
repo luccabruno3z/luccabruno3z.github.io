@@ -56,6 +56,15 @@ class PlayerStats:
     seat_kills: Dict[str, int] = field(default_factory=dict)  # asiento (gunner/driver/pilot…) -> kills
     vehicles_destroyed_by_type: Dict[str, int] = field(default_factory=dict)  # vehículo destruido -> veces
     squad: int = 0  # escuadra predominante en la ronda (0 = sin escuadra)
+    teamkills: int = 0       # bajas a compañeros cometidas por este jugador
+    suicides: int = 0        # suicidios de este jugador
+    best_killstreak: int = 0  # mayor racha de kills sin morir en la ronda
+    first_blood: int = 0     # 1 si logró la primera baja de la ronda
+    clutch_kills: int = 0    # bajas con el equipo propio con pocos tickets (<=25)
+    alive_ticks: int = 0     # ticks con vida (entre spawn y muerte)
+    life_count: int = 0      # vidas completadas (para "vida promedio")
+    cohesion_sum: float = 0.0  # suma de distancias al centroide de su escuadra
+    cohesion_samples: int = 0  # muestras tomadas (para promediar cohesión)
 
 
 @dataclass
@@ -78,7 +87,9 @@ class RoundStats:
     tickets2_final: int = 0
     tickets1_start: int = 0
     tickets2_start: int = 0
-    duration_ticks: int = 0
+    duration_ticks: int = 0        # cantidad de mensajes TICKS (1 = un frame de demo)
+    demo_time_per_tick: float = 0.0  # segundos por tick (de ServerDetails)
+    duration_seconds: float = 0.0    # duración real = duration_ticks * demo_time_per_tick
 
     # Per-player stats
     players: Dict[int, PlayerStats] = field(default_factory=dict)
@@ -113,6 +124,8 @@ class RoundStats:
             "tickets1_start": self.tickets1_start,
             "tickets2_start": self.tickets2_start,
             "duration_ticks": self.duration_ticks,
+            "demo_time_per_tick": self.demo_time_per_tick,
+            "duration_seconds": self.duration_seconds,
             "total_kills": self.total_kills,
             "total_revives": self.total_revives,
             "total_vehicles_destroyed": self.total_vehicles_destroyed,
@@ -139,6 +152,15 @@ class RoundStats:
                     "vehicles_destroyed_by_type": ps.vehicles_destroyed_by_type,
                     "seat_kills": ps.seat_kills,
                     "squad": ps.squad,
+                    "teamkills": ps.teamkills,
+                    "suicides": ps.suicides,
+                    "best_killstreak": ps.best_killstreak,
+                    "first_blood": ps.first_blood,
+                    "clutch_kills": ps.clutch_kills,
+                    "alive_ticks": ps.alive_ticks,
+                    "life_count": ps.life_count,
+                    "cohesion_sum": round(ps.cohesion_sum, 1),
+                    "cohesion_samples": ps.cohesion_samples,
                     "flags_captured": ps.flags_captured,
                     "kill_weapons": ps.kill_weapons,
                     "death_weapons": ps.death_weapons,
@@ -159,9 +181,16 @@ def parse_demo(reader: DemoReader) -> RoundStats:
     player_seats: Dict[int, str] = {}  # player_id -> asiento actual (gunner/driver/pilot…)
     last_kit: Dict[int, str] = {}  # player_id -> último kit conocido (para contar solo cambios)
     last_pos: Dict[int, tuple] = {}  # player_id -> última posición (x,y,z) conocida
-    squad_counts: Dict[int, Dict[int, int]] = defaultdict(lambda: defaultdict(int))  # pid -> {squad: veces}
+    last_squad: Dict[int, int] = {}  # player_id -> escuadra actual (0 = sin escuadra)
+    ever_squad: Dict[int, bool] = {}  # pid -> alguna vez estuvo en una escuadra
+    killstreak: Dict[int, int] = defaultdict(int)  # pid -> racha actual de kills sin morir
+    spawn_tick: Dict[int, int] = {}  # pid -> tick en que revivió/spawneó (para tiempo vivo)
     flag_owners: Dict[int, int] = {}  # cp_id -> team
-    total_ticks = 0
+    total_ticks = 0       # cantidad de mensajes TICKS (frames de demo)
+    first_blood_done = False
+    last_cohesion_tick = -1000
+    COHESION_EVERY = 33   # muestrear cohesión ~cada 33 frames (~10s)
+    CLUTCH_TICKETS = 25   # umbral de tickets propios para considerar una baja "clutch"
     tickets1_latest = 0
     tickets2_latest = 0
 
@@ -197,6 +226,7 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             stats.map_size = sd.map_size
             stats.tickets1_start = sd.tickets1
             stats.tickets2_start = sd.tickets2
+            stats.demo_time_per_tick = sd.demo_time_per_tick
 
         # ── Player Add ───────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.PLAYER_ADD:
@@ -230,9 +260,20 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                     ps.kits_used[pu.kit_name] = ps.kits_used.get(pu.kit_name, 0) + 1
                     last_kit[pu.id] = pu.kit_name
                 if pu.squad is not None:
-                    squad_counts[pu.id][pu.squad] += 1
+                    last_squad[pu.id] = pu.squad
+                    if pu.squad:
+                        ever_squad[pu.id] = True
                 if pu.position is not None:
                     last_pos[pu.id] = (pu.position.x, pu.position.y, pu.position.z)
+                # is_alive solo llega en transiciones (spawn/muerte) → mide tiempo vivo.
+                if pu.is_alive is not None:
+                    if pu.is_alive:
+                        spawn_tick[pu.id] = total_ticks
+                    else:
+                        st_ = spawn_tick.pop(pu.id, None)
+                        if st_ is not None:
+                            ps.alive_ticks += max(0, total_ticks - st_)
+                            ps.life_count += 1
                 # vehicle.id >= 0 → subió a un vehículo; id < 0 → se bajó.
                 # Antes solo se registraba la subida y nunca la bajada, así que las
                 # kills a pie tras desmontar (p.ej. de un camión de logística) se
@@ -263,8 +304,10 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                            and attacker.team != -1 and attacker.team == victim_ps.team)
             if is_suicide:
                 stats.total_suicides += 1
+                attacker.suicides += 1
             elif is_teamkill:
                 stats.total_teamkills += 1
+                attacker.teamkills += 1
 
             # Desempeño por kit: atribuir la baja al kit que el atacante tenía puesto
             # (solo frags reales, no suicidio ni teamkill). Best-effort: requiere
@@ -277,6 +320,19 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 aseat = player_seats.get(kill.attacker_id)
                 if aseat:
                     attacker.seat_kills[aseat] = attacker.seat_kills.get(aseat, 0) + 1
+                # Racha de kills sin morir (mejor de la ronda).
+                killstreak[kill.attacker_id] += 1
+                if killstreak[kill.attacker_id] > attacker.best_killstreak:
+                    attacker.best_killstreak = killstreak[kill.attacker_id]
+                # First blood: primera baja real de la ronda.
+                if not first_blood_done:
+                    attacker.first_blood = 1
+                    first_blood_done = True
+                # Clutch: baja con el equipo propio sangrando (pocos tickets).
+                team_tickets = tickets1_latest if attacker.team == 1 else (
+                    tickets2_latest if attacker.team == 2 else None)
+                if team_tickets is not None and 0 < team_tickets <= CLUTCH_TICKETS:
+                    attacker.clutch_kills += 1
 
             # Track vehicle kills
             if kill.attacker_id in player_vehicles:
@@ -294,6 +350,7 @@ def parse_demo(reader: DemoReader) -> RoundStats:
 
             victim = get_player(kill.victim_id)
             victim.death_weapons[kill.weapon] = victim.death_weapons.get(kill.weapon, 0) + 1
+            killstreak[kill.victim_id] = 0  # murió → se corta su racha
             # Muerte atribuida al kit que la víctima tenía puesto.
             vkit = last_kit.get(kill.victim_id)
             if vkit:
@@ -355,7 +412,30 @@ def parse_demo(reader: DemoReader) -> RoundStats:
 
         # ── Ticks ────────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.TICKS:
-            total_ticks += decoded.ticks
+            total_ticks += 1  # cada mensaje TICKS = un frame de demo
+            # Cohesión de escuadra: cada ~COHESION_EVERY frames, agrupar a los
+            # jugadores por (equipo, escuadra) y medir la distancia de cada uno al
+            # centroide de su escuadra (menor = más juntos).
+            if total_ticks - last_cohesion_tick >= COHESION_EVERY:
+                last_cohesion_tick = total_ticks
+                groups: Dict[tuple, list] = defaultdict(list)
+                for pid, pos in last_pos.items():
+                    sq = last_squad.get(pid, 0)
+                    if not sq:
+                        continue
+                    pp = stats.players.get(pid)
+                    if pp is None or pp.team == -1:
+                        continue
+                    groups[(pp.team, sq)].append((pid, pos))
+                for members in groups.values():
+                    if len(members) < 2:
+                        continue
+                    cx = sum(p[1][0] for p in members) / len(members)
+                    cz = sum(p[1][2] for p in members) / len(members)
+                    for pid, pos in members:
+                        d = ((pos[0] - cx) ** 2 + (pos[2] - cz) ** 2) ** 0.5
+                        stats.players[pid].cohesion_sum += d
+                        stats.players[pid].cohesion_samples += 1
 
         # ── Round End ────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.ROUND_END:
@@ -380,11 +460,19 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             stats.winner = 2  # team 2 (opfor) wins
 
     stats.duration_ticks = total_ticks
+    stats.duration_seconds = round(total_ticks * stats.demo_time_per_tick, 1)
 
-    # Escuadra predominante de cada jugador en la ronda (la más vista).
-    for pid, counts in squad_counts.items():
-        if counts and pid in stats.players:
-            stats.players[pid].squad = max(counts, key=counts.get)
+    # Cerrar las vidas que seguían abiertas al final (spawn sin muerte registrada).
+    for pid, st_ in spawn_tick.items():
+        if pid in stats.players:
+            stats.players[pid].alive_ticks += max(0, total_ticks - st_)
+            stats.players[pid].life_count += 1
+
+    # Escuadra de cada jugador: la última conocida; si alguna vez estuvo en una
+    # pero terminó solo, marcamos 1 para no perder el "jugó en escuadra".
+    for pid in set(last_squad) | set(ever_squad):
+        if pid in stats.players:
+            stats.players[pid].squad = last_squad.get(pid, 0) or (1 if ever_squad.get(pid) else 0)
 
     # Reportar tipos de mensaje no reconocidos (descubrir contenido nuevo de PR).
     if reader.unknown_types:

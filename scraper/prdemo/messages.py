@@ -576,7 +576,9 @@ class Ticks:
 
 
 def decode_ticks(r: BinReader) -> Ticks:
-    return Ticks(ticks=r.read_uint16())
+    # El payload de TICKS es 1 byte (uint8), no 2. Leerlo como uint16 lanzaba
+    # EOFError → el mensaje se descartaba y duration_ticks quedaba en 0.
+    return Ticks(ticks=r.read_uint8())
 
 
 # ── Projectile Add (0x91) ───────────────────────────────────────────────────
