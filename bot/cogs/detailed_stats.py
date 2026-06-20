@@ -11,7 +11,7 @@ from bot.assets.kit_mapping import (
     get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name,
     clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon,
     clean_gamemode, weapon_vehicle_name, weapon_vclass, is_vehicle_kill,
-    weapon_vtype, weapon_category,
+    weapon_vtype, weapon_category, clean_seat,
 )
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
@@ -185,8 +185,12 @@ class DetailedStats(commands.Cog):
                                    exclude=lambda c: not is_vehicle_kill(c))
         veh_total = sum(c for w, c in kw.items() if is_vehicle_kill(w))
         empl_total = sum(c for w, c in kw.items() if weapon_vclass(w) == "emplacement")
-        # Sección 2 — Vehículos destruidos (anti-vehículo): el conteo de siempre.
+        # Sección 2 — Vehículos destruidos (anti-vehículo): conteo + desglose por tipo.
         destroyed = player.get("total_vehicles_destroyed", 0)
+        destroyed_by_type = _top_named(player.get("vehicles_destroyed_by_type", {}),
+                                       clean_vehicle_name, 5)
+        # Sección 3 — Kills por asiento (artillero/conductor/piloto…).
+        seat_kills = _top_named(player.get("seat_kills", {}), clean_seat, 6)
 
         if not vehicle_kills and destroyed == 0 and empl_total == 0:
             await ctx.send(f"**{player['ign']}** no tiene datos de vehículos registrados.")
@@ -197,12 +201,11 @@ class DetailedStats(commands.Cog):
             color=discord.Color.dark_green(),
         )
 
-        # 🔥 Vehículos destruidos
-        embed.add_field(
-            name="🔥 Vehículos destruidos",
-            value=f"**{destroyed}** vehículos enemigos destruidos",
-            inline=False,
-        )
+        # 🔥 Vehículos destruidos (+ desglose por tipo si hay)
+        destroyed_value = f"**{destroyed}** vehículos enemigos destruidos"
+        if destroyed_by_type:
+            destroyed_value += "\n" + ", ".join(f"{v} ({c})" for v, c in destroyed_by_type)
+        embed.add_field(name="🔥 Vehículos destruidos", value=destroyed_value, inline=False)
 
         file = None
         if vehicle_kills:
@@ -221,6 +224,14 @@ class DetailedStats(commands.Cog):
             embed.add_field(
                 name="🎯 Kills con emplazamientos",
                 value=f"**{empl_total}** kills con armas emplazadas/estáticas",
+                inline=False,
+            )
+
+        # 🪖 Kills por asiento (artillero/conductor/piloto…) — desde rondas nuevas.
+        if seat_kills:
+            embed.add_field(
+                name="🪖 Kills por asiento",
+                value=", ".join(f"**{s}** ({c})" for s, c in seat_kills),
                 inline=False,
             )
 
@@ -990,6 +1001,13 @@ class DetailedStats(commands.Cog):
             f"**Teamwork Index:** **{tw_index:.0f}/100**",
             f"  (40% tw_ratio + 30% revives + 30% flags, normalizado)",
         ]
+
+        # % de rondas jugadas en escuadra (vs lobo solitario). Solo rondas nuevas
+        # traen el dato de escuadra, por eso el denominador es aparte.
+        sq_rounds = player.get("rounds_with_squad_data", 0)
+        if sq_rounds:
+            sq_pct = player.get("rounds_in_squad", 0) / sq_rounds * 100
+            lines.append(f"👥 En escuadra: **{sq_pct:.0f}%** de las rondas ({sq_rounds} con dato)")
 
         # Compare vs benchmarks
         lines.append("\n**Comparación vs benchmark:**")

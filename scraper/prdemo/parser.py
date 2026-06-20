@@ -22,6 +22,7 @@ from .messages import (
     VehicleAdd,
     VehicleDestroyed,
     FlagUpdate,
+    SquadName,
     RoundEnd,
     Ticks,
     Tickets,
@@ -52,6 +53,9 @@ class PlayerStats:
     death_weapons: Dict[str, int] = field(default_factory=dict)  # weapon -> count
     kit_kills: Dict[str, int] = field(default_factory=dict)   # kit_name -> kills logradas con ese kit
     kit_deaths: Dict[str, int] = field(default_factory=dict)  # kit_name -> muertes sufridas con ese kit
+    seat_kills: Dict[str, int] = field(default_factory=dict)  # asiento (gunner/driver/pilot…) -> kills
+    vehicles_destroyed_by_type: Dict[str, int] = field(default_factory=dict)  # vehículo destruido -> veces
+    squad: int = 0  # escuadra predominante en la ronda (0 = sin escuadra)
 
 
 @dataclass
@@ -87,6 +91,11 @@ class RoundStats:
     total_teamkills: int = 0   # bajas a compañeros (no cuentan para el marcador)
     total_suicides: int = 0    # atacante == víctima
 
+    # Nombres de escuadras vistos (clave cruda team_squad → nombre).
+    squad_names: Dict[int, str] = field(default_factory=dict)
+    # Posiciones de muertes para heatmaps por mapa: [x, z, equipo_victima] por kill.
+    kill_positions: List[list] = field(default_factory=list)
+
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a JSON-compatible dict."""
         return {
@@ -110,6 +119,8 @@ class RoundStats:
             "total_flags_captured": self.total_flags_captured,
             "total_teamkills": self.total_teamkills,
             "total_suicides": self.total_suicides,
+            "squad_names": self.squad_names,
+            "kill_positions": self.kill_positions,
             "players": {
                 pid: {
                     "ign": ps.ign,
@@ -125,6 +136,9 @@ class RoundStats:
                     "kit_deaths": ps.kit_deaths,
                     "vehicle_kills": ps.vehicle_kills,
                     "vehicles_destroyed": ps.vehicles_destroyed,
+                    "vehicles_destroyed_by_type": ps.vehicles_destroyed_by_type,
+                    "seat_kills": ps.seat_kills,
+                    "squad": ps.squad,
                     "flags_captured": ps.flags_captured,
                     "kill_weapons": ps.kill_weapons,
                     "death_weapons": ps.death_weapons,
@@ -142,7 +156,10 @@ def parse_demo(reader: DemoReader) -> RoundStats:
     player_names: Dict[int, str] = {}  # player_id -> ign
     vehicle_names: Dict[int, str] = {}  # vehicle_id -> name
     player_vehicles: Dict[int, int] = {}  # player_id -> vehicle_id
+    player_seats: Dict[int, str] = {}  # player_id -> asiento actual (gunner/driver/pilot…)
     last_kit: Dict[int, str] = {}  # player_id -> último kit conocido (para contar solo cambios)
+    last_pos: Dict[int, tuple] = {}  # player_id -> última posición (x,y,z) conocida
+    squad_counts: Dict[int, Dict[int, int]] = defaultdict(lambda: defaultdict(int))  # pid -> {squad: veces}
     flag_owners: Dict[int, int] = {}  # cp_id -> team
     total_ticks = 0
     tickets1_latest = 0
@@ -212,6 +229,10 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 if pu.kit_name and last_kit.get(pu.id) != pu.kit_name:
                     ps.kits_used[pu.kit_name] = ps.kits_used.get(pu.kit_name, 0) + 1
                     last_kit[pu.id] = pu.kit_name
+                if pu.squad is not None:
+                    squad_counts[pu.id][pu.squad] += 1
+                if pu.position is not None:
+                    last_pos[pu.id] = (pu.position.x, pu.position.y, pu.position.z)
                 # vehicle.id >= 0 → subió a un vehículo; id < 0 → se bajó.
                 # Antes solo se registraba la subida y nunca la bajada, así que las
                 # kills a pie tras desmontar (p.ej. de un camión de logística) se
@@ -219,8 +240,11 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 if pu.vehicle is not None:
                     if pu.vehicle.id >= 0:
                         player_vehicles[pu.id] = pu.vehicle.id
+                        if pu.vehicle.seat_name:
+                            player_seats[pu.id] = pu.vehicle.seat_name
                     else:
                         player_vehicles.pop(pu.id, None)
+                        player_seats.pop(pu.id, None)
 
         # ── Kill ─────────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.KILL:
@@ -249,12 +273,24 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 akit = last_kit.get(kill.attacker_id)
                 if akit:
                     attacker.kit_kills[akit] = attacker.kit_kills.get(akit, 0) + 1
+                # Kills por asiento del vehículo (artillero/conductor/piloto…).
+                aseat = player_seats.get(kill.attacker_id)
+                if aseat:
+                    attacker.seat_kills[aseat] = attacker.seat_kills.get(aseat, 0) + 1
 
             # Track vehicle kills
             if kill.attacker_id in player_vehicles:
                 v_id = player_vehicles[kill.attacker_id]
                 v_name = vehicle_names.get(v_id, f"Vehicle_{v_id}")
                 attacker.vehicle_kills[v_name] = attacker.vehicle_kills.get(v_name, 0) + 1
+
+            # Posición de la muerte (para heatmaps): última posición conocida de la
+            # víctima + su equipo. Solo frags reales (no suicidios/teamkills).
+            if not is_suicide and not is_teamkill:
+                vpos = last_pos.get(kill.victim_id)
+                if vpos is not None:
+                    vteam = stats.players[kill.victim_id].team if kill.victim_id in stats.players else -1
+                    stats.kill_positions.append([vpos[0], vpos[2], vteam])
 
             victim = get_player(kill.victim_id)
             victim.death_weapons[kill.weapon] = victim.death_weapons.get(kill.weapon, 0) + 1
@@ -290,7 +326,18 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             vd: VehicleDestroyed = decoded
             stats.total_vehicles_destroyed += 1
             if vd.is_killer_known:
-                get_player(vd.killer_id).vehicles_destroyed += 1
+                killer = get_player(vd.killer_id)
+                killer.vehicles_destroyed += 1
+                # Qué vehículo destruyó (tanque/heli/jeep…), no solo el conteo.
+                v_name = vehicle_names.get(vd.id)
+                if v_name:
+                    killer.vehicles_destroyed_by_type[v_name] = \
+                        killer.vehicles_destroyed_by_type.get(v_name, 0) + 1
+
+        # ── Squad Name ───────────────────────────────────────────────
+        elif raw_msg.msg_type == MessageType.SQUAD_NAME:
+            sn: SquadName = decoded
+            stats.squad_names[sn.team_squad] = sn.squad_name
 
         # ── Flag Update ──────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.FLAG_UPDATE:
@@ -333,6 +380,18 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             stats.winner = 2  # team 2 (opfor) wins
 
     stats.duration_ticks = total_ticks
+
+    # Escuadra predominante de cada jugador en la ronda (la más vista).
+    for pid, counts in squad_counts.items():
+        if counts and pid in stats.players:
+            stats.players[pid].squad = max(counts, key=counts.get)
+
+    # Reportar tipos de mensaje no reconocidos (descubrir contenido nuevo de PR).
+    if reader.unknown_types:
+        logger.info(
+            "Tipos de mensaje PRDemo desconocidos: %s",
+            ", ".join(f"0x{t:02X}×{n}" for t, n in reader.unknown_types.most_common()),
+        )
 
     return stats
 

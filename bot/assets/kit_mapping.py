@@ -277,6 +277,25 @@ def clean_vehicle_name(raw: str) -> str:
     return name
 
 
+_SEAT_FALLBACK = {
+    "driver": "Conductor", "pilot": "Piloto", "copilot": "Copiloto",
+    "co-pilot": "Copiloto", "gunner": "Artillero", "passenger": "Pasajero",
+    "commander": "Comandante",
+}
+
+
+def clean_seat(raw: str) -> str:
+    """Nombre legible de un asiento de vehículo ('gunner' → 'Artillero')."""
+    alias = _aliases.get("seats", {}).get(raw)
+    if alias:
+        return alias
+    low = (raw or "").lower()
+    for key, label in _SEAT_FALLBACK.items():
+        if key in low:
+            return label
+    return (raw or "Asiento").replace("_", " ").title()
+
+
 def clean_map_name(raw: str) -> str:
     """Clean a raw map name: 'albasrah_2' → 'Al Basrah'."""
     alias = _aliases.get("maps", {}).get(raw)

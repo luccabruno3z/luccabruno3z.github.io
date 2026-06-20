@@ -547,6 +547,22 @@ def _tokenize_attachments(tail: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # Resolvers
 # ─────────────────────────────────────────────────────────────────────────────
+# Asientos de vehículo (PLAYER_UPDATE.vehicle.seat_name) → etiqueta legible.
+SEAT_NAMES = {
+    "driver": "Conductor", "pilot": "Piloto", "copilot": "Copiloto",
+    "co-pilot": "Copiloto", "gunner": "Artillero", "passenger": "Pasajero",
+    "commander": "Comandante",
+}
+
+
+def resolve_seat(code: str) -> str:
+    low = (code or "").lower()
+    for key, label in SEAT_NAMES.items():
+        if key in low:
+            return label
+    return _prettify(code) or "Asiento"
+
+
 def resolve_gamemode(code: str) -> str:
     return GAMEMODES.get((code or "").lower(), _prettify(code))
 
@@ -711,12 +727,14 @@ def resolve_vehicle_weapon(code: str) -> dict:
 # ─────────────────────────────────────────────────────────────────────────────
 def build_aliases(player_details: list, map_stats: list) -> dict:
     """Resuelve todos los codes presentes en la data → dict para aliases.json."""
-    kit_codes, weapon_codes, veh_codes = set(), set(), set()
+    kit_codes, weapon_codes, veh_codes, seat_codes = set(), set(), set(), set()
     for r in player_details or []:
         kit_codes.update((r.get("kits_used") or {}))
         weapon_codes.update((r.get("kill_weapons") or {}))
         weapon_codes.update((r.get("death_weapons") or {}))
         veh_codes.update((r.get("vehicle_kills") or {}))
+        veh_codes.update((r.get("vehicles_destroyed_by_type") or {}))
+        seat_codes.update((r.get("seat_kills") or {}))
     map_codes, gm_codes = set(), set()
     for m in map_stats or []:
         map_codes.add(m.get("map_name", ""))
@@ -727,4 +745,5 @@ def build_aliases(player_details: list, map_stats: list) -> dict:
         "kits": {c: resolve_kit(c) for c in sorted(kit_codes)},
         "weapons": {c: resolve_weapon(c) for c in sorted(weapon_codes)},
         "vehicles": {c: resolve_vehicle(c) for c in sorted(veh_codes)},
+        "seats": {c: resolve_seat(c) for c in sorted(seat_codes)},
     }

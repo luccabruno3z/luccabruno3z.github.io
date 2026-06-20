@@ -124,6 +124,21 @@ tambien queda correcto de ahora en mas.
 - **gamemode_stats**: rondas, K/D, KPR y winrate por modo (AAS, Insurgencia, Skirmish…),
   calculado sobre toda la data. Se ve en `-winrate`.
 
+### Datos nuevos extraidos de las demos
+El parser ahora aprovecha campos del `.PRdemo` que antes se descartaban (se acumulan
+desde las rondas nuevas):
+- **vehicles_destroyed_by_type**: que vehiculo destruyo cada jugador (tanque/heli/jeep…),
+  no solo el conteo. Se ve en `-vehiculos`.
+- **seat_kills**: kills segun el asiento del vehiculo (artillero/conductor/piloto…),
+  humanizado via `aliases.json["seats"]`. Se ve en `-vehiculos`.
+- **squad** (por jugador) + **squad_names** (por ronda): escuadra predominante; el bot
+  deriva el **% de rondas jugadas en escuadra** (`-teamwork`), con denominador propio
+  (solo rondas con dato de escuadra).
+- **kill_positions** (por ronda): posicion `[x, z, equipo]` de cada muerte — se captura
+  ya (las demos se borran tras procesarse) para un **heatmap por mapa** a futuro en la web.
+- **Logger de mensajes desconocidos**: el decoder cuenta los `msg_type` que el protocolo
+  no reconoce y los loguea, para descubrir contenido nuevo de versiones recientes de PR.
+
 ## Clanes rastreados
 
 LDH, FI, FI-R, R-LDH, WD, 300, E-LAM, RIM:LA, ADG, A-LDH, FASO, PORN, E-102, ARA, TANGO, SF, KKCK, SPTS, DARE, FEB, EASY, U777, OSO, LA-9, WK, FAL

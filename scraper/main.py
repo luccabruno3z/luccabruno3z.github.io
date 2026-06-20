@@ -440,6 +440,10 @@ def _aggregate_player_details(
                     "kill_weapons": {},
                     "death_weapons": {},
                     "vehicle_kills": {},
+                    "vehicles_destroyed_by_type": {},  # vehículo → veces destruido
+                    "seat_kills": {},                  # asiento → kills (artillero/conductor/piloto…)
+                    "rounds_in_squad": 0,              # rondas en una escuadra (squad>0)
+                    "rounds_with_squad_data": 0,       # denominador (solo rondas nuevas con dato de squad)
                     "maps_played": {},
                     # New fields
                     "wins": 0,
@@ -509,6 +513,14 @@ def _aggregate_player_details(
                 p["death_weapons"][weapon] = p["death_weapons"].get(weapon, 0) + count
             for veh, count in pdata.get("vehicle_kills", {}).items():
                 p["vehicle_kills"][veh] = p["vehicle_kills"].get(veh, 0) + count
+            for veh, count in pdata.get("vehicles_destroyed_by_type", {}).items():
+                p["vehicles_destroyed_by_type"][veh] = p["vehicles_destroyed_by_type"].get(veh, 0) + count
+            for seat, count in pdata.get("seat_kills", {}).items():
+                p["seat_kills"][seat] = p["seat_kills"].get(seat, 0) + count
+            if "squad" in pdata:  # solo rondas nuevas traen el dato de escuadra
+                p["rounds_with_squad_data"] += 1
+                if pdata["squad"]:
+                    p["rounds_in_squad"] += 1
 
             p["maps_played"][round_map] = p["maps_played"].get(round_map, 0) + 1
 

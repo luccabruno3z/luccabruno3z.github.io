@@ -7,6 +7,7 @@ All integers are little-endian. Strings are null-terminated.
 import io
 import struct
 import zlib
+from collections import Counter
 from dataclasses import dataclass
 from typing import Iterator, Optional, Tuple
 
@@ -111,6 +112,9 @@ class DemoReader:
         self._data = data
         self._pos = 0
         self._size = len(data)
+        # Bytes de tipos de mensaje que el enum MessageType no reconoce. Permite
+        # descubrir mensajes nuevos de versiones recientes de PR que hoy se ignoran.
+        self.unknown_types: Counter = Counter()
 
     @classmethod
     def from_file(cls, path: str) -> "DemoReader":
@@ -144,13 +148,12 @@ class DemoReader:
         self._pos += msg_len
 
         type_byte = self._data[payload_start]
-        try:
+        if type_byte in MessageType._value2member_map_:
             msg_type = MessageType(type_byte)
-        except ValueError:
-            msg_type = MessageType(type_byte) if type_byte in MessageType._value2member_map_ else None
-            if msg_type is None:
-                # Unknown message type — skip it
-                return self.__next__()
+        else:
+            # Unknown message type — record it (para descubrir mensajes nuevos) y saltar.
+            self.unknown_types[type_byte] += 1
+            return self.__next__()
 
         reader = BinReader(self._data, payload_start + 1, msg_len - 1)
         return RawMessage(msg_type=msg_type, reader=reader)
