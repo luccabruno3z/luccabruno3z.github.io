@@ -547,20 +547,25 @@ def _tokenize_attachments(tail: str) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # Resolvers
 # ─────────────────────────────────────────────────────────────────────────────
-# Asientos de vehículo (PLAYER_UPDATE.vehicle.seat_name) → etiqueta legible.
-SEAT_NAMES = {
-    "driver": "Conductor", "pilot": "Piloto", "copilot": "Copiloto",
-    "co-pilot": "Copiloto", "gunner": "Artillero", "passenger": "Pasajero",
-    "commander": "Comandante",
-}
+# Asientos de vehículo (PLAYER_UPDATE.vehicle.seat_name). El campo viene como
+# "<vehiculo>_<Rol>" (p.ej. "ch_apc_wz551a_Gunner") o solo el vehículo/estático.
+# Extraemos el ROL; el orden importa (copilot antes que pilot, codriver antes que driver).
+_SEAT_ROLE_RULES = (
+    ("copilot", "Copiloto"), ("co-pilot", "Copiloto"),
+    ("codriver", "Copiloto"), ("co-driver", "Copiloto"),
+    ("pilot", "Piloto"), ("gunner", "Artillero"), ("commander", "Comandante"),
+    ("passenger", "Pasajero"), ("driver", "Conductor"),
+    ("left", "Artillero lateral"), ("right", "Artillero lateral"), ("side", "Artillero lateral"),
+)
 
 
 def resolve_seat(code: str) -> str:
     low = (code or "").lower()
-    for key, label in SEAT_NAMES.items():
+    for key, label in _SEAT_ROLE_RULES:
         if key in low:
             return label
-    return _prettify(code) or "Asiento"
+    # Sin palabra de rol → operó el arma principal del vehículo/estático.
+    return "Operador"
 
 
 def resolve_gamemode(code: str) -> str:

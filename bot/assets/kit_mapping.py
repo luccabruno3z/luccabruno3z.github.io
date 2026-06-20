@@ -277,23 +277,27 @@ def clean_vehicle_name(raw: str) -> str:
     return name
 
 
-_SEAT_FALLBACK = {
-    "driver": "Conductor", "pilot": "Piloto", "copilot": "Copiloto",
-    "co-pilot": "Copiloto", "gunner": "Artillero", "passenger": "Pasajero",
-    "commander": "Comandante",
-}
+# seat_name viene como "<vehiculo>_<Rol>" o solo el vehículo; extraemos el ROL.
+# Orden importa (copilot antes que pilot, codriver antes que driver).
+_SEAT_ROLE_RULES = (
+    ("copilot", "Copiloto"), ("co-pilot", "Copiloto"),
+    ("codriver", "Copiloto"), ("co-driver", "Copiloto"),
+    ("pilot", "Piloto"), ("gunner", "Artillero"), ("commander", "Comandante"),
+    ("passenger", "Pasajero"), ("driver", "Conductor"),
+    ("left", "Artillero lateral"), ("right", "Artillero lateral"), ("side", "Artillero lateral"),
+)
 
 
 def clean_seat(raw: str) -> str:
-    """Nombre legible de un asiento de vehículo ('gunner' → 'Artillero')."""
+    """Rol del asiento de vehículo ('ch_apc_wz551a_Gunner' → 'Artillero')."""
     alias = _aliases.get("seats", {}).get(raw)
     if alias:
         return alias
     low = (raw or "").lower()
-    for key, label in _SEAT_FALLBACK.items():
+    for key, label in _SEAT_ROLE_RULES:
         if key in low:
             return label
-    return (raw or "Asiento").replace("_", " ").title()
+    return "Operador"
 
 
 def clean_map_name(raw: str) -> str:
