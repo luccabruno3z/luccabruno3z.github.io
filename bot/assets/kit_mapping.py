@@ -209,6 +209,40 @@ def is_personal_weapon(raw: str) -> bool:
     return weapon_kind(raw) not in ("vehicle", "unknown")
 
 
+def weapon_vehicle_name(raw: str) -> Optional[str]:
+    """Vehículo/emplazamiento que porta un arma montada (p.ej. 'apc_btr80_barrelgun'
+    → 'BTR-80'), o None si no es arma de vehículo. Lo provee el alias."""
+    return _aliases.get("weapons", {}).get(raw, {}).get("vehicle")
+
+
+def weapon_vclass(raw: str) -> Optional[str]:
+    """'vehicle' (vehículo tripulado) | 'emplacement' (estático/desplegable) | None."""
+    return _aliases.get("weapons", {}).get(raw, {}).get("vclass")
+
+
+def is_vehicle_kill(raw: str) -> bool:
+    """True si la kill se logró con el arma de un vehículo tripulado (no a pie, no
+    emplazamiento). Base honesta para 'kills con vehículos'."""
+    return weapon_vclass(raw) == "vehicle"
+
+
+def weapon_vtype(raw: str) -> Optional[str]:
+    """Categoría amplia del arma de vehículo: 'ground'|'air'|'naval'|'emplacement',
+    o None si es un arma personal/desconocida."""
+    return _aliases.get("weapons", {}).get(raw, {}).get("vtype")
+
+
+def weapon_category(raw: str) -> str:
+    """Clasifica CUALQUIER code de arma en una categoría de asset para el desglose:
+    'infantry' (a pie) | 'ground' | 'air' | 'naval' | 'emplacement' | 'env' (entorno)."""
+    if raw == "?":
+        return "env"
+    vt = weapon_vtype(raw)
+    if vt:
+        return vt
+    return "infantry"
+
+
 def weapon_model_name(raw: str) -> str:
     """Modelo del arma SIN la variante (agrupa accesorios): 'rurif_ak74m_1p78' →
     'AK-74M'. Para colapsar variantes en los gráficos/listas del bot."""

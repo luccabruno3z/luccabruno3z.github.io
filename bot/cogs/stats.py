@@ -274,14 +274,7 @@ class Stats(commands.Cog):
         highlights = None
         try:
             demo_data = await self.fetcher.fetch_player_details()
-            demo_player = None
-            if demo_data:
-                _nl = jugador_encontrado["Player"].lower()
-                for dp in demo_data:
-                    _ign = dp.get("ign", "").lower()
-                    if _ign == _nl or _nl in _ign:
-                        demo_player = dp
-                        break
+            demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign") if demo_data else None
             if demo_player:
                 _hl = []
                 _best = demo_player.get("best_round")
@@ -1626,13 +1619,7 @@ class Stats(commands.Cog):
         try:
             demo_data = await self.fetcher.fetch_player_details()
             if demo_data:
-                name_lower = jugador_encontrado["Player"].lower()
-                demo_player = None
-                for dp in demo_data:
-                    dp_ign = dp.get("ign", "").lower()
-                    if dp_ign == name_lower or name_lower in dp_ign:
-                        demo_player = dp
-                        break
+                demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign")
 
                 if demo_player:
                     tw_ratio = demo_player.get("teamwork_ratio", 0)

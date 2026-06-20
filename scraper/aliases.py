@@ -282,6 +282,37 @@ _VEHICLE_WEAPON_HINTS = (
     "maingun", "primarygun", "minigun", "cannon", "mortar", "artillery", "rocket_pod",
     "rocketpod", "missile_launcher", "missle_launcher", "_gun_", "towlauncher",
 )
+# Emplazamientos estáticos / desplegables (NO son vehículos tripulados móviles):
+# torretas, morteros, ATGM fijos, AA estático, artillería. Se separan de los
+# vehículos para el desglose de "kills con vehículos".
+_EMPLACEMENT_WEAPON_PREFIXES = (
+    "deployable_", "static_", "stationary_", "artillery_", "mortar_", "50cal_",
+    "hmg_", "gmg_", "agl_", "igla_", "sam_", "ats_", "aas_", "wasp_", "uralzu",
+    "zu23", "zpu", "pak", "flak", "aa_", "aaa_", "usaa", "dumpster_",
+)
+# Clases de vehículo que en realidad son emplazamientos estáticos.
+_EMPLACEMENT_CLASSES = {"ats", "aas"}
+# Tokens de cola (parte del arma) a descartar al inferir el modelo del vehículo.
+_VEHICLE_WEAPON_TAIL = {
+    "coax", "barrel", "gun", "guns", "maingun", "primarygun", "secondarygun",
+    "barrelgun", "hei", "he", "heat", "frag", "airburst", "launcher", "cannon",
+    "rocket", "rockets", "pod", "missile", "missle", "sa19launcher", "amraamlauncher",
+    "hydralauncher", "stinger", "g", "r", "nobox", "mounted", "tripod", "turret",
+    "barrelhei", "barrelheat", "gunbarrelheat", "gunbarrelhei", "sec", "alt", "ww2",
+}
+# Categoría amplia (para el desglose -assets) según el "kind" de VEHICLE_CLASSES.
+_VTYPE_BY_CLASS_KIND = {
+    "truck": "ground", "jeep": "ground", "apc": "ground", "ifv": "ground",
+    "tank": "ground", "aa": "ground", "atgm": "ground", "bike": "ground",
+    "transport_heli": "air", "attack_heli": "air", "jet": "air", "plane": "air",
+    "boat": "naval", "ship": "naval", "carrier": "naval",
+}
+# Codes legacy en CamelCase sin prefijo de clase (token0 = vehículo).
+_LEGACY_VEHICLE_WEAPON = {
+    "leopard2": "Leopard 2A6", "leopard": "Leopard 2A6", "panzer": "Panzer IV",
+    "btr": "BTR-80", "brdm": "BRDM-2", "abrams": "M1A1 Abrams", "m4": "M4A3 Sherman",
+    "sherman": "M4A3 Sherman", "dt27": "T-34", "sdkfz231": "Sd.Kfz. 231",
+}
 # Armas cuerpo a cuerpo y explosivos colocables (no llevan prefijo de facción+tipo).
 _MELEE_EXPLOSIVE = {
     "kni": ("knife", "Cuchillo"), "c4": ("explosive", "C4"), "at_mine": ("explosive", "Mina AT"),
@@ -416,6 +447,11 @@ VEHICLE_MODELS.update({
     "deployable_kornet_djigit": "Kornet/Djigit",
     "231": "Sd.Kfz. 231", "233": "Sd.Kfz. 233",
     "puma_bf2": "SPz Puma", "stormer": "Stormer (Starstreak)",
+    # modelos que aparecían solo como armas de vehículo (kill_weapons)
+    "btr60": "BTR-60", "wz551b": "WZ-551B", "zsl92": "ZSL-92", "type95guns": "PGZ-95",
+    "fennekswp": "Fennek (SWORD)", "uh1nrockets": "UH-1N Twin Huey",
+    "panther": "SdKfz 234 Panther", "m45quad": "M45 Quadmount",
+    "bt7": "BT-7", "tornadogr4": "Tornado GR4", "harrierb": "AV-8B Harrier II",
 })
 # prefijos neutros (no facción) → se tratan por code completo o prettify
 VEHICLE_FACTIONS.update({"boat": "", "deployable": "", "static": "", "stationary": "",
@@ -550,10 +586,13 @@ def resolve_weapon(code: str) -> dict:
             extra = _prettify(re.sub(r'(?:^|_)' + re.escape(key) + r'_?', '', low))
             label = f"{base} ({extra})" if extra and extra != "?" else base
             return {"model": base, "variant": extra if extra != "?" else "", "label": label, "kind": kind}
-    # armas de vehículo / emplazadas: nombre legible, kind=vehicle
+    # armas de vehículo / emplazadas: kind=vehicle (sin cambios para no romper la
+    # exclusión de "arma personal"), + el vehículo/emplazamiento que la porta.
     if low.startswith(_VEHICLE_WEAPON_PREFIXES) or any(h in low for h in _VEHICLE_WEAPON_HINTS):
-        lab = _prettify(c)
-        return {"model": lab, "variant": "", "label": lab, "kind": "vehicle"}
+        vw = resolve_vehicle_weapon(c)
+        lab = vw["vehicle"]
+        return {"model": lab, "variant": "", "label": lab, "kind": "vehicle",
+                "vehicle": vw["vehicle"], "vclass": vw["vclass"], "vtype": vw["vtype"]}
     prefix = _longest_prefix(low, WEAPON_PREFIXES)
     if prefix:
         faction, kind = WEAPON_PREFIXES[prefix]
@@ -598,6 +637,73 @@ def resolve_vehicle(code: str) -> dict:
         model = f"{base_name} ({', '.join(extra)})" if extra else base_name
     label = model
     return {"model": model, "class": cls_label, "label": label, "kind": kind}
+
+
+def _strip_vehicle_weapon_tail(tokens: list) -> list:
+    """Corta los tokens de cola (parte del arma) para quedarse con el modelo."""
+    out = []
+    for t in tokens:
+        if t in _VEHICLE_WEAPON_TAIL or re.match(r'^\d+mm$', t):
+            break
+        out.append(t)
+    return out
+
+
+def _model_from_tokens(after: list) -> Optional[str]:
+    """Busca el match de modelo más largo (VEHICLE_MODELS) en los tokens dados."""
+    for k in range(len(after), 0, -1):
+        cand = "_".join(after[:k])
+        if cand in VEHICLE_MODELS:
+            return VEHICLE_MODELS[cand]
+    return None
+
+
+def resolve_vehicle_weapon(code: str) -> dict:
+    """Mapea un arma montada/emplazada al vehículo o emplazamiento que la porta.
+
+    Devuelve {'vehicle': <nombre>, 'vclass': 'vehicle'|'emplacement',
+    'vtype': 'ground'|'air'|'naval'|'emplacement'}. Pensado para agrupar
+    `kill_weapons` en "kills con vehículos" sin la contaminación de `vehicle_kills`
+    (que cuenta kills a pie tras desmontar) y para el desglose por tipo (-assets)."""
+    low = (code or "").lower()
+
+    # Emplazamientos estáticos / desplegables.
+    if low.startswith(_EMPLACEMENT_WEAPON_PREFIXES):
+        toks = low.split('_')
+        name = _model_from_tokens(toks)
+        if name is None:
+            for i, t in enumerate(toks):
+                if t in VEHICLE_CLASSES:
+                    name = _model_from_tokens(_strip_vehicle_weapon_tail(toks[i + 1:]))
+                    break
+        if name is None:
+            body = [t for t in toks if t not in ("deployable", "static", "stationary")]
+            name = _prettify("_".join(_strip_vehicle_weapon_tail(body))) or "Emplazamiento"
+        return {"vehicle": name, "vclass": "emplacement", "vtype": "emplacement"}
+
+    toks = low.split('_')
+    # Code estructurado facción?_clase_modelo_arma.
+    for i, t in enumerate(toks):
+        if t in VEHICLE_CLASSES:
+            emplaced = t in _EMPLACEMENT_CLASSES
+            vclass = "emplacement" if emplaced else "vehicle"
+            vtype = "emplacement" if emplaced else _VTYPE_BY_CLASS_KIND.get(
+                VEHICLE_CLASSES[t][1], "ground")
+            after = toks[i + 1:]
+            name = _model_from_tokens(after)
+            if name is None:
+                name = _prettify("_".join(_strip_vehicle_weapon_tail(after))) or _prettify(t)
+            return {"vehicle": name, "vclass": vclass, "vtype": vtype}
+
+    # Legacy CamelCase (token0 = vehículo). Históricamente son coaxiales de
+    # tanques/APC → terrestres.
+    t0 = toks[0]
+    if t0 in VEHICLE_MODELS:
+        return {"vehicle": VEHICLE_MODELS[t0], "vclass": "vehicle", "vtype": "ground"}
+    if t0 in _LEGACY_VEHICLE_WEAPON:
+        return {"vehicle": _LEGACY_VEHICLE_WEAPON[t0], "vclass": "vehicle", "vtype": "ground"}
+    name = _prettify("_".join(_strip_vehicle_weapon_tail(toks))) or _prettify(code)
+    return {"vehicle": name, "vclass": "vehicle", "vtype": "ground"}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -212,8 +212,15 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 if pu.kit_name and last_kit.get(pu.id) != pu.kit_name:
                     ps.kits_used[pu.kit_name] = ps.kits_used.get(pu.kit_name, 0) + 1
                     last_kit[pu.id] = pu.kit_name
-                if pu.vehicle is not None and pu.vehicle.id >= 0:
-                    player_vehicles[pu.id] = pu.vehicle.id
+                # vehicle.id >= 0 → subió a un vehículo; id < 0 → se bajó.
+                # Antes solo se registraba la subida y nunca la bajada, así que las
+                # kills a pie tras desmontar (p.ej. de un camión de logística) se
+                # atribuían al vehículo → vehicle_kills inflado con transportes.
+                if pu.vehicle is not None:
+                    if pu.vehicle.id >= 0:
+                        player_vehicles[pu.id] = pu.vehicle.id
+                    else:
+                        player_vehicles.pop(pu.id, None)
 
         # ── Kill ─────────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.KILL:

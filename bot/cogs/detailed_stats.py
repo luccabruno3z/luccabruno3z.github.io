@@ -7,7 +7,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
-from bot.assets.kit_mapping import get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name, clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon, clean_gamemode
+from bot.assets.kit_mapping import (
+    get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name,
+    clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon,
+    clean_gamemode, weapon_vehicle_name, weapon_vclass, is_vehicle_kill,
+    weapon_vtype, weapon_category,
+)
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
 from bot.ui.leaderboard_card import LeaderboardView
@@ -46,16 +51,9 @@ async def map_name_autocomplete(
 
 
 def _find_demo_player(data: list[dict], name: str) -> Optional[dict]:
-    """Find a player in demo data by exact or fuzzy match."""
-    # Exact match first
-    for p in data:
-        if p["ign"].lower() == name.lower():
-            return p
-    # Partial match
-    for p in data:
-        if name.lower() in p["ign"].lower():
-            return p
-    return None
+    """Find a player in demo data (keyed by 'ign'). Misma cascada que el resto de
+    comandos (exacta case-sensitive → case-insensitive → parcial)."""
+    return find_player(data, name, key="ign")
 
 
 def _top_items(d: dict, n: int = 5) -> list[tuple[str, int]]:
@@ -179,10 +177,18 @@ class DetailedStats(commands.Cog):
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
             return
 
-        vehicle_kills = _top_named(player.get("vehicle_kills", {}), clean_vehicle_name, 10)
+        kw = player.get("kill_weapons", {})
+        # Sección 1 — Kills CON vehículos: se arman desde kill_weapons (el arma que
+        # hizo la baja), no desde vehicle_kills (que infla con kills a pie tras
+        # desmontar de un transporte). Solo vehículos tripulados, agrupados por modelo.
+        vehicle_kills = _top_named(kw, weapon_vehicle_name, 10,
+                                   exclude=lambda c: not is_vehicle_kill(c))
+        veh_total = sum(c for w, c in kw.items() if is_vehicle_kill(w))
+        empl_total = sum(c for w, c in kw.items() if weapon_vclass(w) == "emplacement")
+        # Sección 2 — Vehículos destruidos (anti-vehículo): el conteo de siempre.
         destroyed = player.get("total_vehicles_destroyed", 0)
 
-        if not vehicle_kills and destroyed == 0:
+        if not vehicle_kills and destroyed == 0 and empl_total == 0:
             await ctx.send(f"**{player['ign']}** no tiene datos de vehículos registrados.")
             return
 
@@ -191,16 +197,118 @@ class DetailedStats(commands.Cog):
             color=discord.Color.dark_green(),
         )
 
+        # 🔥 Vehículos destruidos
+        embed.add_field(
+            name="🔥 Vehículos destruidos",
+            value=f"**{destroyed}** vehículos enemigos destruidos",
+            inline=False,
+        )
+
         file = None
         if vehicle_kills:
+            top_line = ", ".join(f"**{v}** ({c})" for v, c in vehicle_kills[:3])
+            extra = f"\n🎯 Con emplazamientos/estáticos: **{empl_total}**" if empl_total else ""
+            embed.add_field(
+                name=f"🎯 Kills con vehículos — {veh_total}",
+                value=f"Tripulando vehículos. Top: {top_line}{extra}",
+                inline=False,
+            )
             veh_items = [(veh, count, "#00FFFF") for veh, count in vehicle_kills]
-            buf = render_horizontal_bars(veh_items, title=f"Kills en vehículos - {player['ign']}")
+            buf = render_horizontal_bars(veh_items, title=f"Kills con vehículos - {player['ign']}")
             file = discord.File(buf, filename="vehiculos.png")
             embed.set_image(url="attachment://vehiculos.png")
+        elif empl_total:
+            embed.add_field(
+                name="🎯 Kills con emplazamientos",
+                value=f"**{empl_total}** kills con armas emplazadas/estáticas",
+                inline=False,
+            )
 
-        embed.description = f"🔥 Vehículos destruidos: **{destroyed}**"
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
         if file:
+            await ctx.send(embed=embed, file=file)
+        else:
+            embed.set_thumbnail(url=BOT_THUMBNAIL)
+            await ctx.send(embed=embed)
+
+    # ── -assets <jugador> ────────────────────────────────────────────────
+
+    @commands.hybrid_command(
+        name="assets",
+        aliases=["activos", "medios"],
+        description="Desglose de kills por tipo de asset: a pie, terrestres, aéreos, emplazamientos (demos)",
+    )
+    @app_commands.describe(jugador="Nombre del jugador")
+    @app_commands.autocomplete(jugador=demo_player_autocomplete)
+    async def assets(self, ctx: commands.Context, *, jugador: str):
+        """Desglose de kills por tipo de asset (a pie, terrestres, aéreos, navales, emplazamientos)."""
+        if self._check_mode(ctx):
+            await ctx.send("⚠️ Estos comandos requieren modo **Demos** o **Combinado**. Usá `-ayuda` para cambiar el modo.")
+            return
+        data = await self.fetcher.fetch_player_details()
+        player = _find_demo_player(data, jugador)
+
+        if not player:
+            await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        kw = player.get("kill_weapons", {})
+        if not kw:
+            await ctx.send(f"**{player['ign']}** no tiene datos de armas registrados.")
+            return
+
+        # Categorías presentables (orden + emoji + label). 'env' = entorno/desconocido.
+        CATS = [
+            ("infantry", "🔫", "A pie (infantería)"),
+            ("ground", "🚛", "Vehículos terrestres"),
+            ("air", "✈️", "Vehículos aéreos"),
+            ("naval", "🚤", "Vehículos navales"),
+            ("emplacement", "🎯", "Emplazamientos / estáticos"),
+            ("env", "💥", "Entorno / desconocido"),
+        ]
+        totals: dict[str, int] = {}
+        tops: dict[str, dict[str, int]] = {}
+        for w, c in kw.items():
+            cat = weapon_category(w)
+            totals[cat] = totals.get(cat, 0) + c
+            if cat in ("ground", "air", "naval", "emplacement"):
+                name = weapon_vehicle_name(w) or clean_weapon_name(w)
+                d = tops.setdefault(cat, {})
+                d[name] = d.get(name, 0) + c
+
+        grand = sum(totals.values()) or 1
+
+        embed = discord.Embed(
+            title=f"🧩 Assets de {player['ign']}",
+            description=f"Cómo consigue sus **{grand}** kills, por tipo de medio",
+            color=discord.Color.teal(),
+        )
+
+        chart_items = []
+        for cat, emoji, label in CATS:
+            tot = totals.get(cat, 0)
+            if tot == 0:
+                continue
+            pct = tot / grand * 100
+            top = tops.get(cat, {})
+            top_str = ""
+            if top:
+                top3 = sorted(top.items(), key=lambda x: x[1], reverse=True)[:3]
+                top_str = "\n╰ " + ", ".join(f"{n} ({c})" for n, c in top3)
+            embed.add_field(
+                name=f"{emoji} {label}",
+                value=f"**{tot}** kills · {pct:.0f}%{top_str}",
+                inline=False,
+            )
+            if cat != "env":
+                chart_items.append((label, pct, "#00FFFF"))
+
+        embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
+
+        if chart_items:
+            buf = render_horizontal_bars(chart_items, title=f"Kills por tipo de asset - {player['ign']}", max_value=100, value_suffix="%")
+            file = discord.File(buf, filename="assets.png")
+            embed.set_image(url="attachment://assets.png")
             await ctx.send(embed=embed, file=file)
         else:
             embed.set_thumbnail(url=BOT_THUMBNAIL)

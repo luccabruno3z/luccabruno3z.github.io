@@ -132,17 +132,9 @@ class PlayerCardActionButton(
 
 
 def _find_demo_player(data, name: str):
-    """Case-insensitive lookup in player_details.json (keyed by 'ign')."""
-    if not isinstance(data, list):
-        return None
-    nl = name.lower()
-    for entry in data:
-        if entry.get("ign", entry.get("Player", "")).lower() == nl:
-            return entry
-    for entry in data:
-        if nl in entry.get("ign", entry.get("Player", "")).lower():
-            return entry
-    return None
+    """Lookup en player_details.json (keyed por 'ign'). Misma cascada uniforme."""
+    from bot.utils import find_player
+    return find_player(data, name, key="ign")
 
 
 def build_actions(player_name: str) -> list[PlayerCardActionButton]:

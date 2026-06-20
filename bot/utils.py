@@ -97,7 +97,7 @@ def advantage_pct(val1: float, val2: float) -> str:
     return f"{pct:+.1f}%"
 
 
-def find_player(data: list[dict], name: str) -> dict | None:
+def find_player(data: list[dict], name: str, key: str = "Player") -> dict | None:
     """Find a player by name with priority cascade:
 
     1. Exact match (case-sensitive): "TEJOTA4K" finds "TEJOTA4K" not "Tejota4k"
@@ -107,21 +107,28 @@ def find_player(data: list[dict], name: str) -> dict | None:
     This preserves case-sensitivity for players with duplicate names in
     different casing (e.g. TEJOTA4K vs Tejota4k) while still allowing
     flexible search for names with special characters.
+
+    `key` selecciona el campo del nombre: "Player" para los datos de prstats,
+    "ign" para los datos de demos (player_details). Así toda búsqueda de jugador
+    usa exactamente la misma cascada (uniforme entre comandos).
     """
+    if not isinstance(data, list) or not name:
+        return None
+
     # 1. Exact match (case-sensitive) — highest priority
     for p in data:
-        if p["Player"] == name:
+        if p.get(key) == name:
             return p
 
     # 2. Exact match (case-insensitive)
     name_lower = name.lower()
     for p in data:
-        if p["Player"].lower() == name_lower:
+        if (p.get(key) or "").lower() == name_lower:
             return p
 
     # 3. Partial/contains match (case-insensitive)
     for p in data:
-        if name_lower in p["Player"].lower():
+        if name_lower in (p.get(key) or "").lower():
             return p
 
     return None

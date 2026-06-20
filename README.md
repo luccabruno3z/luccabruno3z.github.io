@@ -62,7 +62,7 @@ luccabruno3z.github.io/
 ### Bot de Discord
 8 modulos (cogs):
 - `stats` — `-stats`, `-top10`, `-rival`, `-vs`
-- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos`, `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-advanced`
+- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-advanced`
 - `compare` — `-compare` (analisis bulk de jugadores/clanes)
 - `charts` — `-graph` (graficos renderizados)
 - `tips` — `-tip` (150+ tips de gameplay)
@@ -105,7 +105,17 @@ que los traduce a nombres legibles en español (Fusilero, AK-74M (1P78), GAZ Tig
 Al Basrah, AAS); el scraper genera `graphs/demos/aliases.json` cada corrida y **la web
 y el bot lo consumen** (con fallback si falta). Las armas se agrupan por modelo, los
 kits por rol (sin caer en "Otro"), y el `?` (entorno) y armas de vehiculo se excluyen
-del "arma favorita".
+del "arma favorita". Cada arma montada se etiqueta ademas con el vehiculo que la porta
+(`vehicle`), su clase (`vclass`: vehiculo tripulado vs emplazamiento) y su tipo amplio
+(`vtype`: terrestre/aereo/naval/emplazamiento) — base de `-vehiculos` y `-assets`.
+
+### Kills con vehiculos (honesto)
+Las "kills con vehiculos" se derivan de `kill_weapons` (el arma que hizo la baja),
+**no** de `vehicle_kills` (que atribuia las kills a pie tras desmontar de un transporte
+— de ahi que antes un camion de logistica desarmado liderara el ranking). Como un camion
+de apoyo no tiene `kill_weapons`, la contaminacion desaparece. Ademas el parser ahora
+limpia el vehiculo del jugador al desmontar (`vehicle.id < 0`), asi que `vehicle_kills`
+tambien queda correcto de ahora en mas.
 
 ### Desempeño por kit y por modo
 - **kit_performance** (en `player_details.json`): K/D por kit, atribuyendo cada baja al

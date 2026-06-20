@@ -835,14 +835,12 @@ class Compare(commands.Cog):
             """Get player's demo winrate (0.0-1.0), or 0.5 if not found."""
             if not demo_data:
                 return 0.5
-            name_lower = player_name.lower()
-            for dp in demo_data:
-                dp_ign = dp.get("ign", "").lower()
-                if dp_ign == name_lower or name_lower in dp_ign:
-                    w = dp.get("wins", 0)
-                    l = dp.get("losses", 0)
-                    total = w + l
-                    return w / total if total > 3 else 0.5  # min 3 games for reliability
+            dp = find_player(demo_data, player_name, key="ign")
+            if dp:
+                w = dp.get("wins", 0)
+                l = dp.get("losses", 0)
+                total = w + l
+                return w / total if total > 3 else 0.5  # min 3 games for reliability
             return 0.5
 
         def team_stats(players):
