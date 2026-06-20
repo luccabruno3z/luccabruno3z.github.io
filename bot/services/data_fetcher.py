@@ -14,6 +14,7 @@ from bot.config import (
     demo_round_history_url,
     demo_leaderboard_url,
     demo_map_stats_url,
+    demo_synergy_url,
     tier_config_url,
 )
 
@@ -125,6 +126,10 @@ class DataFetcher:
     async def fetch_player_details(self):
         """Fetch the aggregated player details JSON (from demos)."""
         return await self.fetch_json(demo_player_details_url())
+
+    async def fetch_synergy(self):
+        """Fetch the duo-synergy JSON (from demos)."""
+        return await self.fetch_json(demo_synergy_url())
 
     async def fetch_round_history(self):
         """Fetch the round history JSON (from demos).

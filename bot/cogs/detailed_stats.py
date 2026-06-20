@@ -1122,6 +1122,100 @@ class DetailedStats(commands.Cog):
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
         await ctx.send(embed=embed)
 
+    # ── -sinergia <jugador> ───────────────────────────────────────────
+
+    @commands.hybrid_command(
+        name="sinergia",
+        aliases=["synergy", "duo"],
+        description="Con qué compañeros de escuadra rendís mejor/peor (datos de demos)",
+    )
+    @app_commands.describe(jugador="Nombre del jugador")
+    @app_commands.autocomplete(jugador=demo_player_autocomplete)
+    async def sinergia(self, ctx: commands.Context, *, jugador: str):
+        """Sinergia de dúo: impacto en tu KPR y winrate al jugar en la misma escuadra
+        que cada compañero frecuente."""
+        if self._check_mode(ctx):
+            await ctx.send("⚠️ Estos comandos requieren modo **Demos** o **Combinado**. Usá `-ayuda` para cambiar el modo.")
+            return
+        await ctx.defer()
+        synergy = await self.fetcher.fetch_synergy()
+        if not synergy:
+            await ctx.send("⏳ La sinergia se calcula desde las partidas nuevas (con datos de escuadra). Probá en unos días.")
+            return
+
+        # Resolver el nombre canónico (mismas reglas que el resto de comandos).
+        entry = synergy.get(jugador)
+        name = jugador
+        if entry is None:
+            match = find_player([{"Player": k} for k in synergy], jugador)
+            if match:
+                name = match["Player"]
+                entry = synergy.get(name)
+
+        if not entry or not entry.get("mates"):
+            await ctx.send(
+                f"No hay datos de sinergia para **{jugador}** todavía. Se necesitan rondas "
+                "jugando en escuadra con compañeros recurrentes (se acumulan desde las partidas nuevas)."
+            )
+            return
+
+        baseline = entry["baseline"]
+        base_rounds = baseline.get("rounds", 0)
+        base_kills = baseline.get("kills", 0)
+        base_kpr = base_kills / base_rounds if base_rounds else 0
+
+        rows = []
+        for q, v in entry["mates"].items():
+            r = v.get("rounds", 0)
+            if r < 3:  # mínimo para que sea representativo
+                continue
+            kpr_with = v.get("kills", 0) / r
+            wo_r = base_rounds - r
+            kpr_wo = (base_kills - v.get("kills", 0)) / wo_r if wo_r > 0 else base_kpr
+            impact = kpr_with - kpr_wo
+            wr = v.get("wins", 0) / r * 100
+            rows.append((impact, q, r, kpr_with, kpr_wo, wr))
+
+        if not rows:
+            await ctx.send(
+                f"**{name}** todavía no tiene compañeros con suficientes rondas compartidas "
+                "(mínimo 3). Seguí jugando en escuadra y probá después."
+            )
+            return
+
+        rows.sort(reverse=True)
+        best = rows[:5]
+        worst = [r for r in rows if r[0] < 0][-3:]
+
+        def _line(row):
+            impact, q, r, kpr_with, kpr_wo, wr = row
+            sign = "📈" if impact >= 0 else "📉"
+            return (f"{sign} **{q}** — KPR **{kpr_with:.2f}** (solo {kpr_wo:.2f}, "
+                    f"{impact:+.2f}) · WR {wr:.0f}% · {r} rondas")
+
+        embed = discord.Embed(
+            title=f"🤝 Sinergia de {name}",
+            description=(
+                "Rendimiento jugando en la **misma escuadra** que cada compañero.\n"
+                f"KPR base (en escuadra): **{base_kpr:.2f}** · {base_rounds} rondas con dato"
+            ),
+            color=discord.Color.teal(),
+        )
+        embed.add_field(
+            name="🟢 Mejores compañeros (más impacto en tu KPR)",
+            value="\n".join(_line(r) for r in best),
+            inline=False,
+        )
+        if worst:
+            embed.add_field(
+                name="🔴 Rendís menos con",
+                value="\n".join(_line(r) for r in reversed(worst)),
+                inline=False,
+            )
+        embed.set_thumbnail(url=BOT_THUMBNAIL)
+        embed.set_footer(text=standard_footer())
+        await ctx.send(embed=embed)
+
     # ── -clan_fortalezas <clan> ───────────────────────────────────────
 
     @commands.hybrid_command(

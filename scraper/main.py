@@ -10,7 +10,9 @@ import json
 import logging
 import math
 import os
+import re
 import sys
+from collections import defaultdict
 import time
 from datetime import datetime, timezone, timedelta
 
@@ -372,6 +374,30 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
             json.dump(aliases, f, ensure_ascii=False)
         logger.info("Saved %s (%s)", aliases_path,
                     ", ".join(f"{k}:{len(v)}" for k, v in aliases.items()))
+
+        # Sinergia de dúo: rendimiento de cada jugador junto a sus compañeros de
+        # escuadra frecuentes (se reconstruye desde todas las rondas con dato de squad).
+        synergy = _aggregate_synergy(existing_rounds, clan_player_names)
+        synergy_path = os.path.join(DEMOS_DIR, "synergy.json")
+        with open(synergy_path, "w", encoding="utf-8") as f:
+            json.dump(synergy, f, ensure_ascii=False)
+        logger.info("Saved %s (%d players con sinergia)", synergy_path, len(synergy))
+
+        # Heatmaps de muertes por mapa (grilla de densidad). Un archivo por mapa +
+        # index, para que la web cargue solo el mapa pedido.
+        heatmaps = _aggregate_heatmaps(existing_rounds)
+        hm_dir = os.path.join(DEMOS_DIR, "heatmaps")
+        os.makedirs(hm_dir, exist_ok=True)
+        for mname, hm in heatmaps.items():
+            safe = re.sub(r"[^a-zA-Z0-9_\-]", "_", mname)
+            with open(os.path.join(hm_dir, f"{safe}.json"), "w", encoding="utf-8") as f:
+                json.dump(hm, f, ensure_ascii=False)
+        with open(os.path.join(hm_dir, "index.json"), "w", encoding="utf-8") as f:
+            json.dump(sorted(
+                ({"map": m, "file": re.sub(r'[^a-zA-Z0-9_\-]', '_', m) + ".json",
+                  "rounds": h["rounds"], "kills": h["kills"]} for m, h in heatmaps.items()),
+                key=lambda e: e["kills"], reverse=True), f, ensure_ascii=False)
+        logger.info("Saved %d heatmaps de mapa", len(heatmaps))
 
         # Per-player round timelines for the web profile view (diff-based write,
         # so only players with new rounds get their file rewritten).
@@ -768,6 +794,118 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
         result.append(m)
 
     return sorted(result, key=lambda m: m["rounds_played"], reverse=True)
+
+
+def _aggregate_synergy(
+    rounds: list[dict],
+    clan_player_names: set[str] | None = None,
+    min_shared: int = 2,
+    max_mates: int = 40,
+) -> dict:
+    """Sinergia de dúo: por jugador, su rendimiento jugando en la MISMA escuadra
+    que cada compañero frecuente.
+
+    Dos jugadores son compañeros en una ronda si comparten (equipo, escuadra>0).
+    Para cada par (P, Q) acumula las stats de P en las rondas con Q; el baseline de
+    P (todas sus rondas con dato de escuadra) permite comparar "con Q vs sin Q".
+    Solo rondas nuevas traen `squad`. Devuelve
+    {P: {"baseline": {...}, "mates": {Q: {rounds,kills,deaths,wins}}}}."""
+    matcher = ClanMatcher(clan_player_names)
+    baseline: dict[str, dict] = defaultdict(lambda: {"rounds": 0, "kills": 0, "deaths": 0, "wins": 0})
+    pairs: dict[str, dict] = defaultdict(lambda: defaultdict(lambda: {"rounds": 0, "kills": 0, "deaths": 0, "wins": 0}))
+
+    for rd in rounds:
+        winner = rd.get("winner", -1)
+        squads: dict[tuple, list] = defaultdict(list)
+        for pdata in rd.get("players", {}).values():
+            if "squad" not in pdata:      # solo rondas nuevas tienen escuadra
+                continue
+            sq = pdata.get("squad", 0)
+            if not sq:
+                continue
+            name = matcher.match(pdata.get("ign", ""))
+            if not name:
+                continue
+            squads[(pdata.get("team", -1), sq)].append((name, pdata))
+
+        for (team, _sq), members in squads.items():
+            won = 1 if winner == team else 0
+            # dedup por nombre (un jugador no puede ser su propio compañero)
+            seen = set()
+            uniq = []
+            for name, pdata in members:
+                if name in seen:
+                    continue
+                seen.add(name)
+                uniq.append((name, pdata))
+            for p_name, p_data in uniq:
+                b = baseline[p_name]
+                b["rounds"] += 1
+                b["kills"] += p_data.get("kills", 0)
+                b["deaths"] += p_data.get("deaths", 0)
+                b["wins"] += won
+                for q_name, _q in uniq:
+                    if q_name == p_name:
+                        continue
+                    rec = pairs[p_name][q_name]
+                    rec["rounds"] += 1
+                    rec["kills"] += p_data.get("kills", 0)
+                    rec["deaths"] += p_data.get("deaths", 0)
+                    rec["wins"] += won
+
+    out: dict[str, dict] = {}
+    for p_name, mates in pairs.items():
+        kept = {q: v for q, v in mates.items() if v["rounds"] >= min_shared}
+        if not kept:
+            continue
+        kept = dict(sorted(kept.items(), key=lambda x: x[1]["rounds"], reverse=True)[:max_mates])
+        out[p_name] = {"baseline": baseline[p_name], "mates": kept}
+    return out
+
+
+def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
+    """Grilla de densidad de muertes por mapa (heatmap de puntos de contacto).
+
+    Acumula `kill_positions` [x, z, equipo_víctima] de TODAS las rondas del mapa
+    (cada ronda nueva suma). Normaliza al centro del mapa: el origen (0,0) es el
+    centro y el mapa abarca `map_size` km → nx = (x + map_size*500) / (map_size*1000).
+    Devuelve {map_name: {grid_size, rounds, kills, cells:[[gx,gy,muertes_t1,muertes_t2]]}}.
+    Celdas dispersas (solo no vacías); el render web aplica el suavizado/kernel."""
+    maps: dict[str, dict] = {}
+    for rd in rounds:
+        kps = rd.get("kill_positions")
+        if not kps:
+            continue
+        msize = rd.get("map_size", 0) or 0
+        if msize <= 0:
+            continue
+        mname = rd.get("map_name", "unknown")
+        full = msize * 1000.0
+        half = msize * 500.0
+        m = maps.get(mname)
+        if m is None:
+            m = maps[mname] = {"map": mname, "map_size": msize, "rounds": 0,
+                               "kills": 0, "grid_size": grid_size,
+                               "_cells": defaultdict(lambda: [0, 0])}
+        m["rounds"] += 1
+        for x, z, team in kps:
+            nx = (x + half) / full
+            nz = (z + half) / full
+            if nx < 0 or nx > 1 or nz < 0 or nz > 1:
+                continue  # fuera del mapa (OOB / spawns lejanos)
+            gx = min(grid_size - 1, int(nx * grid_size))
+            gy = min(grid_size - 1, int(nz * grid_size))
+            cell = m["_cells"][(gx, gy)]
+            cell[1 if team == 2 else 0] += 1
+            m["kills"] += 1
+
+    out: dict[str, dict] = {}
+    for mname, m in maps.items():
+        cells = [[gx, gy, c[0], c[1]] for (gx, gy), c in m["_cells"].items()]
+        cells.sort(key=lambda e: e[2] + e[3], reverse=True)
+        out[mname] = {"map": mname, "map_size": m["map_size"], "rounds": m["rounds"],
+                      "kills": m["kills"], "grid_size": grid_size, "cells": cells}
+    return out
 
 
 if __name__ == "__main__":

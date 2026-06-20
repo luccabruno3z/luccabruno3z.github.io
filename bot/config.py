@@ -65,6 +65,11 @@ def demo_map_stats_url() -> str:
     return f"{BASE_URL}/graphs/demos/map_stats.json"
 
 
+def demo_synergy_url() -> str:
+    """Return the URL for the duo-synergy JSON (from demos)."""
+    return f"{BASE_URL}/graphs/demos/synergy.json"
+
+
 def tier_config_url() -> str:
     """Return the URL for the tier configuration JSON (dynamic thresholds)."""
     return f"{BASE_URL}/graphs/tier_config.json"

@@ -62,7 +62,7 @@ luccabruno3z.github.io/
 ### Bot de Discord
 8 modulos (cogs):
 - `stats` — `-stats`, `-top10`, `-rival`, `-vs`
-- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-combate` (racha/clutch/first blood/vida promedio/disciplina), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-teamwork` (+ cohesión de escuadra), `-advanced`
+- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-combate` (racha/clutch/first blood/vida promedio/disciplina), `-sinergia` (con qué compañeros rendís mejor/peor), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-teamwork` (+ cohesión de escuadra), `-advanced`
 - `compare` — `-compare` (analisis bulk de jugadores/clanes)
 - `charts` — `-graph` (graficos renderizados)
 - `tips` — `-tip` (150+ tips de gameplay)
@@ -149,6 +149,22 @@ Más señales por jugador, todas acumuladas desde las rondas nuevas:
   ≤25 tickets), **teamkills/suicidios por jugador**. (`-combate`)
 - **Cohesión de escuadra**: distancia media de cada jugador al centroide de su squad,
   muestreada cada ~10s (menor = más unidos). (`-teamwork`)
+
+### Sinergia de dúo (`synergy.json`, `-sinergia`)
+Por jugador, su rendimiento jugando en la **misma escuadra** que cada compañero
+frecuente: dos jugadores son compañeros en una ronda si comparten `(equipo, escuadra>0)`.
+Se acumulan las stats del jugador en las rondas con cada compañero y se comparan contra
+su baseline (rondas sin ese compañero) → impacto en KPR + winrate juntos. Mínimo 3
+rondas compartidas para mostrarse. Se reconstruye desde todas las rondas con dato de squad.
+
+### Heatmaps por mapa (`graphs/demos/heatmaps/`, pipeline)
+Grilla de densidad de muertes por mapa a partir de `kill_positions`. El origen del
+mundo (0,0) es el centro del mapa y este abarca `map_size` km, así que se normaliza
+`nx = (x + map_size*500) / (map_size*1000)` (eje horizontal `x,z`; `y` es altitud) a una
+grilla de 128×128. **Cada ronda nueva de ese mapa suma** (se reconstruye desde todas las
+rondas). Celdas dispersas con muertes por equipo `[gx, gy, t1, t2]` → un archivo por mapa
++ `index.json`. El render visual (overlay sobre el minimapa, con suavizado/kernel) es el
+paso siguiente en la web.
 
 ## Clanes rastreados
 
