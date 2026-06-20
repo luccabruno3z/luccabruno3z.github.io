@@ -15,8 +15,7 @@ import re
 
 import discord
 
-from bot.config import BASE_URL, BOT_THUMBNAIL
-from bot.services.chart_renderer import render_history_chart
+from bot.config import BASE_URL
 from bot.utils import standard_footer
 
 # action -> button presentation
@@ -74,28 +73,15 @@ class PlayerCardActionButton(
 
     async def _do_hist(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True, ephemeral=True)
-        url = f"{BASE_URL}/graphs/history/{_safe(self.player_name)}_history.json"
-        try:
-            data = await interaction.client.data_fetcher.fetch_json(url, use_stale_on_error=False)
-        except Exception:
-            data = None
-        if not data:
-            await interaction.followup.send(
-                f"No hay historial para **{self.player_name}**.", ephemeral=True
-            )
-            return
-        dates = [e.get("Date", e.get("date", "?")) for e in data]
-        scores = [e.get("Performance Score", 0) for e in data]
-        buf = render_history_chart(self.player_name, dates, scores)
-        embed = discord.Embed(
-            title=f"📈 Historial de {self.player_name}", color=discord.Color.green()
+        # Mismo gráfico/búsqueda que el comando -historial (fuente única).
+        from bot.services.history_chart import build_history_embed
+        embed, file = await build_history_embed(
+            interaction.client.data_fetcher, self.player_name,
         )
-        embed.set_image(url="attachment://history.png")
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-        embed.set_footer(text=standard_footer())
-        await interaction.followup.send(
-            embed=embed, file=discord.File(buf, filename="history.png"), ephemeral=True
-        )
+        if file:
+            await interaction.followup.send(embed=embed, file=file, ephemeral=True)
+        else:
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
     async def _do_demo(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True, ephemeral=True)

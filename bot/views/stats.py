@@ -1,11 +1,8 @@
 """Interactive views for the stats cog."""
 
-import re
-
 import discord
 
-from bot.config import BASE_URL, BOT_THUMBNAIL
-from bot.services.chart_renderer import render_history_chart
+from bot.config import BOT_THUMBNAIL
 from bot.utils import find_player, format_number, highlight_winner, advantage_pct, standard_footer
 
 
@@ -109,39 +106,13 @@ class StatsView(discord.ui.View):
     @discord.ui.button(label="Ver Historial", style=discord.ButtonStyle.primary, emoji="\U0001f4c8")
     async def history_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(thinking=True)
-
-        safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', self.player_name)
-        history_url = f"{BASE_URL}/graphs/history/{safe_name}_history.json"
-        try:
-            data = await self.fetcher.fetch_json(history_url, use_stale_on_error=False)
-        except Exception:
-            await interaction.followup.send(
-                f"No se encontró historial para **{self.player_name}**.",
-                ephemeral=True,
-            )
-            return
-
-        if not data:
-            await interaction.followup.send(
-                f"No hay datos históricos para **{self.player_name}**.",
-                ephemeral=True,
-            )
-            return
-
-        dates = [entry.get("Date", entry.get("date", "?")) for entry in data]
-        scores = [entry.get("Performance Score", 0) for entry in data]
-
-        buf = render_history_chart(self.player_name, dates, scores)
-        file = discord.File(buf, filename="history.png")
-
-        embed = discord.Embed(
-            title=f"📈 Historial de {self.player_name}",
-            color=discord.Color.green(),
-        )
-        embed.set_image(url="attachment://history.png")
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-        embed.set_footer(text=standard_footer())
-        await interaction.followup.send(embed=embed, file=file)
+        # Mismo gráfico/búsqueda que el comando -historial (fuente única).
+        from bot.services.history_chart import build_history_embed
+        embed, file = await build_history_embed(self.fetcher, self.player_name)
+        if file:
+            await interaction.followup.send(embed=embed, file=file)
+        else:
+            await interaction.followup.send(embed=embed)
 
     @discord.ui.button(label="Comparar", style=discord.ButtonStyle.secondary, emoji="\U0001f50d")
     async def compare_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
