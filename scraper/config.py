@@ -76,9 +76,17 @@ DISCOVERED_SERVERS_FILE = os.path.join(DEMOS_DIR, "discovered_servers.json")
 #        - Apache por mes (YYYY_MM/)                 → MONTHLY_DEMO_SERVERS
 #        - HFS (marcadores /~/frontend/, ?get=basic)→ DEMO_SERVERS (URL ~/api/
 #          get_file_list?uri=...) + HFS_DOWNLOAD_BASE
+#        - SPA con visor realitytracker (links <a href=...index.html?demo=URL>) →
+#          DEMO_SERVERS con la URL de la página; _list_demos_from_directory ya
+#          extrae la URL real del parámetro ?demo= (caso Reality Brasil).
 #   4. Verificar que un .PRdemo baje (HTTP 200) antes de commitear.
 DEMO_SERVERS = {
-    "RealityBrasil-Foxtrot": "https://files.realitybrasil.org/PRServer/BattleRecorder/Server01/demos/",
+    # Reality Brasil migró de Apache (Server01/demos/, ahora 302) a una SPA con
+    # selector ?srv=N; las demos están en Server01/tracker/ y la página linkea al
+    # visor con ?demo=<URL real>. srv=1 es el server público (actual); 2/4 archivo.
+    "RealityBrasil-1": "https://files.realitybrasil.org/PRServer/BattleRecorder/?srv=1",
+    "RealityBrasil-2": "https://files.realitybrasil.org/PRServer/BattleRecorder/?srv=2",
+    "RealityBrasil-4": "https://files.realitybrasil.org/PRServer/BattleRecorder/?srv=4",
     "LATAMSQUAD-SV1": "https://latamsquad.dev/~/api/get_file_list?uri=/Project-Reality-BF2/PRdemos-2D/sv1/",
     # Russian Frontier: HFS como latamsquad. uri = "Трекеры (.PRdemo)/" (URL-encoded).
     "RussianFrontier": "https://russianfrontier.ru/~/api/get_file_list?uri=/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
