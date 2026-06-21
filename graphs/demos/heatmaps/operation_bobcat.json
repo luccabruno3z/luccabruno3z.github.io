@@ -1,0 +1,1 @@
+{"map": "operation_bobcat", "map_size": 4.0, "grid_size": 128, "rounds": 1, "deaths": {"kills": 0, "cells": []}, "movement": {"team1": [], "team2": [[81, 59, 1]]}, "spawns": {"team1": [], "team2": []}, "sniper": {"threshold_m": 150.0, "kills": 0, "cells": []}}
