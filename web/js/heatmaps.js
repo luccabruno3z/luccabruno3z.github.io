@@ -16,8 +16,9 @@ import { MAP_IMG_URL } from './config.js';
 const VIEW = 1024;          // canvas backing size (logical map space at fit-scale)
 const DENSITY = 2048;       // density buffer resolution
 const MAX_SCALE = 4;        // 4096px minimap / VIEW → native at 4× zoom
-// If the heatmap ends up mirrored vs the minimap, flip here (verify in browser).
-const FLIP_X = false, FLIP_Y = false;
+// BF2/PR invierte el eje Z (vertical) entre el mundo y el minimapa: sin esto las
+// muertes de la ciudad caían sobre el agua. Verificado contra el minimapa de Gaza.
+const FLIP_X = false, FLIP_Y = true;
 
 let _lut = null;
 function gradientLUT() {
