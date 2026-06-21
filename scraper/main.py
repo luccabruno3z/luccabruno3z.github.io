@@ -33,6 +33,7 @@ from .history import update_history
 from .parser import parse_clan_html
 from .prdemo import parse_demo, RoundStats
 from .prdemo.decode import DemoReader
+from .prdemo.parser import MOVE_PHASES
 from .rounds_store import (
     load_all_rounds,
     append_rounds,
@@ -939,11 +940,16 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
             mg = mv.get("grid", grid_size)
             for team in (1, 2):
                 dst = m["move"][team]
-                for gx, gy, c in mv.get(f"team{team}", []):
+                for entry in mv.get(f"team{team}", []):
+                    # v2: [ph,gx,gy,c]; v1 (sin fase): [gx,gy,c] → fase -1 (solo en "todas").
+                    if len(entry) >= 4:
+                        ph, gx, gy, c = entry
+                    else:
+                        ph, (gx, gy, c) = -1, entry
                     if mg != grid_size:
                         gx = gx * grid_size // mg
                         gy = gy * grid_size // mg
-                    dst[(gx, gy)] += c
+                    dst[(ph, gx, gy)] += c
 
         for x, z, team in (sp or []):
             if team in (1, 2):
@@ -956,9 +962,14 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         out.sort(key=lambda e: e[2] + e[3], reverse=True)
         return out
 
-    def cells1(d):
+    def cells1(d):  # spawns: {(gx,gy): c} → [[gx,gy,c]]
         out = [[gx, gy, c] for (gx, gy), c in d.items()]
         out.sort(key=lambda e: e[2], reverse=True)
+        return out
+
+    def cellsmv(d):  # movimiento: {(ph,gx,gy): c} → [[ph,gx,gy,c]]
+        out = [[ph, gx, gy, c] for (ph, gx, gy), c in d.items()]
+        out.sort(key=lambda e: e[3], reverse=True)
         return out
 
     result: dict[str, dict] = {}
@@ -968,7 +979,7 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
             gamemodes[gmode] = {
                 "rounds": m["rounds"],
                 "deaths": {"kills": m["deaths_n"], "cells": cells2(m["deaths"])},
-                "movement": {"team1": cells1(m["move"][1]), "team2": cells1(m["move"][2])},
+                "movement": {"phases": MOVE_PHASES, "team1": cellsmv(m["move"][1]), "team2": cellsmv(m["move"][2])},
                 "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
                 "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
                            "cells": cells2(m["sniper"])},

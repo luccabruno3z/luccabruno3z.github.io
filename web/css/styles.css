@@ -2125,6 +2125,14 @@ footer a:hover {
 }
 .heatmap-layers button:hover { color: var(--text); }
 .heatmap-layers button.active { color: var(--accent); background: var(--accent-dim); border-color: var(--border-medium); }
+.heatmap-phase-row {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px; flex-wrap: wrap;
+    color: var(--text-muted); font-size: 0.86rem;
+}
+.heatmap-phase-row[hidden] { display: none; }
+.heatmap-phase-row input[type="range"] { flex: 1; min-width: 160px; max-width: 360px; accent-color: var(--accent); cursor: pointer; }
+.heatmap-phase-label { font-weight: 700; color: var(--accent); min-width: 130px; }
 .heatmap-stage {
     position: relative;
     max-width: 640px;

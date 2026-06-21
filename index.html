@@ -518,6 +518,11 @@
                 <button type="button" data-layer="spawns">📍 Spawns</button>
                 <button type="button" data-layer="sniper">🎯 Francotiradores</button>
             </div>
+            <div class="heatmap-phase-row" id="heatmap-phase-row" hidden>
+                <label for="heatmap-phase">Etapa de la partida:</label>
+                <input type="range" id="heatmap-phase" min="0" max="6" value="0" step="1" aria-label="Etapa de la partida">
+                <span id="heatmap-phase-label" class="heatmap-phase-label">Todas</span>
+            </div>
             <div class="heatmap-stage">
                 <canvas id="heatmap-canvas" width="1024" height="1024" aria-label="Heatmap de muertes del mapa (rueda para zoom, arrastrá para mover)"></canvas>
                 <div class="heatmap-legend" aria-hidden="true"><span>menos</span><span class="heatmap-ramp"></span><span>más</span></div>

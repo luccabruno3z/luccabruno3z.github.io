@@ -45,9 +45,10 @@ function drawBackdrop(ctx) {
     }
 }
 
-/** Extract [[gx,gy,value], …] for a layer + team from the heatmap file.
- *  deaths/sniper: cells [gx,gy,t1,t2] (t1/t2 por equipo). movement/spawns: {team1,team2}. */
-function layerCells(hm, layer, team) {
+/** Extract [[gx,gy,value], …] for a layer + team (+ phase para movement).
+ *  deaths/sniper: cells [gx,gy,t1,t2]. spawns: {team1,team2}:[[gx,gy,c]].
+ *  movement: {team1,team2}:[[ph,gx,gy,c]] → `phase` ('all'|0..N-1) filtra la etapa. */
+function layerCells(hm, layer, team, phase) {
     if (layer === 'deaths' || layer === 'sniper') {
         // Fallback al formato viejo (cells de muertes en top-level) durante la transición.
         const cells = hm[layer]?.cells || (layer === 'deaths' ? hm.cells : null) || [];
@@ -55,13 +56,21 @@ function layerCells(hm, layer, team) {
         return cells.map(c => [c[0], c[1], idx < 0 ? c[2] + c[3] : c[idx]]).filter(c => c[2] > 0);
     }
     const L = hm[layer] || {};
-    if (team === '1') return L.team1 || [];
-    if (team === '2') return L.team2 || [];
-    const merged = new Map();
-    for (const [gx, gy, c] of [...(L.team1 || []), ...(L.team2 || [])]) {
-        const k = gx + ',' + gy; merged.set(k, (merged.get(k) || 0) + c);
-    }
-    return [...merged.entries()].map(([k, c]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, c]; });
+    const isMove = layer === 'movement';
+    const ph = (phase == null || phase === 'all') ? null : Number(phase);
+    const collapse = (arr) => {
+        const m = new Map();
+        for (const e of (arr || [])) {
+            let gx, gy, c;
+            if (isMove && e.length >= 4) { if (ph != null && e[0] !== ph) continue; gx = e[1]; gy = e[2]; c = e[3]; }
+            else { gx = e[0]; gy = e[1]; c = e[2]; }  // spawns o movement v1 (sin fase)
+            const k = gx + ',' + gy; m.set(k, (m.get(k) || 0) + c);
+        }
+        return [...m.entries()].map(([k, c]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, c]; });
+    };
+    if (team === '1') return collapse(L.team1);
+    if (team === '2') return collapse(L.team2);
+    return collapse([...(L.team1 || []), ...(L.team2 || [])]);
 }
 
 /** Aggregate ONE round's raw positions into a layers object {deaths,movement,spawns,
@@ -87,10 +96,12 @@ function gridRound(round, gridSize) {
         }
     }
     const cells2 = (m) => [...m.entries()].map(([k, v]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, v[0], v[1]]; });
-    // movement: el round ya lo trae gridado (move_grid_size). Pasa directo si coincide.
+    // movement: ya viene gridado (move_grid_size), por fase [ph,gx,gy,c]. Pasa directo.
     const mv = round.movement || {};
     const mg = mv.grid || gridSize;
-    const rescale = (arr) => (mg === gridSize) ? (arr || []) : (arr || []).map(([gx, gy, c]) => [gx * gridSize / mg | 0, gy * gridSize / mg | 0, c]);
+    const rescale = (arr) => (mg === gridSize) ? (arr || []) : (arr || []).map(e =>
+        e.length >= 4 ? [e[0], e[1] * gridSize / mg | 0, e[2] * gridSize / mg | 0, e[3]]
+                      : [e[0] * gridSize / mg | 0, e[1] * gridSize / mg | 0, e[2]]);
     // spawns: raw [[x,z,team]] → grid por equipo.
     const sp = { 1: new Map(), 2: new Map() };
     for (const [x, z, team] of (round.spawns || [])) {
@@ -102,7 +113,7 @@ function gridRound(round, gridSize) {
     return {
         deaths: { cells: cells2(deaths) },
         sniper: { cells: cells2(sniper) },
-        movement: { team1: rescale(mv.team1), team2: rescale(mv.team2) },
+        movement: { phases: mv.phases, team1: rescale(mv.team1), team2: rescale(mv.team2) },
         spawns: { team1: cells1(sp[1]), team2: cells1(sp[2]) },
     };
 }
@@ -272,9 +283,14 @@ export async function initHeatmaps() {
     mapSel.innerHTML = maps.map(e =>
         `<option value="${escapeHtml(e.map)}">${escapeHtml(mapLabel(e.map))} (${formatNumber(e.kills || 0)})</option>`).join('');
 
+    const phaseRow = document.getElementById('heatmap-phase-row');
+    const phaseSlider = document.getElementById('heatmap-phase');
+    const phaseLbl = document.getElementById('heatmap-phase-label');
     let team = 'all', layer = 'deaths', hm = null;
 
-    // Re-render con el estado actual (gamemode/round/layer/team). round='all' → agregado.
+    const PHASE_NAMES = (n) => ['Apertura', 'Inicio', 'Desarrollo', 'Mitad', 'Avance', 'Cierre'][n] || `Fase ${n + 1}`;
+
+    // Re-render con el estado actual (gamemode/round/layer/team/etapa). round='all' → agregado.
     async function render() {
         if (!hm) return;
         const round = roundSel ? roundSel.value : 'all';
@@ -293,16 +309,31 @@ export async function initHeatmaps() {
             const rounds = (hm.gamemodes ? (hm.gamemodes[gm]?.rounds) : hm.rounds) || 0;
             ctxNote = (gm ? `${escapeHtml(gamemodeLabel(gm))} · ` : '') + `${formatNumber(rounds)} rondas`;
         }
-        const cells = layerCells(layers, layer, team);
+
+        // Slider de etapas: solo para recorridos. value 0 = todas; 1..N = fase 0..N-1.
+        const phases = (layer === 'movement') ? (layers.movement?.phases || 6) : 0;
+        if (phaseRow) phaseRow.hidden = !phases;
+        let phase = 'all';
+        if (phases && phaseSlider) {
+            phaseSlider.max = String(phases);
+            if (Number(phaseSlider.value) > phases) phaseSlider.value = '0';
+            const v = Number(phaseSlider.value);
+            phase = v === 0 ? 'all' : v - 1;
+            if (phaseLbl) phaseLbl.textContent = v === 0 ? 'Todas las etapas' : `${PHASE_NAMES(v - 1)} (${v}/${phases})`;
+        }
+
+        const cells = layerCells(layers, layer, team, phase);
         vp.density = buildDensity(cells, hm.grid_size || 128);
         resetView();
         if (meta) {
+            const phaseNote = (phases && phase !== 'all') ? ` · etapa ${Number(phaseSlider.value)}/${phases}` : '';
             const empty = vp.density ? '' : ' <span class="muted">· sin datos en esta capa</span>';
-            meta.innerHTML = `${escapeHtml(mapLabel(mapSel.value))} — ${LAYER_LABEL[layer] || ''} · ${ctxNote}`
+            meta.innerHTML = `${escapeHtml(mapLabel(mapSel.value))} — ${LAYER_LABEL[layer] || ''} · ${ctxNote}${phaseNote}`
                 + (vp.img ? '' : ' <span class="muted">· sin minimapa</span>') + empty
                 + ' <span class="muted">· rueda/pellizco: zoom · arrastrá: mover · doble-click: reset</span>';
         }
     }
+    if (phaseSlider) phaseSlider.addEventListener('input', render);
 
     // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.
     async function selectMap() {

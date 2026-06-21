@@ -31,6 +31,10 @@ from .types import MessageType
 
 logger = logging.getLogger(__name__)
 
+# Fases temporales para el slider de recorridos (cada ronda se divide en N por
+# fracción de duración; fase 0 = apertura … fase N-1 = cierre).
+MOVE_PHASES = 6
+
 
 @dataclass
 class PlayerStats:
@@ -109,9 +113,10 @@ class RoundStats:
     # muertes (vx,vz,vteam), francotiradores (ax,az,ateam con dist alta y arma personal),
     # líneas de fuego (atacante→víctima) y heatmaps por jugador (igns; solo se capturan).
     kill_positions: List[list] = field(default_factory=list)
-    # Densidad de movimiento por equipo (rutas): {team: {(gx,gy): veces que alguien
-    # entró a esa celda}} en una grilla MOVE_GRID. Se serializa en to_dict.
-    move_grid: Dict[int, Dict] = field(default_factory=lambda: {1: {}, 2: {}})
+    # Eventos de movimiento (rutas): [gx, gy, team, frame] cada vez que alguien entra a
+    # una celda nueva. En to_dict se reparten en MOVE_PHASES fases por fracción de ronda
+    # (frame/duration) → permite el slider temporal de recorridos.
+    move_events: List[list] = field(default_factory=list)
     move_grid_size: int = 128
     # Posiciones de spawn (al revivir): [x, z, equipo].
     spawns: List[list] = field(default_factory=list)
@@ -143,11 +148,7 @@ class RoundStats:
             "total_suicides": self.total_suicides,
             "squad_names": self.squad_names,
             "kill_positions": self.kill_positions,
-            "movement": {
-                "grid": self.move_grid_size,
-                "team1": [[gx, gy, c] for (gx, gy), c in self.move_grid[1].items()],
-                "team2": [[gx, gy, c] for (gx, gy), c in self.move_grid[2].items()],
-            },
+            "movement": self._movement_dict(),
             "spawns": self.spawns,
             "players": {
                 pid: {
@@ -182,6 +183,23 @@ class RoundStats:
                 }
                 for pid, ps in self.players.items()
             },
+        }
+
+    def _movement_dict(self) -> Dict[str, Any]:
+        """Reparte los eventos de movimiento en MOVE_PHASES fases por fracción de ronda
+        (frame/duration) → {grid, phases, team1:[[ph,gx,gy,c]], team2:[…]}."""
+        dur = max(self.duration_ticks, 1)
+        agg = {1: {}, 2: {}}
+        for gx, gy, team, frame in self.move_events:
+            if team not in (1, 2):
+                continue
+            ph = min(MOVE_PHASES - 1, frame * MOVE_PHASES // dur)
+            key = (ph, gx, gy)
+            agg[team][key] = agg[team].get(key, 0) + 1
+        return {
+            "grid": self.move_grid_size, "phases": MOVE_PHASES,
+            "team1": [[ph, gx, gy, c] for (ph, gx, gy), c in agg[1].items()],
+            "team2": [[ph, gx, gy, c] for (ph, gx, gy), c in agg[2].items()],
         }
 
 
@@ -467,12 +485,12 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                     pp = stats.players.get(pid)
                     if pp is None or pp.team not in (1, 2):
                         continue
-                    # Densidad de movimiento (rutas): contar solo cuando el jugador
-                    # entra a una celda NUEVA → traza recorridos, no campeo ni muertos.
+                    # Movimiento (rutas): registrar solo cuando el jugador entra a una
+                    # celda NUEVA → traza recorridos, no campeo ni muertos. Guardamos el
+                    # frame para repartir en fases temporales (slider) al cerrar la ronda.
                     cell = grid_cell(pos[0], pos[2])
                     if cell is not None and move_last.get(pid) != cell:
-                        g = stats.move_grid[pp.team]
-                        g[cell] = g.get(cell, 0) + 1
+                        stats.move_events.append([cell[0], cell[1], pp.team, total_ticks])
                         move_last[pid] = cell
                     # Cohesión de escuadra (distancia al centroide del squad).
                     sq = last_squad.get(pid, 0)
