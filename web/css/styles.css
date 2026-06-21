@@ -2124,7 +2124,10 @@ footer a:hover {
     border-radius: var(--r-md);
     background: #0a0e14;
     display: block;
+    cursor: grab;
+    touch-action: none;  /* pointer pan/zoom sin que la página scrollee en touch */
 }
+#heatmap-canvas.grabbing { cursor: grabbing; }
 .heatmap-legend {
     display: flex;
     align-items: center;
