@@ -486,6 +486,7 @@ def _aggregate_player_details(
                     "cohesion_sum": 0.0,              # distancia al centroide de su escuadra
                     "cohesion_samples": 0,
                     "played_seconds": 0.0,            # duración de las rondas jugadas (para kills/min)
+                    "last_round_date": "",            # fecha del último demo capturado (última vez visto)
                     "maps_played": {},
                     # New fields
                     "wins": 0,
@@ -576,6 +577,9 @@ def _aggregate_player_details(
             p["cohesion_samples"] += pdata.get("cohesion_samples", 0)
             if round_data.get("duration_seconds"):
                 p["played_seconds"] += round_data["duration_seconds"]
+            _rdate = _date_from_filename(round_filename)
+            if _rdate > p["last_round_date"]:
+                p["last_round_date"] = _rdate
 
             p["maps_played"][round_map] = p["maps_played"].get(round_map, 0) + 1
 

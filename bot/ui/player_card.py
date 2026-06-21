@@ -80,6 +80,7 @@ class PlayerCard(discord.ui.LayoutView):
         next_tier: tuple[str, float] | None = None,
         warning: str | None = None,
         highlights: str | None = None,
+        activity: str | None = None,
         accent: int | None = None,
         actions: list[discord.ui.Item] | None = None,
     ):
@@ -125,9 +126,11 @@ class PlayerCard(discord.ui.LayoutView):
             header,
             discord.ui.Separator(),
             stats,
-            discord.ui.Separator(),
-            breakdown_block,
         ]
+        if activity:
+            children.append(discord.ui.TextDisplay(activity))
+        children.append(discord.ui.Separator())
+        children.append(breakdown_block)
 
         if highlights:
             children.append(discord.ui.Separator())

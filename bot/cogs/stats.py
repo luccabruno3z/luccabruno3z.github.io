@@ -270,8 +270,9 @@ class Stats(commands.Cog):
             warn_lines.append(_penalty)
         warning = "\n".join(warn_lines) or None
 
-        # Highlights: best/worst round from demo data (optional).
+        # Highlights + actividad (última vez / tiempo jugado) desde la data de demos.
         highlights = None
+        activity_line = None
         try:
             demo_data = await self.fetcher.fetch_player_details()
             demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign") if demo_data else None
@@ -285,6 +286,18 @@ class Stats(commands.Cog):
                     _hl.append(f"💀 Peor: {_worst.get('kills', 0)} kills en {_worst.get('map', '?')}")
                 if _hl:
                     highlights = "🎯 **Rondas destacadas**\n" + "\n".join(_hl)
+                # Última vez visto (último demo capturado) + tiempo jugado (registrado).
+                _last = demo_player.get("last_round_date")
+                _played = demo_player.get("played_seconds", 0) or 0
+                _parts = []
+                if _last:
+                    _parts.append(f"📅 Última vez: **{_last}**")
+                if _played >= 60:
+                    _hours = _played / 3600
+                    _t = f"{_hours:.1f} h" if _hours >= 1 else f"{int(_played // 60)} min"
+                    _parts.append(f"⏱️ Tiempo jugado: **{_t}** *(registrado)*")
+                if _parts:
+                    activity_line = " · ".join(_parts)
         except Exception:
             pass  # demo data optional
 
@@ -314,6 +327,7 @@ class Stats(commands.Cog):
             next_tier=next_tier,
             warning=warning,
             highlights=highlights,
+            activity=activity_line,
             accent=color.value,
             actions=actions,
         )
