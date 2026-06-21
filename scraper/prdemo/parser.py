@@ -104,10 +104,10 @@ class RoundStats:
 
     # Nombres de escuadras vistos (clave cruda team_squad → nombre).
     squad_names: Dict[int, str] = field(default_factory=dict)
-    # Por kill: [vx, vz, vteam, ax, az, ateam, dist_m, weapon] — víctima + atacante +
-    # distancia + arma. ax/az None si el atacante no tiene posición; dist -1 si falta.
-    # Sirve para heatmap de muertes (vx,vz,vteam), francotiradores (ax,az,ateam con dist
-    # alta y arma personal) y líneas de fuego (atacante→víctima).
+    # Por kill: [vx, vz, vteam, ax, az, ateam, dist_m, weapon, victim_ign, attacker_ign].
+    # ax/az None si el atacante no tiene posición; dist -1 si falta. Sirve para heatmap de
+    # muertes (vx,vz,vteam), francotiradores (ax,az,ateam con dist alta y arma personal),
+    # líneas de fuego (atacante→víctima) y heatmaps por jugador (igns; solo se capturan).
     kill_positions: List[list] = field(default_factory=list)
     # Densidad de movimiento por equipo (rutas): {team: {(gx,gy): veces que alguien
     # entró a esa celda}} en una grilla MOVE_GRID. Se serializa en to_dict.
@@ -384,11 +384,13 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                     vteam = stats.players[kill.victim_id].team if kill.victim_id in stats.players else -1
                     apos = last_pos.get(kill.attacker_id)
                     ateam = attacker.team
+                    v_ign = stats.players[kill.victim_id].ign if kill.victim_id in stats.players else ""
+                    a_ign = attacker.ign
                     if apos is not None:
                         dist = round(((apos[0] - vpos[0]) ** 2 + (apos[2] - vpos[2]) ** 2) ** 0.5, 1)
-                        stats.kill_positions.append([vpos[0], vpos[2], vteam, apos[0], apos[2], ateam, dist, kill.weapon])
+                        stats.kill_positions.append([vpos[0], vpos[2], vteam, apos[0], apos[2], ateam, dist, kill.weapon, v_ign, a_ign])
                     else:
-                        stats.kill_positions.append([vpos[0], vpos[2], vteam, None, None, ateam, -1, kill.weapon])
+                        stats.kill_positions.append([vpos[0], vpos[2], vteam, None, None, ateam, -1, kill.weapon, v_ign, a_ign])
 
             victim = get_player(kill.victim_id)
             victim.death_weapons[kill.weapon] = victim.death_weapons.get(kill.weapon, 0) + 1

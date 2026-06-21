@@ -392,11 +392,15 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
             safe = re.sub(r"[^a-zA-Z0-9_\-]", "_", mname)
             with open(os.path.join(hm_dir, f"{safe}.json"), "w", encoding="utf-8") as f:
                 json.dump(hm, f, ensure_ascii=False)
+        def _idx_entry(m, h):
+            gms = h["gamemodes"]
+            return {"map": m, "file": re.sub(r'[^a-zA-Z0-9_\-]', '_', m) + ".json",
+                    "rounds": sum(g["rounds"] for g in gms.values()),
+                    "kills": sum(g["deaths"]["kills"] for g in gms.values()),
+                    "gamemodes": sorted(gms)}
         with open(os.path.join(hm_dir, "index.json"), "w", encoding="utf-8") as f:
-            json.dump(sorted(
-                ({"map": m, "file": re.sub(r'[^a-zA-Z0-9_\-]', '_', m) + ".json",
-                  "rounds": h["rounds"], "kills": h["deaths"]["kills"]} for m, h in heatmaps.items()),
-                key=lambda e: e["kills"], reverse=True), f, ensure_ascii=False)
+            json.dump(sorted((_idx_entry(m, h) for m, h in heatmaps.items()),
+                             key=lambda e: e["kills"], reverse=True), f, ensure_ascii=False)
         logger.info("Saved %d heatmaps de mapa", len(heatmaps))
 
         # Per-player round timelines for the web profile view (diff-based write,
@@ -866,17 +870,26 @@ def _aggregate_synergy(
 SNIPER_MIN_DIST = 150.0  # m: kills "a distancia" para la capa de francotiradores
 
 
+_DATE_RE = re.compile(r"tracker_(\d{4})_(\d{2})_(\d{2})_")
+
+
+def _date_from_filename(fn: str) -> str:
+    """tracker_2026_06_21_… → '2026-06-21' (para ubicar rounds/<fecha>.json)."""
+    m = _DATE_RE.match(fn or "")
+    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else ""
+
+
 def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
-    """Capas de densidad por mapa, acumuladas de TODAS las rondas (cada ronda suma).
+    """Capas de densidad por mapa **y gamemode**, acumuladas de TODAS las rondas.
 
     Todo se normaliza al centro del mapa (origen 0,0 = centro, mapa = `map_size` km):
-    `nx = (x + map_size*500) / (map_size*1000)`. Capas por mapa:
-      - `deaths`  : dónde muere cada equipo  → cells [[gx,gy,muertes_t1,muertes_t2]]
+    `nx = (x + map_size*500) / (map_size*1000)`. Por (mapa, gamemode), 4 capas:
+      - `deaths`  : dónde muere cada equipo  → cells [[gx,gy,t1,t2]]
       - `movement`: rutas (densidad de paso) por equipo → {team1,team2}:[[gx,gy,c]]
       - `spawns`  : puntos de aparición por equipo → {team1,team2}:[[gx,gy,c]]
-      - `sniper`  : posición del atacante en kills personales a >SNIPER_MIN_DIST,
-                    por equipo del atacante → cells [[gx,gy,s1,s2]]
-    Celdas dispersas; el render web suaviza."""
+      - `sniper`  : atacante en kills personales a >SNIPER_MIN_DIST → cells [[gx,gy,s1,s2]]
+    Separar por gamemode evita mezclar Skirmish (zona chica) con AAS/Insurgencia.
+    Cada mapa además lista sus rondas para el selector de ronda de la web."""
     def grid(x, z, msize):
         full = msize * 1000.0
         nx = (x + msize * 500.0) / full
@@ -884,6 +897,12 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         if nx < 0 or nx > 1 or nz < 0 or nz > 1:
             return None
         return (min(grid_size - 1, int(nx * grid_size)), min(grid_size - 1, int(nz * grid_size)))
+
+    def new_gm():
+        return {"rounds": 0, "deaths": defaultdict(lambda: [0, 0]), "deaths_n": 0,
+                "move": {1: defaultdict(int), 2: defaultdict(int)},
+                "spawn": {1: defaultdict(int), 2: defaultdict(int)},
+                "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0}
 
     maps: dict[str, dict] = {}
     for rd in rounds:
@@ -896,23 +915,19 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         if not (kps or mv or sp):
             continue
         mname = rd.get("map_name", "unknown")
-        m = maps.get(mname)
-        if m is None:
-            m = maps[mname] = {
-                "map": mname, "map_size": msize, "rounds": 0,
-                "deaths": defaultdict(lambda: [0, 0]), "deaths_n": 0,
-                "move": {1: defaultdict(int), 2: defaultdict(int)},
-                "spawn": {1: defaultdict(int), 2: defaultdict(int)},
-                "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0,
-            }
+        gmode = rd.get("gamemode", "unknown")
+        mp = maps.setdefault(mname, {"map": mname, "map_size": msize, "gm": {}, "rounds_list": []})
+        m = mp["gm"].setdefault(gmode, new_gm())
         m["rounds"] += 1
+        mp["rounds_list"].append({"filename": rd.get("filename", ""),
+                                  "date": _date_from_filename(rd.get("filename", "")),
+                                  "gamemode": gmode})
 
         for e in (kps or []):
             cell = grid(e[0], e[1], msize)
             if cell is not None:
                 m["deaths"][cell][1 if e[2] == 2 else 0] += 1
                 m["deaths_n"] += 1
-            # Francotiradores: atacante, kill personal a larga distancia.
             if len(e) >= 8 and e[3] is not None and (e[6] or -1) >= SNIPER_MIN_DIST:
                 if e[7] != "?" and resolve_weapon(e[7]).get("kind") != "vehicle":
                     acell = grid(e[3], e[4], msize)
@@ -947,16 +962,21 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         return out
 
     result: dict[str, dict] = {}
-    for mname, m in maps.items():
-        result[mname] = {
-            "map": mname, "map_size": m["map_size"], "grid_size": grid_size,
-            "rounds": m["rounds"],
-            "deaths": {"kills": m["deaths_n"], "cells": cells2(m["deaths"])},
-            "movement": {"team1": cells1(m["move"][1]), "team2": cells1(m["move"][2])},
-            "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
-            "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
-                       "cells": cells2(m["sniper"])},
-        }
+    for mname, mp in maps.items():
+        gamemodes = {}
+        for gmode, m in mp["gm"].items():
+            gamemodes[gmode] = {
+                "rounds": m["rounds"],
+                "deaths": {"kills": m["deaths_n"], "cells": cells2(m["deaths"])},
+                "movement": {"team1": cells1(m["move"][1]), "team2": cells1(m["move"][2])},
+                "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
+                "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
+                           "cells": cells2(m["sniper"])},
+            }
+        # rondas más nuevas primero (para el selector)
+        rlist = sorted(mp["rounds_list"], key=lambda r: r["filename"], reverse=True)
+        result[mname] = {"map": mname, "map_size": mp["map_size"], "grid_size": grid_size,
+                         "gamemodes": gamemodes, "rounds": rlist}
     return result
 
 

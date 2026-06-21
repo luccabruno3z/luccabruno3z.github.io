@@ -209,6 +209,15 @@ export async function loadHeatmap(file) {
     return data;
 }
 
+/** Full round object (with kill_positions/movement/spawns) from its day file, by
+ *  filename. For the per-round heatmap view. Memoized by the day file (cachedFetch). */
+export async function loadRoundPositions(date, filename) {
+    if (!date || !filename) return null;
+    const day = await cachedFetch(`${ROUNDS_URL}/${date}.json`, { silent: true });
+    if (!Array.isArray(day)) return null;
+    return day.find(r => r.filename === filename) || null;
+}
+
 /** Optional minimap-image manifest ({map: ext}). Non-fatal: heatmap falls back
  *  to a neutral backdrop when a map has no image. */
 export async function loadMapImgManifest() {

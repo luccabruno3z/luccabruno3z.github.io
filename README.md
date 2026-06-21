@@ -52,10 +52,11 @@ luccabruno3z.github.io/
   Assets, Kits & Modos, Sinergia, Rondas) — espeja los comandos del bot con nombres
   legibles de assets, K/D por kit, vehículos honestos, desglose por tipo de medio,
   vida promedio/racha/clutch, y **sinergia de dúo** (mejores/peores compañeros)
-- **Heatmaps por mapa** (`#heatmaps`): 4 capas seleccionables (🔥 muertes, 🧭 recorridos,
-  📍 spawns, 🎯 francotiradores) renderizadas en canvas (sin dependencias) con **zoom/pan**,
-  filtrables por equipo, sobre el **minimapa real** de cada mapa (81 mapas en `web/img/maps/`,
-  stitcheados del Map Gallery oficial por `scraper/fetch_minimaps.py`; fallback a fondo neutro)
+- **Heatmaps por mapa** (`#heatmaps`): 4 capas (🔥 muertes, 🧭 recorridos, 📍 spawns,
+  🎯 francotiradores) en canvas (sin dependencias) con **zoom/pan**, filtrables por
+  **equipo, gamemode** (AAS/Insurgencia/Skirmish… separados para no mezclar zonas) y
+  **ronda** (todas o una específica), sobre el **minimapa real** de cada mapa (81 en
+  `web/img/maps/`, del Map Gallery por `scraper/fetch_minimaps.py`; fallback a fondo neutro)
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills) + duración/kills-min por mapa
 - **Historial de rondas por jugador** en su perfil de demos
@@ -176,8 +177,11 @@ y la densidad comparten la misma normalización centrada al mapa, así que se al
 recalibrar (BF2 invierte el eje Z → `FLIP_Y`). Los minimapas (`web/img/maps/`, 4096px JPEG)
 los baja `scraper/fetch_minimaps.py` del Map Gallery oficial.
 
-Cada `heatmaps/<mapa>.json` tiene **4 capas** (radio en la web), acumuladas de todas las
-rondas del mapa, filtrables por equipo:
+Cada `heatmaps/<mapa>.json` separa las capas **por gamemode** (`gamemodes: {gpm_cq, …}`)
+para no mezclar Skirmish (zona chica) con AAS/Insurgencia, y lista sus rondas
+(`rounds: [{filename,date,gamemode}]`) para el selector de ronda (la web carga esa ronda
+de `rounds/<fecha>.json` y la agrega en cliente). Cada gamemode tiene **4 capas** (radio
+en la web), acumuladas de todas sus rondas, filtrables por equipo:
 - **deaths**: dónde muere cada equipo (`kill_positions` víctima).
 - **movement**: rutas más transitadas por equipo (densidad de paso — se cuenta al entrar
   a una celda nueva, así traza recorridos y no campeo; muestreada cada ~10s).

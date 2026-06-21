@@ -9,13 +9,14 @@
    cell UV maps directly to the minimap — no recalibration.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, state } from './data.js';
-import { mapLabel, formatNumber, escapeHtml } from './utils.js';
+import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, state } from './data.js';
+import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
 import { MAP_IMG_URL } from './config.js';
 
 const VIEW = 1024;          // canvas backing size (logical map space at fit-scale)
 const DENSITY = 2048;       // density buffer resolution
 const MAX_SCALE = 4;        // 4096px minimap / VIEW → native at 4× zoom
+const SNIPER_MIN_DIST = 150; // m, debe coincidir con el scraper (SNIPER_MIN_DIST)
 // BF2/PR invierte el eje Z (vertical) entre el mundo y el minimapa: sin esto las
 // muertes de la ciudad caían sobre el agua. Verificado contra el minimapa de Gaza.
 const FLIP_X = false, FLIP_Y = true;
@@ -61,6 +62,49 @@ function layerCells(hm, layer, team) {
         const k = gx + ',' + gy; merged.set(k, (merged.get(k) || 0) + c);
     }
     return [...merged.entries()].map(([k, c]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, c]; });
+}
+
+/** Aggregate ONE round's raw positions into a layers object {deaths,movement,spawns,
+ *  sniper} (same shape layerCells reads). Mirrors scraper _aggregate_heatmaps for a
+ *  single round, centered-to-map normalization. */
+function gridRound(round, gridSize) {
+    const ms = round.map_size || 0;
+    const grid = (x, z) => {
+        if (ms <= 0) return null;
+        const full = ms * 1000, nx = (x + ms * 500) / full, nz = (z + ms * 500) / full;
+        if (nx < 0 || nx > 1 || nz < 0 || nz > 1) return null;
+        return [Math.min(gridSize - 1, nx * gridSize | 0), Math.min(gridSize - 1, nz * gridSize | 0)];
+    };
+    const deaths = new Map(), sniper = new Map();
+    const bump = (map, key, slot) => { const v = map.get(key) || [0, 0]; v[slot] += 1; map.set(key, v); };
+    for (const e of (round.kill_positions || [])) {
+        const c = grid(e[0], e[1]);
+        if (c) bump(deaths, c[0] + ',' + c[1], e[2] === 2 ? 1 : 0);
+        if (e.length >= 8 && e[3] != null && (e[6] || -1) >= SNIPER_MIN_DIST
+            && e[7] !== '?' && weaponKind(e[7]) !== 'vehicle') {
+            const a = grid(e[3], e[4]);
+            if (a) bump(sniper, a[0] + ',' + a[1], e[5] === 2 ? 1 : 0);
+        }
+    }
+    const cells2 = (m) => [...m.entries()].map(([k, v]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, v[0], v[1]]; });
+    // movement: el round ya lo trae gridado (move_grid_size). Pasa directo si coincide.
+    const mv = round.movement || {};
+    const mg = mv.grid || gridSize;
+    const rescale = (arr) => (mg === gridSize) ? (arr || []) : (arr || []).map(([gx, gy, c]) => [gx * gridSize / mg | 0, gy * gridSize / mg | 0, c]);
+    // spawns: raw [[x,z,team]] → grid por equipo.
+    const sp = { 1: new Map(), 2: new Map() };
+    for (const [x, z, team] of (round.spawns || [])) {
+        if (team !== 1 && team !== 2) continue;
+        const c = grid(x, z); if (!c) continue;
+        const k = c[0] + ',' + c[1]; sp[team].set(k, (sp[team].get(k) || 0) + 1);
+    }
+    const cells1 = (m) => [...m.entries()].map(([k, c]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, c]; });
+    return {
+        deaths: { cells: cells2(deaths) },
+        sniper: { cells: cells2(sniper) },
+        movement: { team1: rescale(mv.team1), team2: rescale(mv.team2) },
+        spawns: { team1: cells1(sp[1]), team2: cells1(sp[2]) },
+    };
 }
 
 /** Colorize a [[gx,gy,value]] cell list into an offscreen canvas (or null). */
@@ -181,42 +225,36 @@ function wireInteractions(canvas) {
 }
 
 // ── Selection ────────────────────────────────────────────────────────────────
-const LAYER_DESC = {
-    deaths: (hm) => `<b>${formatNumber(hm.deaths?.kills ?? hm.kills ?? 0)}</b> muertes (dónde cae cada equipo)`,
-    movement: () => 'rutas más transitadas por cada equipo',
-    spawns: () => 'puntos de aparición (spawns) de cada equipo',
-    sniper: (hm) => `<b>${formatNumber(hm.sniper?.kills || 0)}</b> bajas a >${hm.sniper?.threshold_m || 150}m con arma personal (posición del tirador)`,
+const LAYER_LABEL = {
+    deaths: 'muertes (dónde cae cada equipo)',
+    movement: 'rutas más transitadas',
+    spawns: 'puntos de aparición (spawns)',
+    sniper: `bajas a >${SNIPER_MIN_DIST}m con arma personal (posición del tirador)`,
 };
 
-async function renderSelected(mapName, layer, team) {
-    const meta = document.getElementById('heatmap-meta');
-    const entry = (state.heatmapIndex || []).find(e => e.map === mapName);
-    if (!entry) { vp.img = null; vp.density = null; resetView(); if (meta) meta.textContent = ''; return; }
+/** Layers object para un (gamemode) o el formato viejo top-level (backward-compat). */
+function gamemodeLayers(hm, gamemode) {
+    if (hm.gamemodes) return hm.gamemodes[gamemode] || {};
+    return hm;  // formato viejo: deaths/movement/spawns/sniper en top-level
+}
 
-    const [hm, img] = await Promise.all([loadHeatmap(entry.file), mapImage(mapName)]);
-    vp.img = img || null;
-    const cells = hm ? layerCells(hm, layer, team) : [];
-    vp.density = buildDensity(cells, hm?.grid_size || 128);
-    resetView();
-
-    if (meta) {
-        if (!hm) {
-            meta.innerHTML = '<span class="empty-state">⏳ Sin datos de posiciones para este mapa todavía (se acumulan desde las partidas nuevas).</span>';
-        } else {
-            const desc = (LAYER_DESC[layer] || (() => ''))(hm);
-            const empty = vp.density ? '' : ' <span class="muted">· sin datos en esta capa todavía</span>';
-            meta.innerHTML = `${escapeHtml(mapLabel(mapName))} — ${desc} · <b>${formatNumber(hm.rounds)}</b> rondas`
-                + (img ? '' : ' · <span class="muted">sin minimapa</span>') + empty
-                + ' <span class="muted">· rueda/pellizco: zoom · arrastrá: mover · doble-click: reset</span>';
-        }
+function defaultGamemode(hm) {
+    if (!hm.gamemodes) return null;
+    let best = null, bestK = -1;
+    for (const [gm, L] of Object.entries(hm.gamemodes)) {
+        const k = L.deaths?.kills || 0;
+        if (k > bestK) { bestK = k; best = gm; }
     }
+    return best;
 }
 
 export async function initHeatmaps() {
-    const select = document.getElementById('heatmap-map');
+    const mapSel = document.getElementById('heatmap-map');
+    const gmSel = document.getElementById('heatmap-gamemode');
+    const roundSel = document.getElementById('heatmap-round');
     const canvas = document.getElementById('heatmap-canvas');
     const meta = document.getElementById('heatmap-meta');
-    if (!select || !canvas) return;
+    if (!mapSel || !canvas) return;
 
     canvas.width = VIEW; canvas.height = VIEW;
     vp.canvas = canvas; vp.ctx = canvas.getContext('2d');
@@ -231,33 +269,82 @@ export async function initHeatmaps() {
     }
 
     const maps = [...index].sort((a, b) => (b.kills || 0) - (a.kills || 0));
-    select.innerHTML = maps.map(e =>
+    mapSel.innerHTML = maps.map(e =>
         `<option value="${escapeHtml(e.map)}">${escapeHtml(mapLabel(e.map))} (${formatNumber(e.kills || 0)})</option>`).join('');
 
-    let team = 'all';
-    let layer = 'deaths';
-    const draw = () => renderSelected(select.value, layer, team);
-    select.addEventListener('change', draw);
+    let team = 'all', layer = 'deaths', hm = null;
 
+    // Re-render con el estado actual (gamemode/round/layer/team). round='all' → agregado.
+    async function render() {
+        if (!hm) return;
+        const round = roundSel ? roundSel.value : 'all';
+        let layers, ctxNote = '';
+        if (round && round !== 'all') {
+            const r = (hm.rounds || []).find(x => x.filename === round);
+            const full = r ? await loadRoundPositions(r.date, r.filename) : null;
+            if (gmSel) gmSel.disabled = true;
+            if (!full) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">No se pudo cargar esa ronda.</span>'; return; }
+            layers = gridRound(full, hm.grid_size || 128);
+            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}`;
+        } else {
+            if (gmSel) gmSel.disabled = false;
+            const gm = gmSel ? gmSel.value : null;
+            layers = gamemodeLayers(hm, gm);
+            const rounds = (hm.gamemodes ? (hm.gamemodes[gm]?.rounds) : hm.rounds) || 0;
+            ctxNote = (gm ? `${escapeHtml(gamemodeLabel(gm))} · ` : '') + `${formatNumber(rounds)} rondas`;
+        }
+        const cells = layerCells(layers, layer, team);
+        vp.density = buildDensity(cells, hm.grid_size || 128);
+        resetView();
+        if (meta) {
+            const empty = vp.density ? '' : ' <span class="muted">· sin datos en esta capa</span>';
+            meta.innerHTML = `${escapeHtml(mapLabel(mapSel.value))} — ${LAYER_LABEL[layer] || ''} · ${ctxNote}`
+                + (vp.img ? '' : ' <span class="muted">· sin minimapa</span>') + empty
+                + ' <span class="muted">· rueda/pellizco: zoom · arrastrá: mover · doble-click: reset</span>';
+        }
+    }
+
+    // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.
+    async function selectMap() {
+        const entry = index.find(e => e.map === mapSel.value);
+        if (!entry) return;
+        const [data, img] = await Promise.all([loadHeatmap(entry.file), mapImage(mapSel.value)]);
+        hm = data; vp.img = img || null;
+        if (!hm) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">⏳ Sin datos de este mapa todavía.</span>'; return; }
+        if (gmSel) {
+            const gms = hm.gamemodes ? Object.keys(hm.gamemodes) : [];
+            gmSel.innerHTML = gms.length
+                ? gms.sort((a, b) => (hm.gamemodes[b].deaths?.kills || 0) - (hm.gamemodes[a].deaths?.kills || 0))
+                     .map(gm => `<option value="${escapeHtml(gm)}">${escapeHtml(gamemodeLabel(gm))}</option>`).join('')
+                : '<option value="">—</option>';
+            gmSel.value = defaultGamemode(hm) || '';
+        }
+        if (roundSel) {
+            const rs = (hm.rounds || []).slice(0, 80);
+            roundSel.innerHTML = '<option value="all">Todas las rondas</option>'
+                + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}</option>`).join('');
+            roundSel.value = 'all';
+        }
+        await render();
+    }
+
+    mapSel.addEventListener('change', selectMap);
+    if (gmSel) gmSel.addEventListener('change', render);
+    if (roundSel) roundSel.addEventListener('change', render);
     const teamGroup = document.querySelector('.heatmap-teams');
-    if (teamGroup) {
-        teamGroup.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-team]');
-            if (!btn) return;
-            team = btn.dataset.team;
-            teamGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-            draw();
-        });
-    }
+    if (teamGroup) teamGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-team]'); if (!btn) return;
+        team = btn.dataset.team;
+        teamGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        render();
+    });
     const layerGroup = document.querySelector('.heatmap-layers');
-    if (layerGroup) {
-        layerGroup.addEventListener('click', (e) => {
-            const btn = e.target.closest('button[data-layer]');
-            if (!btn) return;
-            layer = btn.dataset.layer;
-            layerGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
-            draw();
-        });
-    }
-    draw();
+    if (layerGroup) layerGroup.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-layer]'); if (!btn) return;
+        layer = btn.dataset.layer;
+        layerGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        render();
+    });
+
+    await selectMap();
 }
