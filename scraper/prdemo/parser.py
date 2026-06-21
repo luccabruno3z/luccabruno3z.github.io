@@ -104,8 +104,17 @@ class RoundStats:
 
     # Nombres de escuadras vistos (clave cruda team_squad → nombre).
     squad_names: Dict[int, str] = field(default_factory=dict)
-    # Posiciones de muertes para heatmaps por mapa: [x, z, equipo_victima] por kill.
+    # Por kill: [vx, vz, vteam, ax, az, ateam, dist_m, weapon] — víctima + atacante +
+    # distancia + arma. ax/az None si el atacante no tiene posición; dist -1 si falta.
+    # Sirve para heatmap de muertes (vx,vz,vteam), francotiradores (ax,az,ateam con dist
+    # alta y arma personal) y líneas de fuego (atacante→víctima).
     kill_positions: List[list] = field(default_factory=list)
+    # Densidad de movimiento por equipo (rutas): {team: {(gx,gy): veces que alguien
+    # entró a esa celda}} en una grilla MOVE_GRID. Se serializa en to_dict.
+    move_grid: Dict[int, Dict] = field(default_factory=lambda: {1: {}, 2: {}})
+    move_grid_size: int = 128
+    # Posiciones de spawn (al revivir): [x, z, equipo].
+    spawns: List[list] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a JSON-compatible dict."""
@@ -134,6 +143,12 @@ class RoundStats:
             "total_suicides": self.total_suicides,
             "squad_names": self.squad_names,
             "kill_positions": self.kill_positions,
+            "movement": {
+                "grid": self.move_grid_size,
+                "team1": [[gx, gy, c] for (gx, gy), c in self.move_grid[1].items()],
+                "team2": [[gx, gy, c] for (gx, gy), c in self.move_grid[2].items()],
+            },
+            "spawns": self.spawns,
             "players": {
                 pid: {
                     "ign": ps.ign,
@@ -185,14 +200,30 @@ def parse_demo(reader: DemoReader) -> RoundStats:
     ever_squad: Dict[int, bool] = {}  # pid -> alguna vez estuvo en una escuadra
     killstreak: Dict[int, int] = defaultdict(int)  # pid -> racha actual de kills sin morir
     spawn_tick: Dict[int, int] = {}  # pid -> tick en que revivió/spawneó (para tiempo vivo)
+    pending_spawn: set = set()       # pids que acaban de revivir (esperan su 1ra posición)
+    move_last: Dict[int, tuple] = {}  # pid -> última celda de movimiento registrada
     flag_owners: Dict[int, int] = {}  # cp_id -> team
     total_ticks = 0       # cantidad de mensajes TICKS (frames de demo)
     first_blood_done = False
     last_cohesion_tick = -1000
-    COHESION_EVERY = 33   # muestrear cohesión ~cada 33 frames (~10s)
+    COHESION_EVERY = 33   # muestrear cohesión/movimiento ~cada 33 frames (~10s)
     CLUTCH_TICKETS = 25   # umbral de tickets propios para considerar una baja "clutch"
+    MOVE_G = stats.move_grid_size  # grilla de densidad de movimiento
     tickets1_latest = 0
     tickets2_latest = 0
+
+    def grid_cell(x: float, z: float):
+        """World (x,z) → celda (gx,gy) en la grilla de movimiento, o None si OOB.
+        Misma normalización centrada al mapa que el heatmap de muertes."""
+        ms = stats.map_size
+        if ms <= 0:
+            return None
+        full = ms * 1000.0
+        nx = (x + ms * 500.0) / full
+        nz = (z + ms * 500.0) / full
+        if nx < 0 or nx > 1 or nz < 0 or nz > 1:
+            return None
+        return (min(MOVE_G - 1, int(nx * MOVE_G)), min(MOVE_G - 1, int(nz * MOVE_G)))
 
     def get_player(pid: int) -> PlayerStats:
         if pid not in stats.players:
@@ -265,10 +296,15 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                         ever_squad[pu.id] = True
                 if pu.position is not None:
                     last_pos[pu.id] = (pu.position.x, pu.position.y, pu.position.z)
+                    # Spawn: la 1ra posición tras revivir = punto de aparición.
+                    if pu.id in pending_spawn and ps.team in (1, 2):
+                        stats.spawns.append([pu.position.x, pu.position.z, ps.team])
+                        pending_spawn.discard(pu.id)
                 # is_alive solo llega en transiciones (spawn/muerte) → mide tiempo vivo.
                 if pu.is_alive is not None:
                     if pu.is_alive:
                         spawn_tick[pu.id] = total_ticks
+                        pending_spawn.add(pu.id)  # capturar su próximo punto como spawn
                     else:
                         st_ = spawn_tick.pop(pu.id, None)
                         if st_ is not None:
@@ -340,13 +376,19 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 v_name = vehicle_names.get(v_id, f"Vehicle_{v_id}")
                 attacker.vehicle_kills[v_name] = attacker.vehicle_kills.get(v_name, 0) + 1
 
-            # Posición de la muerte (para heatmaps): última posición conocida de la
-            # víctima + su equipo. Solo frags reales (no suicidios/teamkills).
+            # Posición de la muerte + del atacante + distancia (para heatmap de muertes,
+            # francotiradores y líneas de fuego). Solo frags reales.
             if not is_suicide and not is_teamkill:
                 vpos = last_pos.get(kill.victim_id)
                 if vpos is not None:
                     vteam = stats.players[kill.victim_id].team if kill.victim_id in stats.players else -1
-                    stats.kill_positions.append([vpos[0], vpos[2], vteam])
+                    apos = last_pos.get(kill.attacker_id)
+                    ateam = attacker.team
+                    if apos is not None:
+                        dist = round(((apos[0] - vpos[0]) ** 2 + (apos[2] - vpos[2]) ** 2) ** 0.5, 1)
+                        stats.kill_positions.append([vpos[0], vpos[2], vteam, apos[0], apos[2], ateam, dist, kill.weapon])
+                    else:
+                        stats.kill_positions.append([vpos[0], vpos[2], vteam, None, None, ateam, -1, kill.weapon])
 
             victim = get_player(kill.victim_id)
             victim.death_weapons[kill.weapon] = victim.death_weapons.get(kill.weapon, 0) + 1
@@ -420,13 +462,20 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 last_cohesion_tick = total_ticks
                 groups: Dict[tuple, list] = defaultdict(list)
                 for pid, pos in last_pos.items():
-                    sq = last_squad.get(pid, 0)
-                    if not sq:
-                        continue
                     pp = stats.players.get(pid)
-                    if pp is None or pp.team == -1:
+                    if pp is None or pp.team not in (1, 2):
                         continue
-                    groups[(pp.team, sq)].append((pid, pos))
+                    # Densidad de movimiento (rutas): contar solo cuando el jugador
+                    # entra a una celda NUEVA → traza recorridos, no campeo ni muertos.
+                    cell = grid_cell(pos[0], pos[2])
+                    if cell is not None and move_last.get(pid) != cell:
+                        g = stats.move_grid[pp.team]
+                        g[cell] = g.get(cell, 0) + 1
+                        move_last[pid] = cell
+                    # Cohesión de escuadra (distancia al centroide del squad).
+                    sq = last_squad.get(pid, 0)
+                    if sq:
+                        groups[(pp.team, sq)].append((pid, pos))
                 for members in groups.values():
                     if len(members) < 2:
                         continue

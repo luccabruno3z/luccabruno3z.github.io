@@ -508,6 +508,12 @@
                     <button type="button" data-team="2">OPFOR</button>
                 </div>
             </div>
+            <div class="heatmap-layers" role="group" aria-label="Tipo de mapa de calor">
+                <button type="button" data-layer="deaths" class="active">🔥 Mapa de calor</button>
+                <button type="button" data-layer="movement">🧭 Recorridos</button>
+                <button type="button" data-layer="spawns">📍 Spawns</button>
+                <button type="button" data-layer="sniper">🎯 Francotiradores</button>
+            </div>
             <div class="heatmap-stage">
                 <canvas id="heatmap-canvas" width="1024" height="1024" aria-label="Heatmap de muertes del mapa (rueda para zoom, arrastrá para mover)"></canvas>
                 <div class="heatmap-legend" aria-hidden="true"><span>menos</span><span class="heatmap-ramp"></span><span>más</span></div>

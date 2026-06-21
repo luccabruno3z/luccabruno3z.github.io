@@ -44,13 +44,30 @@ function drawBackdrop(ctx) {
     }
 }
 
-/** Build the colorized density layer for a team → offscreen canvas (or null). */
-function buildDensity(hm, team) {
-    const cells = hm.cells || [];
-    const grid = hm.grid_size || 128;
-    const valOf = team === '1' ? (c) => c[2] : team === '2' ? (c) => c[3] : (c) => c[2] + c[3];
+/** Extract [[gx,gy,value], …] for a layer + team from the heatmap file.
+ *  deaths/sniper: cells [gx,gy,t1,t2] (t1/t2 por equipo). movement/spawns: {team1,team2}. */
+function layerCells(hm, layer, team) {
+    if (layer === 'deaths' || layer === 'sniper') {
+        // Fallback al formato viejo (cells de muertes en top-level) durante la transición.
+        const cells = hm[layer]?.cells || (layer === 'deaths' ? hm.cells : null) || [];
+        const idx = team === '1' ? 2 : team === '2' ? 3 : -1;
+        return cells.map(c => [c[0], c[1], idx < 0 ? c[2] + c[3] : c[idx]]).filter(c => c[2] > 0);
+    }
+    const L = hm[layer] || {};
+    if (team === '1') return L.team1 || [];
+    if (team === '2') return L.team2 || [];
+    const merged = new Map();
+    for (const [gx, gy, c] of [...(L.team1 || []), ...(L.team2 || [])]) {
+        const k = gx + ',' + gy; merged.set(k, (merged.get(k) || 0) + c);
+    }
+    return [...merged.entries()].map(([k, c]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, c]; });
+}
+
+/** Colorize a [[gx,gy,value]] cell list into an offscreen canvas (or null). */
+function buildDensity(cells, grid) {
+    if (!cells.length) return null;
     let maxV = 0;
-    for (const c of cells) maxV = Math.max(maxV, valOf(c));
+    for (const c of cells) if (c[2] > maxV) maxV = c[2];
     if (!maxV) return null;
 
     const off = document.createElement('canvas'); off.width = DENSITY; off.height = DENSITY;
@@ -58,7 +75,7 @@ function buildDensity(hm, team) {
     const radius = Math.max(10, (DENSITY / grid) * 2.6);
     octx.globalCompositeOperation = 'lighter';
     for (const c of cells) {
-        const v = valOf(c); if (!v) continue;
+        const v = c[2]; if (!v) continue;
         let gx = c[0], gy = c[1];
         if (FLIP_X) gx = grid - 1 - gx;
         if (FLIP_Y) gy = grid - 1 - gy;
@@ -164,22 +181,34 @@ function wireInteractions(canvas) {
 }
 
 // ── Selection ────────────────────────────────────────────────────────────────
-async function renderSelected(mapName, team) {
+const LAYER_DESC = {
+    deaths: (hm) => `<b>${formatNumber(hm.deaths?.kills ?? hm.kills ?? 0)}</b> muertes (dónde cae cada equipo)`,
+    movement: () => 'rutas más transitadas por cada equipo',
+    spawns: () => 'puntos de aparición (spawns) de cada equipo',
+    sniper: (hm) => `<b>${formatNumber(hm.sniper?.kills || 0)}</b> bajas a >${hm.sniper?.threshold_m || 150}m con arma personal (posición del tirador)`,
+};
+
+async function renderSelected(mapName, layer, team) {
     const meta = document.getElementById('heatmap-meta');
     const entry = (state.heatmapIndex || []).find(e => e.map === mapName);
     if (!entry) { vp.img = null; vp.density = null; resetView(); if (meta) meta.textContent = ''; return; }
 
     const [hm, img] = await Promise.all([loadHeatmap(entry.file), mapImage(mapName)]);
     vp.img = img || null;
-    vp.density = hm ? buildDensity(hm, team) : null;
+    const cells = hm ? layerCells(hm, layer, team) : [];
+    vp.density = buildDensity(cells, hm?.grid_size || 128);
     resetView();
 
     if (meta) {
-        meta.innerHTML = vp.density
-            ? `${escapeHtml(mapLabel(mapName))} — <b>${formatNumber(hm.kills)}</b> muertes en <b>${formatNumber(hm.rounds)}</b> rondas`
-              + (img ? '' : ' · <span class="muted">sin minimapa (fondo neutro)</span>')
-              + ' <span class="muted">· rueda/pellizco para zoom, arrastrá para mover, doble-click para reset</span>'
-            : `<span class="empty-state">⏳ Sin datos de posiciones para este mapa todavía (se acumulan desde las partidas nuevas).</span>`;
+        if (!hm) {
+            meta.innerHTML = '<span class="empty-state">⏳ Sin datos de posiciones para este mapa todavía (se acumulan desde las partidas nuevas).</span>';
+        } else {
+            const desc = (LAYER_DESC[layer] || (() => ''))(hm);
+            const empty = vp.density ? '' : ' <span class="muted">· sin datos en esta capa todavía</span>';
+            meta.innerHTML = `${escapeHtml(mapLabel(mapName))} — ${desc} · <b>${formatNumber(hm.rounds)}</b> rondas`
+                + (img ? '' : ' · <span class="muted">sin minimapa</span>') + empty
+                + ' <span class="muted">· rueda/pellizco: zoom · arrastrá: mover · doble-click: reset</span>';
+        }
     }
 }
 
@@ -206,8 +235,10 @@ export async function initHeatmaps() {
         `<option value="${escapeHtml(e.map)}">${escapeHtml(mapLabel(e.map))} (${formatNumber(e.kills || 0)})</option>`).join('');
 
     let team = 'all';
-    const draw = () => renderSelected(select.value, team);
+    let layer = 'deaths';
+    const draw = () => renderSelected(select.value, layer, team);
     select.addEventListener('change', draw);
+
     const teamGroup = document.querySelector('.heatmap-teams');
     if (teamGroup) {
         teamGroup.addEventListener('click', (e) => {
@@ -215,6 +246,16 @@ export async function initHeatmaps() {
             if (!btn) return;
             team = btn.dataset.team;
             teamGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+            draw();
+        });
+    }
+    const layerGroup = document.querySelector('.heatmap-layers');
+    if (layerGroup) {
+        layerGroup.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-layer]');
+            if (!btn) return;
+            layer = btn.dataset.layer;
+            layerGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
             draw();
         });
     }

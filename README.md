@@ -52,10 +52,10 @@ luccabruno3z.github.io/
   Assets, Kits & Modos, Sinergia, Rondas) — espeja los comandos del bot con nombres
   legibles de assets, K/D por kit, vehículos honestos, desglose por tipo de medio,
   vida promedio/racha/clutch, y **sinergia de dúo** (mejores/peores compañeros)
-- **Heatmaps por mapa** (`#heatmaps`): densidad de muertes por mapa renderizada en
-  canvas (sin dependencias) con **zoom/pan**, filtrable por equipo, sobre el **minimapa
-  real** de cada mapa (81 mapas en `web/img/maps/`, stitcheados del Map Gallery oficial
-  por `scraper/fetch_minimaps.py`; fallback a fondo neutro si falta)
+- **Heatmaps por mapa** (`#heatmaps`): 4 capas seleccionables (🔥 muertes, 🧭 recorridos,
+  📍 spawns, 🎯 francotiradores) renderizadas en canvas (sin dependencias) con **zoom/pan**,
+  filtrables por equipo, sobre el **minimapa real** de cada mapa (81 mapas en `web/img/maps/`,
+  stitcheados del Map Gallery oficial por `scraper/fetch_minimaps.py`; fallback a fondo neutro)
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills) + duración/kills-min por mapa
 - **Historial de rondas por jugador** en su perfil de demos
@@ -173,8 +173,18 @@ rondas). Celdas dispersas con muertes por equipo `[gx, gy, t1, t2]` → un archi
 + `index.json`. El **render web** (`web/js/heatmaps.js`) dibuja la densidad con suavizado
 (blobs + LUT de color) sobre el **minimapa real** del mapa, con **zoom/pan**; el minimapa
 y la densidad comparten la misma normalización centrada al mapa, así que se alinean sin
-recalibrar. Los minimapas (`web/img/maps/`, 4096px JPEG) los baja `scraper/fetch_minimaps.py`
-del Map Gallery oficial.
+recalibrar (BF2 invierte el eje Z → `FLIP_Y`). Los minimapas (`web/img/maps/`, 4096px JPEG)
+los baja `scraper/fetch_minimaps.py` del Map Gallery oficial.
+
+Cada `heatmaps/<mapa>.json` tiene **4 capas** (radio en la web), acumuladas de todas las
+rondas del mapa, filtrables por equipo:
+- **deaths**: dónde muere cada equipo (`kill_positions` víctima).
+- **movement**: rutas más transitadas por equipo (densidad de paso — se cuenta al entrar
+  a una celda nueva, así traza recorridos y no campeo; muestreada cada ~10s).
+- **spawns**: puntos de aparición por equipo (posición al revivir, evento `is_alive`).
+- **sniper**: posición del atacante en bajas con **arma personal a >150m** (de la distancia
+  atacante↔víctima guardada por kill). Excluye armas de vehículo (jets/tanques) para que
+  sean tiradores reales, no CAS.
 
 ## Clanes rastreados
 

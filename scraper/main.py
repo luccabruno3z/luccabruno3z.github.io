@@ -24,7 +24,7 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     __package__ = "scraper"
 
-from .aliases import build_aliases, resolve_kit
+from .aliases import build_aliases, resolve_kit, resolve_weapon
 from .charts import generate_all_players_chart, generate_clan_charts
 from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET, EXCLUDED_GAMEMODES
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
@@ -395,7 +395,7 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
         with open(os.path.join(hm_dir, "index.json"), "w", encoding="utf-8") as f:
             json.dump(sorted(
                 ({"map": m, "file": re.sub(r'[^a-zA-Z0-9_\-]', '_', m) + ".json",
-                  "rounds": h["rounds"], "kills": h["kills"]} for m, h in heatmaps.items()),
+                  "rounds": h["rounds"], "kills": h["deaths"]["kills"]} for m, h in heatmaps.items()),
                 key=lambda e: e["kills"], reverse=True), f, ensure_ascii=False)
         logger.info("Saved %d heatmaps de mapa", len(heatmaps))
 
@@ -863,49 +863,101 @@ def _aggregate_synergy(
     return out
 
 
-def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
-    """Grilla de densidad de muertes por mapa (heatmap de puntos de contacto).
+SNIPER_MIN_DIST = 150.0  # m: kills "a distancia" para la capa de francotiradores
 
-    Acumula `kill_positions` [x, z, equipo_víctima] de TODAS las rondas del mapa
-    (cada ronda nueva suma). Normaliza al centro del mapa: el origen (0,0) es el
-    centro y el mapa abarca `map_size` km → nx = (x + map_size*500) / (map_size*1000).
-    Devuelve {map_name: {grid_size, rounds, kills, cells:[[gx,gy,muertes_t1,muertes_t2]]}}.
-    Celdas dispersas (solo no vacías); el render web aplica el suavizado/kernel."""
+
+def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
+    """Capas de densidad por mapa, acumuladas de TODAS las rondas (cada ronda suma).
+
+    Todo se normaliza al centro del mapa (origen 0,0 = centro, mapa = `map_size` km):
+    `nx = (x + map_size*500) / (map_size*1000)`. Capas por mapa:
+      - `deaths`  : dónde muere cada equipo  → cells [[gx,gy,muertes_t1,muertes_t2]]
+      - `movement`: rutas (densidad de paso) por equipo → {team1,team2}:[[gx,gy,c]]
+      - `spawns`  : puntos de aparición por equipo → {team1,team2}:[[gx,gy,c]]
+      - `sniper`  : posición del atacante en kills personales a >SNIPER_MIN_DIST,
+                    por equipo del atacante → cells [[gx,gy,s1,s2]]
+    Celdas dispersas; el render web suaviza."""
+    def grid(x, z, msize):
+        full = msize * 1000.0
+        nx = (x + msize * 500.0) / full
+        nz = (z + msize * 500.0) / full
+        if nx < 0 or nx > 1 or nz < 0 or nz > 1:
+            return None
+        return (min(grid_size - 1, int(nx * grid_size)), min(grid_size - 1, int(nz * grid_size)))
+
     maps: dict[str, dict] = {}
     for rd in rounds:
-        kps = rd.get("kill_positions")
-        if not kps:
-            continue
         msize = rd.get("map_size", 0) or 0
         if msize <= 0:
             continue
+        kps = rd.get("kill_positions")
+        mv = rd.get("movement")
+        sp = rd.get("spawns")
+        if not (kps or mv or sp):
+            continue
         mname = rd.get("map_name", "unknown")
-        full = msize * 1000.0
-        half = msize * 500.0
         m = maps.get(mname)
         if m is None:
-            m = maps[mname] = {"map": mname, "map_size": msize, "rounds": 0,
-                               "kills": 0, "grid_size": grid_size,
-                               "_cells": defaultdict(lambda: [0, 0])}
+            m = maps[mname] = {
+                "map": mname, "map_size": msize, "rounds": 0,
+                "deaths": defaultdict(lambda: [0, 0]), "deaths_n": 0,
+                "move": {1: defaultdict(int), 2: defaultdict(int)},
+                "spawn": {1: defaultdict(int), 2: defaultdict(int)},
+                "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0,
+            }
         m["rounds"] += 1
-        for x, z, team in kps:
-            nx = (x + half) / full
-            nz = (z + half) / full
-            if nx < 0 or nx > 1 or nz < 0 or nz > 1:
-                continue  # fuera del mapa (OOB / spawns lejanos)
-            gx = min(grid_size - 1, int(nx * grid_size))
-            gy = min(grid_size - 1, int(nz * grid_size))
-            cell = m["_cells"][(gx, gy)]
-            cell[1 if team == 2 else 0] += 1
-            m["kills"] += 1
 
-    out: dict[str, dict] = {}
+        for e in (kps or []):
+            cell = grid(e[0], e[1], msize)
+            if cell is not None:
+                m["deaths"][cell][1 if e[2] == 2 else 0] += 1
+                m["deaths_n"] += 1
+            # Francotiradores: atacante, kill personal a larga distancia.
+            if len(e) >= 8 and e[3] is not None and (e[6] or -1) >= SNIPER_MIN_DIST:
+                if e[7] != "?" and resolve_weapon(e[7]).get("kind") != "vehicle":
+                    acell = grid(e[3], e[4], msize)
+                    if acell is not None:
+                        m["sniper"][acell][1 if e[5] == 2 else 0] += 1
+                        m["sniper_n"] += 1
+
+        if mv:
+            mg = mv.get("grid", grid_size)
+            for team in (1, 2):
+                dst = m["move"][team]
+                for gx, gy, c in mv.get(f"team{team}", []):
+                    if mg != grid_size:
+                        gx = gx * grid_size // mg
+                        gy = gy * grid_size // mg
+                    dst[(gx, gy)] += c
+
+        for x, z, team in (sp or []):
+            if team in (1, 2):
+                cell = grid(x, z, msize)
+                if cell is not None:
+                    m["spawn"][team][cell] += 1
+
+    def cells2(d):
+        out = [[gx, gy, c[0], c[1]] for (gx, gy), c in d.items()]
+        out.sort(key=lambda e: e[2] + e[3], reverse=True)
+        return out
+
+    def cells1(d):
+        out = [[gx, gy, c] for (gx, gy), c in d.items()]
+        out.sort(key=lambda e: e[2], reverse=True)
+        return out
+
+    result: dict[str, dict] = {}
     for mname, m in maps.items():
-        cells = [[gx, gy, c[0], c[1]] for (gx, gy), c in m["_cells"].items()]
-        cells.sort(key=lambda e: e[2] + e[3], reverse=True)
-        out[mname] = {"map": mname, "map_size": m["map_size"], "rounds": m["rounds"],
-                      "kills": m["kills"], "grid_size": grid_size, "cells": cells}
-    return out
+        result[mname] = {
+            "map": mname, "map_size": m["map_size"], "grid_size": grid_size,
+            "rounds": m["rounds"],
+            "deaths": {"kills": m["deaths_n"], "cells": cells2(m["deaths"])},
+            "movement": {"team1": cells1(m["move"][1]), "team2": cells1(m["move"][2])},
+            "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
+            "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
+                       "cells": cells2(m["sniper"])},
+        }
+    return result
 
 
 if __name__ == "__main__":
