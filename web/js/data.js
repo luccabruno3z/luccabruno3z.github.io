@@ -9,6 +9,7 @@
 import {
     ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
+    SYNERGY_URL, HEATMAPS_URL, MAP_IMG_MANIFEST_URL,
     CACHE_TTL,
 } from './config.js';
 import { normalizeName } from './utils.js';
@@ -22,7 +23,11 @@ export const state = {
     demoMapStats: null,       // demos/map_stats.json
     leaderboardCache: {},     // period → leaderboard json
     logoManifest: null,       // logos/manifest.json: {clan: ext} (or null → built-in fallback)
-    aliases: null,            // demos/aliases.json: {kits, weapons, vehicles, maps, gamemodes}
+    aliases: null,            // demos/aliases.json: {kits, weapons, vehicles, maps, gamemodes, seats}
+    synergy: null,            // demos/synergy.json: {player: {baseline, mates}} (lazy)
+    heatmapIndex: null,       // demos/heatmaps/index.json: [{map, file, rounds, kills}]
+    heatmapCache: {},         // map → demos/heatmaps/<map>.json
+    mapImgManifest: null,     // web/img/maps/manifest.json: {map: ext} (optional minimaps)
 };
 
 // ── 3-layer cache (in-memory + stale fallback) ───────────────────────────────
@@ -176,4 +181,39 @@ export async function loadPlayerHistory(playerName) {
 /** Per-round demo timeline for a player (or null). */
 export async function loadPlayerRounds(playerName) {
     return cachedFetch(`${PLAYER_ROUNDS_URL}/${normalizeName(playerName)}.json`, { silent: true });
+}
+
+// ── Duo synergy + heatmaps (lazy, non-fatal) ─────────────────────────────────
+
+/** Load the duo-synergy file once (can be ~MB, so only on demand). */
+export async function loadSynergy() {
+    if (state.synergy) return state.synergy;
+    const data = await cachedFetch(SYNERGY_URL, { silent: true });
+    if (data && typeof data === 'object') state.synergy = data;
+    return state.synergy;
+}
+
+/** Load the heatmap index ([{map, file, rounds, kills}]). */
+export async function loadHeatmapIndex() {
+    if (state.heatmapIndex) return state.heatmapIndex;
+    const data = await cachedFetch(`${HEATMAPS_URL}/index.json`, { silent: true });
+    if (Array.isArray(data)) state.heatmapIndex = data;
+    return state.heatmapIndex;
+}
+
+/** Load a single map's heatmap grid (memoized by file name). */
+export async function loadHeatmap(file) {
+    if (state.heatmapCache[file]) return state.heatmapCache[file];
+    const data = await cachedFetch(`${HEATMAPS_URL}/${file}`, { silent: true });
+    if (data) state.heatmapCache[file] = data;
+    return data;
+}
+
+/** Optional minimap-image manifest ({map: ext}). Non-fatal: heatmap falls back
+ *  to a neutral backdrop when a map has no image. */
+export async function loadMapImgManifest() {
+    if (state.mapImgManifest) return state.mapImgManifest;
+    const data = await cachedFetch(MAP_IMG_MANIFEST_URL, { silent: true });
+    if (data && typeof data === 'object') state.mapImgManifest = data;
+    return state.mapImgManifest;
 }

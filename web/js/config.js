@@ -17,6 +17,12 @@ export const PLAYER_ROUNDS_URL = `${DEMOS_URL}/player_rounds`;
 export const TIER_CONFIG_URL   = `${GRAPHS_URL}/tier_config.json`;
 export const LOGO_MANIFEST_URL = `${BASE_URL}/logos/manifest.json`;
 export const ALIASES_URL       = `${DEMOS_URL}/aliases.json`;
+export const SYNERGY_URL       = `${DEMOS_URL}/synergy.json`;
+export const HEATMAPS_URL      = `${DEMOS_URL}/heatmaps`;
+// Optional per-map minimap backgrounds (manifest like logos: {map: ext}). The
+// heatmap renderer draws the image when present and falls back to a neutral grid.
+export const MAP_IMG_URL       = `${BASE_URL}/web/img/maps`;
+export const MAP_IMG_MANIFEST_URL = `${MAP_IMG_URL}/manifest.json`;
 
 // A player needs at least this many rounds to qualify for the rankings.
 export const MIN_ROUNDS_FOR_RANKING = 50;

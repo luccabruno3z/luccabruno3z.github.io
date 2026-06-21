@@ -84,6 +84,7 @@
             <a href="#leaderboards">Leaderboards</a>
             <a href="#team-analysis">Equipos</a>
             <a href="#demo-stats">Demos</a>
+            <a href="#heatmaps">Heatmaps</a>
             <a href="#recent-matches">Partidas</a>
             <a href="#charts">Gráficos</a>
             <a href="#guides">Guías</a>
@@ -492,6 +493,26 @@
                     <div id="demo-map-results" class="demo-map-results" aria-live="polite"></div>
                 </div>
             </div>
+        </section>
+
+        <!-- ===== SECTION: HEATMAPS ===== -->
+        <section class="section" id="heatmaps" aria-labelledby="heatmaps-title">
+            <h2 class="section-title" id="heatmaps-title">🗺️ Heatmaps por Mapa</h2>
+            <p class="section-subtitle">Dónde ocurren los combates: densidad de muertes por mapa, acumulada de todas las rondas.</p>
+            <div class="heatmap-controls">
+                <label for="heatmap-map" class="sr-only">Seleccionar mapa</label>
+                <select id="heatmap-map" aria-label="Seleccionar mapa"></select>
+                <div class="heatmap-teams" role="group" aria-label="Filtrar por equipo">
+                    <button type="button" data-team="all" class="active">Todos</button>
+                    <button type="button" data-team="1">BLUFOR</button>
+                    <button type="button" data-team="2">OPFOR</button>
+                </div>
+            </div>
+            <div class="heatmap-stage">
+                <canvas id="heatmap-canvas" width="640" height="640" aria-label="Heatmap de muertes del mapa"></canvas>
+                <div class="heatmap-legend" aria-hidden="true"><span>menos</span><span class="heatmap-ramp"></span><span>más</span></div>
+            </div>
+            <div id="heatmap-meta" class="heatmap-meta" aria-live="polite"></div>
         </section>
 
         <!-- ===== SECTION: RECENT MATCHES ===== -->

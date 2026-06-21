@@ -27,6 +27,12 @@ export function normalizeName(name) {
     return String(name).replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
+/** Seconds → "Xm Ys" (e.g. 137 → "2m 17s"). */
+export function fmtDuration(seconds) {
+    const s = Math.max(0, Math.round(Number(seconds) || 0));
+    return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
+}
+
 /** Escape a string for safe innerHTML insertion. */
 export function escapeHtml(value) {
     return String(value ?? '')
@@ -77,6 +83,38 @@ export function weaponKind(code) {
 /** Human vehicle name, e.g. "UH-1N Twin Huey". */
 export function vehicleLabel(code) {
     return state.aliases?.vehicles?.[code]?.label || _rawPretty(code);
+}
+/** For a mounted weapon code, the vehicle/emplacement that carries it (or null). */
+export function weaponVehicle(code) {
+    return state.aliases?.weapons?.[code]?.vehicle || null;
+}
+/** Broad type of a vehicle weapon: ground/air/naval/emplacement (or null). */
+export function weaponVtype(code) {
+    return state.aliases?.weapons?.[code]?.vtype || null;
+}
+/** True when a kill came from a crewed vehicle's weapon (not a pie/emplacement). */
+export function isVehicleKill(code) {
+    return state.aliases?.weapons?.[code]?.vclass === 'vehicle';
+}
+/** Seat role, e.g. "ch_apc_wz551a_Gunner" → "Artillero". */
+const _SEAT_RULES = [
+    ['copilot', 'Copiloto'], ['co-pilot', 'Copiloto'], ['codriver', 'Copiloto'],
+    ['co-driver', 'Copiloto'], ['pilot', 'Piloto'], ['gunner', 'Artillero'],
+    ['commander', 'Comandante'], ['passenger', 'Pasajero'], ['driver', 'Conductor'],
+    ['left', 'Artillero lateral'], ['right', 'Artillero lateral'], ['side', 'Artillero lateral'],
+];
+export function seatLabel(code) {
+    const alias = state.aliases?.seats?.[code];
+    if (alias) return alias;
+    const low = String(code ?? '').toLowerCase();
+    for (const [key, label] of _SEAT_RULES) if (low.includes(key)) return label;
+    return 'Operador';
+}
+/** Asset category of ANY kill weapon: infantry/ground/air/naval/emplacement/env.
+ *  Mirrors the bot's weapon_category. */
+export function assetCategory(code) {
+    if (code === '?') return 'env';
+    return weaponVtype(code) || 'infantry';
 }
 
 /** Aggregate a {code: count} dict into [[label, count], …] desc, grouping codes

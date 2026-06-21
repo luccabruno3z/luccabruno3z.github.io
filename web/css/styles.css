@@ -2012,3 +2012,132 @@ footer a:hover {
     }
     .skeleton::after { animation: none; }
 }
+
+/* ═══ Demo profile: tabs ═══════════════════════════════════════════════════ */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 14px 0 16px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+}
+.tab {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm, 8px);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    padding: 7px 12px;
+    cursor: pointer;
+    transition: color var(--t), background var(--t), border-color var(--t);
+}
+.tab:hover { color: var(--text); background: var(--accent-dim); }
+.tab.active {
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-color: var(--border-medium);
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn .25s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.tab-panel h4 {
+    margin: 16px 0 8px;
+    color: var(--accent);
+    font-size: 0.95rem;
+}
+.tab-panel h4:first-child { margin-top: 4px; }
+
+/* headline stat cards + grids */
+.headline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.headline-stat {
+    background: var(--accent-dim);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--r-sm, 8px);
+    padding: 12px;
+    text-align: center;
+}
+.hs-value { display: block; font-family: var(--font-mono); font-weight: 800; font-size: 1.25rem; color: var(--accent); }
+.hs-label { display: block; font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+.stat-grid { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 560px) { .stat-grid { grid-template-columns: 1fr 1fr; column-gap: 22px; } }
+.disc-row { margin-top: 12px; color: var(--text-muted); font-size: 0.9rem; }
+
+/* horizontal bars */
+.hbars { display: flex; flex-direction: column; gap: 7px; }
+.hbar-row { display: grid; grid-template-columns: minmax(90px, 34%) 1fr auto; align-items: center; gap: 10px; }
+.hbar-label { font-size: 0.85rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar-track { height: 12px; background: rgba(255,255,255,0.06); border-radius: 6px; overflow: hidden; }
+.hbar-fill { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
+.hbar-val { font-family: var(--font-mono); font-weight: 700; color: var(--accent); font-size: 0.85rem; }
+.muted { color: var(--text-dim); }
+
+/* ═══ Heatmaps ═════════════════════════════════════════════════════════════ */
+.heatmap-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.heatmap-controls select {
+    min-width: 220px;
+    padding: 9px 12px;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--r-sm, 8px);
+    font: inherit;
+}
+.heatmap-teams { display: inline-flex; gap: 4px; }
+.heatmap-teams button {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: var(--r-sm, 8px);
+    transition: color var(--t), background var(--t), border-color var(--t);
+}
+.heatmap-teams button:hover { color: var(--text); }
+.heatmap-teams button.active { color: var(--accent); background: var(--accent-dim); border-color: var(--border-medium); }
+.heatmap-stage {
+    position: relative;
+    max-width: 640px;
+    margin: 0 auto;
+}
+#heatmap-canvas {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    background: #0a0e14;
+    display: block;
+}
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+}
+.heatmap-ramp {
+    width: 160px;
+    height: 10px;
+    border-radius: 5px;
+    background: linear-gradient(90deg, #0b2230, #00b3ff, #00ff88, #ffd700, #ff3b3b);
+}
+.heatmap-meta { text-align: center; margin-top: 12px; color: var(--text-muted); font-size: 0.9rem; }

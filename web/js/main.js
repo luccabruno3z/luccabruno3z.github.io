@@ -15,6 +15,7 @@ import { initPredictor } from './predictor.js';
 import { initTeamAnalysis } from './team.js';
 import { initClanAverages } from './clans.js';
 import { initDemoStats } from './demos.js';
+import { initHeatmaps } from './heatmaps.js';
 import { initRecentMatches } from './matches.js';
 
 // Run one init in isolation so a single broken feature can't take down the page.
@@ -79,6 +80,7 @@ async function boot() {
 
     // Lazy sections (self-managed IntersectionObserver).
     safe('leaderboards', initLeaderboards);
+    safe('heatmaps', initHeatmaps);
     safe('matches', initRecentMatches);
 }
 

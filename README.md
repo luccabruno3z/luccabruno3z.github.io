@@ -48,9 +48,15 @@ luccabruno3z.github.io/
 - Rankings filtrables por clan y metrica
 - Predictor de partidas 8v8
 - Analisis de equipo y composicion de squad
-- Estadisticas de demos (rondas, mapas, rachas) con **nombres legibles** de assets (kits, armas, vehiculos, mapas, modos) + kit y arma favoritos
+- **Perfil de demos por jugador con pestañas** (Resumen, Combate, Armas & Vehículos,
+  Assets, Kits & Modos, Sinergia, Rondas) — espeja los comandos del bot con nombres
+  legibles de assets, K/D por kit, vehículos honestos, desglose por tipo de medio,
+  vida promedio/racha/clutch, y **sinergia de dúo** (mejores/peores compañeros)
+- **Heatmaps por mapa** (`#heatmaps`): densidad de muertes por mapa renderizada en
+  canvas (sin dependencias), filtrable por equipo, con imagen de minimapa opcional
+  (manifest `web/img/maps/`) y fallback a fondo neutro
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
-- **Feed de partidas recientes** (mapa, modo, ganador, kills)
+- **Feed de partidas recientes** (mapa, modo, ganador, kills) + duración/kills-min por mapa
 - **Historial de rondas por jugador** en su perfil de demos
 - Graficos interactivos Plotly (uno por clan + global), con tema dark/cyan
 
