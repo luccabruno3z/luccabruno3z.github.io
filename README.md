@@ -53,8 +53,9 @@ luccabruno3z.github.io/
   legibles de assets, K/D por kit, vehículos honestos, desglose por tipo de medio,
   vida promedio/racha/clutch, y **sinergia de dúo** (mejores/peores compañeros)
 - **Heatmaps por mapa** (`#heatmaps`): densidad de muertes por mapa renderizada en
-  canvas (sin dependencias), filtrable por equipo, con imagen de minimapa opcional
-  (manifest `web/img/maps/`) y fallback a fondo neutro
+  canvas (sin dependencias) con **zoom/pan**, filtrable por equipo, sobre el **minimapa
+  real** de cada mapa (81 mapas en `web/img/maps/`, stitcheados del Map Gallery oficial
+  por `scraper/fetch_minimaps.py`; fallback a fondo neutro si falta)
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
 - **Feed de partidas recientes** (mapa, modo, ganador, kills) + duración/kills-min por mapa
 - **Historial de rondas por jugador** en su perfil de demos
@@ -163,14 +164,17 @@ Se acumulan las stats del jugador en las rondas con cada compañero y se compara
 su baseline (rondas sin ese compañero) → impacto en KPR + winrate juntos. Mínimo 3
 rondas compartidas para mostrarse. Se reconstruye desde todas las rondas con dato de squad.
 
-### Heatmaps por mapa (`graphs/demos/heatmaps/`, pipeline)
+### Heatmaps por mapa (`graphs/demos/heatmaps/` + `web/img/maps/`)
 Grilla de densidad de muertes por mapa a partir de `kill_positions`. El origen del
 mundo (0,0) es el centro del mapa y este abarca `map_size` km, así que se normaliza
 `nx = (x + map_size*500) / (map_size*1000)` (eje horizontal `x,z`; `y` es altitud) a una
 grilla de 128×128. **Cada ronda nueva de ese mapa suma** (se reconstruye desde todas las
 rondas). Celdas dispersas con muertes por equipo `[gx, gy, t1, t2]` → un archivo por mapa
-+ `index.json`. El render visual (overlay sobre el minimapa, con suavizado/kernel) es el
-paso siguiente en la web.
++ `index.json`. El **render web** (`web/js/heatmaps.js`) dibuja la densidad con suavizado
+(blobs + LUT de color) sobre el **minimapa real** del mapa, con **zoom/pan**; el minimapa
+y la densidad comparten la misma normalización centrada al mapa, así que se alinean sin
+recalibrar. Los minimapas (`web/img/maps/`, 4096px JPEG) los baja `scraper/fetch_minimaps.py`
+del Map Gallery oficial.
 
 ## Clanes rastreados
 
