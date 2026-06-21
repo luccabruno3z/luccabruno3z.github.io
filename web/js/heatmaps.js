@@ -280,7 +280,7 @@ export async function initHeatmaps() {
         const round = roundSel ? roundSel.value : 'all';
         let layers, ctxNote = '';
         if (round && round !== 'all') {
-            const r = (hm.rounds || []).find(x => x.filename === round);
+            const r = Array.isArray(hm.rounds) ? hm.rounds.find(x => x.filename === round) : null;
             const full = r ? await loadRoundPositions(r.date, r.filename) : null;
             if (gmSel) gmSel.disabled = true;
             if (!full) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">No se pudo cargar esa ronda.</span>'; return; }
@@ -316,14 +316,17 @@ export async function initHeatmaps() {
             gmSel.innerHTML = gms.length
                 ? gms.sort((a, b) => (hm.gamemodes[b].deaths?.kills || 0) - (hm.gamemodes[a].deaths?.kills || 0))
                      .map(gm => `<option value="${escapeHtml(gm)}">${escapeHtml(gamemodeLabel(gm))}</option>`).join('')
-                : '<option value="">—</option>';
+                : '<option value="">Todos los modos</option>';   // formato viejo (v1): un solo set
             gmSel.value = defaultGamemode(hm) || '';
+            gmSel.disabled = !gms.length;
         }
         if (roundSel) {
-            const rs = (hm.rounds || []).slice(0, 80);
+            // hm.rounds es un array (v2) o un número (v1); solo iteramos el array.
+            const rs = Array.isArray(hm.rounds) ? hm.rounds.slice(0, 80) : [];
             roundSel.innerHTML = '<option value="all">Todas las rondas</option>'
                 + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}</option>`).join('');
             roundSel.value = 'all';
+            roundSel.disabled = !rs.length;
         }
         await render();
     }
