@@ -1,0 +1,1 @@
+{"map": "ulyanovsk", "map_size": 2.0, "grid_size": 128, "rounds": 1, "deaths": {"kills": 0, "cells": []}, "movement": {"team1": [[66, 67, 48]], "team2": [[66, 67, 52]]}, "spawns": {"team1": [], "team2": []}, "sniper": {"threshold_m": 150.0, "kills": 0, "cells": []}}
