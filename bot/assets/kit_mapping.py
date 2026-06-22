@@ -138,6 +138,11 @@ def get_kit_emoji(readable_name: str) -> str:
     return ""
 
 
+def get_emoji_by_name(emoji_name: str) -> str:
+    """Emoji string by its raw emoji name (cache compartido kit/vehículo). '' si no está."""
+    return _emoji_cache.get(emoji_name, "")
+
+
 def load_emoji_cache() -> None:
     global _emoji_cache
     if os.path.exists(_EMOJI_FILE):

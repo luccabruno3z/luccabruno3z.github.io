@@ -13,6 +13,7 @@ from bot.assets.kit_mapping import (
     clean_gamemode, weapon_vehicle_name, weapon_vclass, is_vehicle_kill,
     weapon_vtype, weapon_category, clean_seat,
 )
+from bot.assets.vehicle_mapping import get_vehicle_emoji, get_vehicle_emoji_by_name
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
 from bot.ui.leaderboard_card import LeaderboardView
@@ -204,12 +205,16 @@ class DetailedStats(commands.Cog):
         # 🔥 Vehículos destruidos (+ desglose por tipo si hay)
         destroyed_value = f"**{destroyed}** vehículos enemigos destruidos"
         if destroyed_by_type:
-            destroyed_value += "\n" + ", ".join(f"{v} ({c})" for v, c in destroyed_by_type)
+            destroyed_value += "\n" + ", ".join(
+                f"{(get_vehicle_emoji_by_name(v) + ' ') if get_vehicle_emoji_by_name(v) else ''}{v} ({c})"
+                for v, c in destroyed_by_type)
         embed.add_field(name="🔥 Vehículos destruidos", value=destroyed_value, inline=False)
 
         file = None
         if vehicle_kills:
-            top_line = ", ".join(f"**{v}** ({c})" for v, c in vehicle_kills[:3])
+            top_line = ", ".join(
+                f"{(get_vehicle_emoji_by_name(v) + ' ') if get_vehicle_emoji_by_name(v) else ''}**{v}** ({c})"
+                for v, c in vehicle_kills[:3])
             extra = f"\n🎯 Con emplazamientos/estáticos: **{empl_total}**" if empl_total else ""
             embed.add_field(
                 name=f"🎯 Kills con vehículos — {veh_total}",

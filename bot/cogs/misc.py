@@ -92,17 +92,19 @@ class Misc(commands.Cog):
     @commands.is_owner()
     async def setup_emojis(self, ctx: commands.Context):
         """Sube los iconos de kits y rangos como Application Emojis del bot."""
-        import aiohttp, base64
+        import aiohttp, base64, asyncio
         from bot.assets.kit_mapping import get_all_assets, update_emoji_cache
         from bot.assets.rank_mapping import get_all_rank_assets, update_rank_emoji_cache
         from bot.assets.clan_mapping import get_all_clan_assets, update_clan_emoji_cache
+        from bot.assets.vehicle_mapping import get_all_vehicle_assets
 
-        # Combine kit + rank + clan assets
+        # Combine kit + rank + clan + vehicle assets
         kit_assets = get_all_assets()
         rank_assets = get_all_rank_assets()
         clan_assets = get_all_clan_assets()
-        assets = kit_assets + rank_assets + clan_assets
-        # Track which names belong to which cache.
+        vehicle_assets = get_all_vehicle_assets()
+        assets = kit_assets + rank_assets + clan_assets + vehicle_assets
+        # Track which names belong to which cache (vehículos van al cache de kits).
         rank_names = {name for name, _ in rank_assets}
         clan_names = {name for name, _ in clan_assets}
         if not assets:
@@ -162,19 +164,33 @@ class Misc(commands.Cog):
                         "name": emoji_name,
                         "image": f"data:{mime};base64,{b64}",
                     }
-                    async with session.post(
-                        f"https://discord.com/api/v10/applications/{app_id}/emojis",
-                        headers={**headers, "Content-Type": "application/json"},
-                        json=payload,
-                    ) as resp:
-                        if resp.status in (200, 201):
-                            e = await resp.json()
-                            _save_emoji(emoji_name, _emoji_str(e))
-                            uploaded += 1
-                        else:
+                    # Reintenta ante 429 (rate limit) respetando Retry-After. Muchos
+                    # iconos de vehículo → conviene no fallar por rate limit.
+                    for _attempt in range(5):
+                        async with session.post(
+                            f"https://discord.com/api/v10/applications/{app_id}/emojis",
+                            headers={**headers, "Content-Type": "application/json"},
+                            json=payload,
+                        ) as resp:
+                            if resp.status in (200, 201):
+                                e = await resp.json()
+                                _save_emoji(emoji_name, _emoji_str(e))
+                                uploaded += 1
+                                break
+                            if resp.status == 429:
+                                retry = 1.0
+                                try:
+                                    retry = float((await resp.json()).get("retry_after", 1.0))
+                                except Exception:
+                                    pass
+                                await asyncio.sleep(min(retry + 0.25, 10))
+                                continue
                             body = await resp.text()
                             logger.warning("Failed to upload app emoji %s: %s %s", emoji_name, resp.status, body)
                             failed += 1
+                            break
+                    else:
+                        failed += 1
                 except Exception as exc:
                     logger.warning("Failed to upload app emoji %s: %s", emoji_name, exc)
                     failed += 1
