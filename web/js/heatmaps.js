@@ -11,7 +11,7 @@
 
 import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, loadPlayerHeatmap, state } from './data.js';
 import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
-import { MAP_IMG_URL, REPLAY_VIEWER_URL } from './config.js';
+import { MAP_IMG_URL } from './config.js';
 
 const VIEW = 1024;          // canvas backing size (logical map space at fit-scale)
 const DENSITY = 2048;       // density buffer resolution
@@ -404,10 +404,7 @@ export async function initHeatmaps() {
             if (!full) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">No se pudo cargar esa ronda.</span>'; return; }
             layers = gridRound(full, hm.grid_size || 128);
             vp.mapSize = full.map_size || hm.map_size || 0;
-            const replay = r.demo_url
-                ? ` · <a class="replay-link" href="${REPLAY_VIEWER_URL}?demo=${encodeURIComponent(r.demo_url)}" target="_blank" rel="noopener">▶ Ver replay</a>`
-                : '';
-            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}${replay}`;
+            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}`;
         } else {
             if (gmSel) gmSel.disabled = false;
             const gm = gmSel ? gmSel.value : null;

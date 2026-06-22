@@ -59,9 +59,8 @@ luccabruno3z.github.io/
   `web/img/maps/`, del Map Gallery por `scraper/fetch_minimaps.py`; fallback a fondo neutro).
   Overlay de **🚩 banderas/CPs**, **heatmap por jugador** (👤 dónde mata vs dónde muere) e
   **iconos oficiales** de vehículos (atlas del realitytracker, `scraper/fetch_atlas.py`)
-- **Ver replay**: link al visor oficial (realitytracker) para reproducir la ronda en 3D
 - **Leaderboards por periodo** (dia/semana/mes/todo) filtrables por metrica
-- **Feed de partidas recientes** (mapa, modo, ganador, kills, ▶ replay) + duración/kills-min por mapa
+- **Feed de partidas recientes** (mapa, modo, ganador, kills) + duración/kills-min por mapa
 - **Historial de rondas por jugador** en su perfil de demos
 - Graficos interactivos Plotly (uno por clan + global), con tema dark/cyan
 
