@@ -2170,3 +2170,8 @@ footer a:hover {
 .replay-link:hover { text-decoration: underline; }
 .heatmap-check { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.86rem; cursor: pointer; }
 .heatmap-check input { accent-color: var(--accent); cursor: pointer; }
+.veh-icon {
+    display: inline-block; vertical-align: middle; margin-right: 6px;
+    background-image: url(../img/atlas.png); background-repeat: no-repeat;
+    image-rendering: -webkit-optimize-contrast;
+}

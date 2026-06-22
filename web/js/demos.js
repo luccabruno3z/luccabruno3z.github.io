@@ -9,7 +9,7 @@ import { setupAutocomplete } from './autocomplete.js';
 import {
     escapeHtml, formatNumber, fmtDuration, aggregateByLabel, findPlayer,
     kitLabel, weaponModel, weaponKind, vehicleLabel, mapLabel, gamemodeLabel,
-    seatLabel, weaponVehicle, isVehicleKill, assetCategory,
+    seatLabel, weaponVehicle, isVehicleKill, assetCategory, vehicleIconHTML,
 } from './utils.js';
 
 // Weapons that aren't a personal firearm (environmental, vehicle-mounted). If
@@ -111,15 +111,29 @@ function tabCombate(p) {
 function tabArmasVehiculos(p) {
     const weapons = aggregateByLabel(p.kill_weapons, weaponModel, { exclude: _NON_INFANTRY });
     const vehKills = aggregateByLabel(p.kill_weapons, weaponVehicle, { exclude: c => !isVehicleKill(c) });
-    const vehDestroyed = aggregateByLabel(p.vehicles_destroyed_by_type, vehicleLabel);
     const seats = aggregateByLabel(p.seat_kills, seatLabel);
+    // Destruidos por tipo: agrupar por nombre PERO conservando un code representativo
+    // (el más frecuente) para mostrar el icono oficial del vehículo.
+    const destAgg = new Map();
+    for (const [code, n] of Object.entries(p.vehicles_destroyed_by_type || {})) {
+        const label = vehicleLabel(code);
+        const e = destAgg.get(label) || { n: 0, code, best: 0 };
+        e.n += n;
+        if (n > e.best) { e.best = n; e.code = code; }
+        destAgg.set(label, e);
+    }
+    const destList = [...destAgg.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, 8);
+    const destHtml = destList.length
+        ? destList.map(([label, e]) =>
+            `<li>${vehicleIconHTML(e.code)}${escapeHtml(label)} <span class="stat-value">${formatNumber(e.n)}</span></li>`).join('')
+        : `<li class="empty-state">${escapeHtml(ACCUM)}</li>`;
     return `
         <h4>🔫 Armas más letales</h4>
         <ul class="demo-kits-list">${topList(weapons, 8, 'Sin datos de armas.')}</ul>
         <h4>🚁 Kills con vehículos</h4>
         ${vehKills.length ? bars(vehKills.slice(0, 8)) : emptyTab(ACCUM)}
         <h4>🔥 Vehículos destruidos (por tipo)</h4>
-        <ul class="demo-kits-list">${topList(vehDestroyed, 8, ACCUM)}</ul>
+        <ul class="demo-kits-list">${destHtml}</ul>
         <h4>🪖 Kills por asiento</h4>
         <ul class="demo-kits-list">${topList(seats, 6, ACCUM)}</ul>`;
 }

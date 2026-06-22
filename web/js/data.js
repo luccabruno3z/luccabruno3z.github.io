@@ -9,7 +9,7 @@
 import {
     ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
-    SYNERGY_URL, HEATMAPS_URL, MAP_IMG_MANIFEST_URL,
+    SYNERGY_URL, HEATMAPS_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
     CACHE_TTL,
 } from './config.js';
 import { normalizeName } from './utils.js';
@@ -28,6 +28,7 @@ export const state = {
     heatmapIndex: null,       // demos/heatmaps/index.json: [{map, file, rounds, kills}]
     heatmapCache: {},         // map → demos/heatmaps/<map>.json
     mapImgManifest: null,     // web/img/maps/manifest.json: {map: ext} (optional minimaps)
+    atlas: null,              // web/img/atlas.json: {icons:{name:[x,w,h]}, vehicles:{code:icon}}
 };
 
 // ── 3-layer cache (in-memory + stale fallback) ───────────────────────────────
@@ -118,6 +119,12 @@ export async function loadLogoManifest() {
 export async function loadAliases() {
     const data = await cachedFetch(ALIASES_URL, { silent: true });
     if (data && typeof data === 'object') state.aliases = data;
+}
+
+/** Load the icon atlas index ({icons, vehicles}). Non-fatal: no icons if absent. */
+export async function loadAtlas() {
+    const data = await cachedFetch(ATLAS_JSON_URL, { silent: true });
+    if (data && typeof data === 'object') state.atlas = data;
 }
 
 // ── Demo data (player details + map stats) ───────────────────────────────────

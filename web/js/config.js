@@ -25,6 +25,9 @@ export const MAP_IMG_URL       = `${BASE_URL}/web/img/maps`;
 export const MAP_IMG_MANIFEST_URL = `${MAP_IMG_URL}/manifest.json`;
 // Visor oficial de demos (replay 3D). Carga un demo con ?demo=<URL>.
 export const REPLAY_VIEWER_URL = 'https://yossizap.github.io/realitytracker/';
+// Atlas de iconos del juego (sprite sheet + índice). Para iconos de vehículos.
+export const ATLAS_PNG_URL  = `${BASE_URL}/web/img/atlas.png`;
+export const ATLAS_JSON_URL = `${BASE_URL}/web/img/atlas.json`;
 
 // A player needs at least this many rounds to qualify for the rankings.
 export const MIN_ROUNDS_FOR_RANKING = 50;

@@ -84,6 +84,16 @@ export function weaponKind(code) {
 export function vehicleLabel(code) {
     return state.aliases?.vehicles?.[code]?.label || _rawPretty(code);
 }
+/** Official game icon for a vehicle code as a CSS-sprite <span> (or '' if none). */
+export function vehicleIconHTML(code) {
+    const at = state.atlas;
+    const icon = at?.vehicles?.[code];
+    if (!icon) return '';
+    const box = at.icons?.[icon];
+    if (!box) return '';
+    const [x, w, h] = box;
+    return `<span class="veh-icon" style="width:${w}px;height:${h}px;background-position:-${x}px 0"></span>`;
+}
 /** For a mounted weapon code, the vehicle/emplacement that carries it (or null). */
 export function weaponVehicle(code) {
     return state.aliases?.weapons?.[code]?.vehicle || null;
