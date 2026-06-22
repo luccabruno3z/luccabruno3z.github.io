@@ -896,9 +896,10 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
     Separar por gamemode evita mezclar Skirmish (zona chica) con AAS/Insurgencia.
     Cada mapa además lista sus rondas para el selector de ronda de la web."""
     def grid(x, z, msize):
-        full = msize * 1000.0
-        nx = (x + msize * 500.0) / full
-        nz = (z + msize * 500.0) / full
+        # El mapa abarca ±512·MapSize (ref. realitytracker), no ±500 → 512/1024.
+        full = msize * 1024.0
+        nx = (x + msize * 512.0) / full
+        nz = (z + msize * 512.0) / full
         if nx < 0 or nx > 1 or nz < 0 or nz > 1:
             return None
         return (min(grid_size - 1, int(nx * grid_size)), min(grid_size - 1, int(nz * grid_size)))

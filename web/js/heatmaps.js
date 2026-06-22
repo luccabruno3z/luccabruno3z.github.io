@@ -80,7 +80,8 @@ function gridRound(round, gridSize) {
     const ms = round.map_size || 0;
     const grid = (x, z) => {
         if (ms <= 0) return null;
-        const full = ms * 1000, nx = (x + ms * 500) / full, nz = (z + ms * 500) / full;
+        // ±512·MapSize (ref. realitytracker: fullSize = MapSize*1024), no ±500.
+        const full = ms * 1024, nx = (x + ms * 512) / full, nz = (z + ms * 512) / full;
         if (nx < 0 || nx > 1 || nz < 0 || nz > 1) return null;
         return [Math.min(gridSize - 1, nx * gridSize | 0), Math.min(gridSize - 1, nz * gridSize | 0)];
     };

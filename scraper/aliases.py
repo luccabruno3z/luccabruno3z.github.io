@@ -15,6 +15,20 @@ from __future__ import annotations
 import re
 from typing import Optional
 
+# Tabla oficial de nombres de vehículos (HudName del realitytracker). Fuente primaria:
+# más precisa que los nombres hechos a mano (p.ej. mec_trk_support → "Ural-4320").
+try:  # como parte del paquete scraper
+    from .vehicle_hudnames import HUD_NAMES
+except ImportError:  # import standalone (tests con spec_from_file_location)
+    try:
+        import os as _os, importlib.util as _u
+        _spec = _u.spec_from_file_location(
+            "vehicle_hudnames", _os.path.join(_os.path.dirname(__file__), "vehicle_hudnames.py"))
+        _mod = _u.module_from_spec(_spec); _spec.loader.exec_module(_mod)
+        HUD_NAMES = _mod.HUD_NAMES
+    except Exception:
+        HUD_NAMES = {}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Gamemodes (set fijo)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -634,10 +648,33 @@ def resolve_weapon(code: str) -> dict:
     return {"model": model, "variant": variant, "label": label, "kind": kind or "unknown"}
 
 
+# Mapa modelo→HudName (derivado de HUD_NAMES quitando facción+clase) para nombrar
+# armas de vehículo, cuyo code no trae facción. Ej: 'btr80'→'BTR-80', 'kamaz_support'→…
+_MODEL_HUD: dict = {}
+for _code, _name in HUD_NAMES.items():
+    _toks = _code.split('_')
+    for _i, _t in enumerate(_toks):
+        if _t in VEHICLE_CLASSES:
+            _m = "_".join(_toks[_i + 1:])
+            if _m and _m not in _MODEL_HUD:
+                _MODEL_HUD[_m] = _name
+            break
+
+
+def _veh_kind(code: str) -> str:
+    for p in (code or "").split('_'):
+        if p in VEHICLE_CLASSES:
+            return VEHICLE_CLASSES[p][1]
+    return ""
+
+
 def resolve_vehicle(code: str) -> dict:
     c = (code or "")
+    # Nombre oficial (HudName del realitytracker) primero; nuestro resolver de fallback.
+    if c in HUD_NAMES:
+        return {"model": HUD_NAMES[c], "class": "", "label": HUD_NAMES[c], "kind": _veh_kind(c)}
     if c in VEHICLE_MODELS:
-        return {"model": VEHICLE_MODELS[c], "class": "", "label": VEHICLE_MODELS[c], "kind": ""}
+        return {"model": VEHICLE_MODELS[c], "class": "", "label": VEHICLE_MODELS[c], "kind": _veh_kind(c)}
     parts = c.split('_')
     faction = VEHICLE_FACTIONS.get(parts[0]) if parts else None
     cls_label, kind = "", ""
@@ -671,9 +708,11 @@ def _strip_vehicle_weapon_tail(tokens: list) -> list:
 
 
 def _model_from_tokens(after: list) -> Optional[str]:
-    """Busca el match de modelo más largo (VEHICLE_MODELS) en los tokens dados."""
+    """Match de modelo más largo: HudName oficial (_MODEL_HUD) primero, luego VEHICLE_MODELS."""
     for k in range(len(after), 0, -1):
         cand = "_".join(after[:k])
+        if cand in _MODEL_HUD:
+            return _MODEL_HUD[cand]
         if cand in VEHICLE_MODELS:
             return VEHICLE_MODELS[cand]
     return None
@@ -711,7 +750,16 @@ def resolve_vehicle_weapon(code: str) -> dict:
             vtype = "emplacement" if emplaced else _VTYPE_BY_CLASS_KIND.get(
                 VEHICLE_CLASSES[t][1], "ground")
             after = toks[i + 1:]
-            name = _model_from_tokens(after)
+            # Code completo (facción_clase_modelo) en la tabla oficial primero.
+            pre = toks[:i + 1]
+            name = None
+            for k in range(len(after), 0, -1):
+                full = "_".join(pre + after[:k])
+                if full in HUD_NAMES:
+                    name = HUD_NAMES[full]
+                    break
+            if name is None:
+                name = _model_from_tokens(after)
             if name is None:
                 name = _prettify("_".join(_strip_vehicle_weapon_tail(after))) or _prettify(t)
             return {"vehicle": name, "vclass": vclass, "vtype": vtype}

@@ -236,9 +236,11 @@ def parse_demo(reader: DemoReader) -> RoundStats:
         ms = stats.map_size
         if ms <= 0:
             return None
-        full = ms * 1000.0
-        nx = (x + ms * 500.0) / full
-        nz = (z + ms * 500.0) / full
+        # El mapa abarca ±512·MapSize (ref. realitytracker: fullSize = MapSize*1024),
+        # no ±500 — usar 512/1024 para alinear con el minimapa.
+        full = ms * 1024.0
+        nx = (x + ms * 512.0) / full
+        nz = (z + ms * 512.0) / full
         if nx < 0 or nx > 1 or nz < 0 or nz > 1:
             return None
         return (min(MOVE_G - 1, int(nx * MOVE_G)), min(MOVE_G - 1, int(nz * MOVE_G)))
