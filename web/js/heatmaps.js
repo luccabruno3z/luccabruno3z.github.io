@@ -213,22 +213,25 @@ function worldToView(x, z, ms) {
 /** Dibuja los marcadores de bandera/CP (bajo la transform del viewport). */
 function drawFlags(ctx) {
     if (!vp.showFlags || !vp.flags || !vp.flags.length || vp.mapSize <= 0) return;
-    const teamColor = { 1: '#4aa3ff', 2: '#ff5b5b', 0: '#cfcfcf' };
+    const teamColor = { 1: '#4aa3ff', 2: '#ff5b5b', 0: '#e8e8e8' };
+    const k = 1 / vp.scale;  // mantener tamaño de pantalla constante con el zoom
     for (const [x, z, team, radius] of vp.flags) {
         const [cx, cy] = worldToView(x, z, vp.mapSize);
         const col = teamColor[team] || teamColor[0];
-        // anillo de radio de captura
-        if (radius) {
-            const rpx = (radius / (vp.mapSize * 1024)) * VIEW;
+        // anillo de radio de captura (solo si da un tamaño visible)
+        const rpx = ((radius || 0) / (vp.mapSize * 1024)) * VIEW;
+        if (rpx > 4) {
             ctx.beginPath(); ctx.arc(cx, cy, rpx, 0, Math.PI * 2);
-            ctx.strokeStyle = col; ctx.globalAlpha = 0.35; ctx.lineWidth = 1.5 / vp.scale; ctx.stroke();
+            ctx.strokeStyle = col; ctx.globalAlpha = 0.4; ctx.lineWidth = 1.5 * k; ctx.stroke();
             ctx.globalAlpha = 1;
         }
-        // marcador (rombo)
-        const s = 7 / vp.scale;
+        // halo + rombo (más grande y con borde, para que no se pierda)
+        const s = 10 * k;
+        ctx.beginPath(); ctx.arc(cx, cy, s * 1.25, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.fill();
         ctx.beginPath(); ctx.moveTo(cx, cy - s); ctx.lineTo(cx + s, cy); ctx.lineTo(cx, cy + s); ctx.lineTo(cx - s, cy); ctx.closePath();
         ctx.fillStyle = col; ctx.fill();
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 1 / vp.scale; ctx.stroke();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5 * k; ctx.stroke();
     }
 }
 

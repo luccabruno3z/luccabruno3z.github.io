@@ -84,15 +84,33 @@ export function weaponKind(code) {
 export function vehicleLabel(code) {
     return state.aliases?.vehicles?.[code]?.label || _rawPretty(code);
 }
-/** Official game icon for a vehicle code as a CSS-sprite <span> (or '' if none). */
-export function vehicleIconHTML(code) {
-    const at = state.atlas;
-    const icon = at?.vehicles?.[code];
-    if (!icon) return '';
-    const box = at.icons?.[icon];
+/** CSS-sprite <span> for an atlas icon name (or '' if missing from the atlas). */
+function _iconSpan(icon) {
+    const box = state.atlas?.icons?.[icon];
     if (!box) return '';
     const [x, w, h] = box;
     return `<span class="veh-icon" style="width:${w}px;height:${h}px;background-position:-${x}px 0"></span>`;
+}
+/** Official game icon for a vehicle code as a CSS-sprite <span> (or '' if none). */
+export function vehicleIconHTML(code) {
+    const icon = state.atlas?.vehicles?.[code];
+    return icon ? _iconSpan(icon) : '';
+}
+// Mapa nombre→icono (label de aliases.vehicles + icono de atlas.vehicles), lazy.
+let _nameIconMap = null;
+/** Icono por NOMBRE de vehículo (para listas agregadas por label sin code). '' si no hay. */
+export function vehicleIconByName(name) {
+    if (!name) return '';
+    if (!_nameIconMap) {
+        _nameIconMap = new Map();
+        const veh = state.aliases?.vehicles || {}, icons = state.atlas?.vehicles || {};
+        for (const code in veh) {
+            const label = veh[code]?.label, icon = icons[code];
+            if (label && icon && !_nameIconMap.has(label)) _nameIconMap.set(label, icon);
+        }
+    }
+    const icon = _nameIconMap.get(name);
+    return icon ? _iconSpan(icon) : '';
 }
 /** For a mounted weapon code, the vehicle/emplacement that carries it (or null). */
 export function weaponVehicle(code) {

@@ -9,7 +9,7 @@ import { setupAutocomplete } from './autocomplete.js';
 import {
     escapeHtml, formatNumber, fmtDuration, aggregateByLabel, findPlayer,
     kitLabel, weaponModel, weaponKind, vehicleLabel, mapLabel, gamemodeLabel,
-    seatLabel, weaponVehicle, isVehicleKill, assetCategory, vehicleIconHTML,
+    seatLabel, weaponVehicle, isVehicleKill, assetCategory, vehicleIconHTML, vehicleIconByName,
 } from './utils.js';
 
 // Weapons that aren't a personal firearm (environmental, vehicle-mounted). If
@@ -38,13 +38,13 @@ function topList(pairs, limit = 5, emptyMsg = 'Sin datos.') {
 }
 
 /** Horizontal bars from [label, value] pairs (value can be % or count). */
-function bars(items, { suffix = '', max = null } = {}) {
+function bars(items, { suffix = '', max = null, icon = null } = {}) {
     if (!items.length) return `<div class="empty-state">Sin datos.</div>`;
     const top = max ?? Math.max(...items.map(i => i[1]), 1);
     return `<div class="hbars">` + items.map(([label, val]) => {
         const pct = Math.max(2, (val / top) * 100);
         return `<div class="hbar-row">
-            <span class="hbar-label">${escapeHtml(label)}</span>
+            <span class="hbar-label">${icon ? icon(label) : ''}${escapeHtml(label)}</span>
             <span class="hbar-track"><span class="hbar-fill" style="width:${pct}%"></span></span>
             <span class="hbar-val">${formatNumber(val)}${suffix}</span>
         </div>`;
@@ -131,7 +131,7 @@ function tabArmasVehiculos(p) {
         <h4>🔫 Armas más letales</h4>
         <ul class="demo-kits-list">${topList(weapons, 8, 'Sin datos de armas.')}</ul>
         <h4>🚁 Kills con vehículos</h4>
-        ${vehKills.length ? bars(vehKills.slice(0, 8)) : emptyTab(ACCUM)}
+        ${vehKills.length ? bars(vehKills.slice(0, 8), { icon: vehicleIconByName }) : emptyTab(ACCUM)}
         <h4>🔥 Vehículos destruidos (por tipo)</h4>
         <ul class="demo-kits-list">${destHtml}</ul>
         <h4>🪖 Kills por asiento</h4>
