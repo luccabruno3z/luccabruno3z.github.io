@@ -5,6 +5,14 @@
 
 import { loadRecentMatches } from './data.js';
 import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel } from './utils.js';
+import { REPLAY_VIEWER_URL } from './config.js';
+
+/** "Ver replay" link to the official viewer (only if we have the demo URL). */
+function replayCell(round) {
+    if (!round.demo_url) return '<span class="muted">—</span>';
+    const href = REPLAY_VIEWER_URL + '?demo=' + encodeURIComponent(round.demo_url);
+    return `<a class="replay-link" href="${href}" target="_blank" rel="noopener" title="Abrir replay 3D">▶ Replay</a>`;
+}
 
 /** Winner cell from numeric winner code (1=blufor, 2=opfor, -1=none). */
 function winnerLabel(round) {
@@ -41,11 +49,12 @@ async function renderRecentMatches() {
             <td>${escapeHtml(gamemodeLabel(r.gamemode))}</td>
             <td>${winnerLabel(r)}</td>
             <td>${formatNumber(r.total_kills || 0)}</td>
+            <td>${replayCell(r)}</td>
         </tr>`).join('');
 
     results.innerHTML = `
         <table class="data-table recent-matches-table">
-            <thead><tr><th>Fecha</th><th>Mapa</th><th>Modo</th><th>Ganador</th><th>Kills</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Mapa</th><th>Modo</th><th>Ganador</th><th>Kills</th><th>Replay</th></tr></thead>
             <tbody>${rows}</tbody>
         </table>`;
     return true;

@@ -23,6 +23,8 @@ export const HEATMAPS_URL      = `${DEMOS_URL}/heatmaps`;
 // heatmap renderer draws the image when present and falls back to a neutral grid.
 export const MAP_IMG_URL       = `${BASE_URL}/web/img/maps`;
 export const MAP_IMG_MANIFEST_URL = `${MAP_IMG_URL}/manifest.json`;
+// Visor oficial de demos (replay 3D). Carga un demo con ?demo=<URL>.
+export const REPLAY_VIEWER_URL = 'https://yossizap.github.io/realitytracker/';
 
 // A player needs at least this many rounds to qualify for the rankings.
 export const MIN_ROUNDS_FOR_RANKING = 50;

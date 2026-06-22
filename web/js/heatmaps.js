@@ -11,7 +11,7 @@
 
 import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, state } from './data.js';
 import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
-import { MAP_IMG_URL } from './config.js';
+import { MAP_IMG_URL, REPLAY_VIEWER_URL } from './config.js';
 
 const VIEW = 1024;          // canvas backing size (logical map space at fit-scale)
 const DENSITY = 2048;       // density buffer resolution
@@ -116,6 +116,7 @@ function gridRound(round, gridSize) {
         sniper: { cells: cells2(sniper) },
         movement: { phases: mv.phases, team1: rescale(mv.team1), team2: rescale(mv.team2) },
         spawns: { team1: cells1(sp[1]), team2: cells1(sp[2]) },
+        flags: round.flags || [],
     };
 }
 
@@ -167,7 +168,38 @@ function mapImage(mapName) {
 }
 
 // ── Viewport (pan/zoom) ──────────────────────────────────────────────────────
-const vp = { scale: 1, tx: 0, ty: 0, img: null, density: null, canvas: null, ctx: null };
+const vp = { scale: 1, tx: 0, ty: 0, img: null, density: null, canvas: null, ctx: null,
+             flags: null, mapSize: 0, showFlags: true };
+
+/** World (x,z) → coords del canvas VIEW (misma normalización + FLIP_Y que el heatmap). */
+function worldToView(x, z, ms) {
+    const nx = (x + ms * 512) / (ms * 1024);
+    let nz = (z + ms * 512) / (ms * 1024);
+    if (FLIP_Y) nz = 1 - nz;
+    return [nx * VIEW, nz * VIEW];
+}
+
+/** Dibuja los marcadores de bandera/CP (bajo la transform del viewport). */
+function drawFlags(ctx) {
+    if (!vp.showFlags || !vp.flags || !vp.flags.length || vp.mapSize <= 0) return;
+    const teamColor = { 1: '#4aa3ff', 2: '#ff5b5b', 0: '#cfcfcf' };
+    for (const [x, z, team, radius] of vp.flags) {
+        const [cx, cy] = worldToView(x, z, vp.mapSize);
+        const col = teamColor[team] || teamColor[0];
+        // anillo de radio de captura
+        if (radius) {
+            const rpx = (radius / (vp.mapSize * 1024)) * VIEW;
+            ctx.beginPath(); ctx.arc(cx, cy, rpx, 0, Math.PI * 2);
+            ctx.strokeStyle = col; ctx.globalAlpha = 0.35; ctx.lineWidth = 1.5 / vp.scale; ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+        // marcador (rombo)
+        const s = 7 / vp.scale;
+        ctx.beginPath(); ctx.moveTo(cx, cy - s); ctx.lineTo(cx + s, cy); ctx.lineTo(cx, cy + s); ctx.lineTo(cx - s, cy); ctx.closePath();
+        ctx.fillStyle = col; ctx.fill();
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1 / vp.scale; ctx.stroke();
+    }
+}
 
 function clampView() {
     vp.scale = Math.min(MAX_SCALE, Math.max(1, vp.scale));
@@ -183,6 +215,7 @@ function render() {
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     if (vp.img) ctx.drawImage(vp.img, 0, 0, VIEW, VIEW);
     if (vp.density) { ctx.globalAlpha = 0.9; ctx.drawImage(vp.density, 0, 0, VIEW, VIEW); ctx.globalAlpha = 1; }
+    drawFlags(ctx);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 function resetView() { vp.scale = 1; vp.tx = 0; vp.ty = 0; render(); }
@@ -302,14 +335,20 @@ export async function initHeatmaps() {
             if (gmSel) gmSel.disabled = true;
             if (!full) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">No se pudo cargar esa ronda.</span>'; return; }
             layers = gridRound(full, hm.grid_size || 128);
-            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}`;
+            vp.mapSize = full.map_size || hm.map_size || 0;
+            const replay = r.demo_url
+                ? ` · <a class="replay-link" href="${REPLAY_VIEWER_URL}?demo=${encodeURIComponent(r.demo_url)}" target="_blank" rel="noopener">▶ Ver replay</a>`
+                : '';
+            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}${replay}`;
         } else {
             if (gmSel) gmSel.disabled = false;
             const gm = gmSel ? gmSel.value : null;
             layers = gamemodeLayers(hm, gm);
+            vp.mapSize = hm.map_size || 0;
             const rounds = (hm.gamemodes ? (hm.gamemodes[gm]?.rounds) : hm.rounds) || 0;
             ctxNote = (gm ? `${escapeHtml(gamemodeLabel(gm))} · ` : '') + `${formatNumber(rounds)} rondas`;
         }
+        vp.flags = layers.flags || [];
 
         // Slider de etapas: solo para recorridos. value 0 = todas; 1..N = fase 0..N-1.
         const phases = (layer === 'movement') ? (layers.movement?.phases || 6) : 0;
@@ -335,6 +374,8 @@ export async function initHeatmaps() {
         }
     }
     if (phaseSlider) phaseSlider.addEventListener('input', render);
+    const flagsToggle = document.getElementById('heatmap-flags');
+    if (flagsToggle) flagsToggle.addEventListener('change', () => { vp.showFlags = flagsToggle.checked; render(); });
 
     // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.
     async function selectMap() {

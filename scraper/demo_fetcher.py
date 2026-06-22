@@ -157,9 +157,10 @@ def _is_transient(exc: Exception) -> bool:
 async def _fetch_one_demo(
     url: str,
     loop: asyncio.AbstractEventLoop,
-) -> Tuple[str, Optional[bytes]]:
+) -> Tuple[str, str, Optional[bytes]]:
     """Download a single demo file with backoff retries on transient errors.
 
+    Returns (url, filename, data). `url` se conserva para el link al visor (replay).
     Failed demos are not marked as processed and will be retried next run.
     """
     filename = url.rsplit("/", 1)[-1]
@@ -169,14 +170,14 @@ async def _fetch_one_demo(
             logger.info("Downloading %s%s", filename, suffix)
             data = await loop.run_in_executor(_executor, _fetch_sync, url)
             logger.info("Downloaded %s (%d bytes)", filename, len(data))
-            return filename, data
+            return url, filename, data
         except Exception as exc:
             if _is_transient(exc) and attempt < MAX_RETRIES:
                 await asyncio.sleep(2 ** (attempt - 1))  # 1s, 2s, …
                 continue
             logger.warning("Failed to download %s: %s — skipping.", filename, exc)
-            return filename, None
-    return filename, None
+            return url, filename, None
+    return url, filename, None
 
 
 def get_new_demo_urls() -> List[str]:
@@ -254,8 +255,8 @@ _SEQUENTIAL_HOSTS = {"latamsquad.dev", "82.38.28.159", "russianfrontier.ru"}
 _LOW_PRIORITY_HOSTS = {"82.38.28.159"}
 
 
-async def fetch_demo_batch(urls: List[str]) -> List[Tuple[str, bytes]]:
-    """Download a batch of demos. Returns list of (filename, bytes) for successes.
+async def fetch_demo_batch(urls: List[str]) -> List[Tuple[str, str, bytes]]:
+    """Download a batch of demos. Returns list of (url, filename, bytes) for successes.
 
     URLs from throttle-prone hosts are downloaded sequentially (one at a time)
     to avoid connection timeouts. Other URLs are downloaded in parallel.
@@ -277,7 +278,7 @@ async def fetch_demo_batch(urls: List[str]) -> List[Tuple[str, bytes]]:
         result = await _fetch_one_demo(url, loop)
         results.append(result)
 
-    return [(fname, data) for fname, data in results if data is not None]
+    return [(url, fname, data) for url, fname, data in results if data is not None]
 
 
 def mark_processed(filenames: List[str]) -> None:

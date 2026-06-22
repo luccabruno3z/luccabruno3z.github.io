@@ -307,12 +307,13 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
 
         # Parse each demo in batch
         parsed_filenames = []
-        for filename, data in batch_demos:
+        for demo_url, filename, data in batch_demos:
             try:
                 reader = DemoReader.from_bytes(data)
                 round_stats = parse_demo(reader)
                 round_dict = round_stats.to_dict()
                 round_dict["filename"] = filename
+                round_dict["demo_url"] = demo_url  # para el link "Ver replay" al visor
                 round_dict["processed_at"] = timestamp
 
                 if filename not in existing_filenames:
@@ -908,7 +909,8 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         return {"rounds": 0, "deaths": defaultdict(lambda: [0, 0]), "deaths_n": 0,
                 "move": {1: defaultdict(int), 2: defaultdict(int)},
                 "spawn": {1: defaultdict(int), 2: defaultdict(int)},
-                "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0}
+                "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0,
+                "flags": [], "flags_fn": ""}  # banderas de la ronda más reciente
 
     maps: dict[str, dict] = {}
     for rd in rounds:
@@ -925,9 +927,14 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         mp = maps.setdefault(mname, {"map": mname, "map_size": msize, "gm": {}, "rounds_list": []})
         m = mp["gm"].setdefault(gmode, new_gm())
         m["rounds"] += 1
+        _fn = rd.get("filename", "")
+        if rd.get("flags") and _fn > m["flags_fn"]:  # banderas de la ronda más nueva
+            m["flags"] = rd["flags"]
+            m["flags_fn"] = _fn
         mp["rounds_list"].append({"filename": rd.get("filename", ""),
                                   "date": _date_from_filename(rd.get("filename", "")),
-                                  "gamemode": gmode})
+                                  "gamemode": gmode,
+                                  "demo_url": rd.get("demo_url", "")})
 
         for e in (kps or []):
             cell = grid(e[0], e[1], msize)
@@ -988,6 +995,7 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
                 "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
                 "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
                            "cells": cells2(m["sniper"])},
+                "flags": m["flags"],
             }
         # rondas más nuevas primero (para el selector)
         rlist = sorted(mp["rounds_list"], key=lambda r: r["filename"], reverse=True)

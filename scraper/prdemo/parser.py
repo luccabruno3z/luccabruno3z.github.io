@@ -120,6 +120,8 @@ class RoundStats:
     move_grid_size: int = 128
     # Posiciones de spawn (al revivir): [x, z, equipo].
     spawns: List[list] = field(default_factory=list)
+    # Banderas/CPs del FLAG_LIST: [x, z, equipo_dueño, radio]. Para overlay en heatmaps.
+    flags: List[list] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize to a JSON-compatible dict."""
@@ -150,6 +152,7 @@ class RoundStats:
             "kill_positions": self.kill_positions,
             "movement": self._movement_dict(),
             "spawns": self.spawns,
+            "flags": self.flags,
             "players": {
                 pid: {
                     "ign": ps.ign,
@@ -454,6 +457,11 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                 if v_name:
                     killer.vehicles_destroyed_by_type[v_name] = \
                         killer.vehicles_destroyed_by_type.get(v_name, 0) + 1
+
+        # ── Flag List ────────────────────────────────────────────────
+        elif raw_msg.msg_type == MessageType.FLAG_LIST:
+            stats.flags = [[f.position.x, f.position.z, f.owning_team, f.radius]
+                           for f in decoded]
 
         # ── Squad Name ───────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.SQUAD_NAME:
