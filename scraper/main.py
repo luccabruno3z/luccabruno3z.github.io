@@ -910,6 +910,7 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
                 "move": {1: defaultdict(int), 2: defaultdict(int)},
                 "spawn": {1: defaultdict(int), 2: defaultdict(int)},
                 "sniper": defaultdict(lambda: [0, 0]), "sniper_n": 0,
+                "fire": defaultdict(lambda: [0, 0]),  # (agx,agy,vgx,vgy) → [t1,t2]
                 "flags": [], "flags_fn": ""}  # banderas de la ronda más reciente
 
     maps: dict[str, dict] = {}
@@ -947,6 +948,12 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
                     if acell is not None:
                         m["sniper"][acell][1 if e[5] == 2 else 0] += 1
                         m["sniper_n"] += 1
+            # Líneas de fuego: vector celda-atacante → celda-víctima (todas las armas).
+            if len(e) >= 6 and e[3] is not None and cell is not None:
+                acell = grid(e[3], e[4], msize)
+                if acell is not None and acell != cell:
+                    fk = (acell[0], acell[1], cell[0], cell[1])
+                    m["fire"][fk][1 if e[5] == 2 else 0] += 1
 
         if mv:
             mg = mv.get("grid", grid_size)
@@ -984,6 +991,11 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         out.sort(key=lambda e: e[3], reverse=True)
         return out
 
+    def firelines(d, top=400):  # {(agx,agy,vgx,vgy): [t1,t2]} → top-K [[agx,agy,vgx,vgy,t1,t2]]
+        out = [[ax, ay, vx, vy, c[0], c[1]] for (ax, ay, vx, vy), c in d.items()]
+        out.sort(key=lambda e: e[4] + e[5], reverse=True)
+        return out[:top]
+
     result: dict[str, dict] = {}
     for mname, mp in maps.items():
         gamemodes = {}
@@ -995,6 +1007,7 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
                 "spawns": {"team1": cells1(m["spawn"][1]), "team2": cells1(m["spawn"][2])},
                 "sniper": {"threshold_m": SNIPER_MIN_DIST, "kills": m["sniper_n"],
                            "cells": cells2(m["sniper"])},
+                "firelines": firelines(m["fire"]),
                 "flags": m["flags"],
             }
         # rondas más nuevas primero (para el selector)

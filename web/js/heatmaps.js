@@ -85,7 +85,7 @@ function gridRound(round, gridSize) {
         if (nx < 0 || nx > 1 || nz < 0 || nz > 1) return null;
         return [Math.min(gridSize - 1, nx * gridSize | 0), Math.min(gridSize - 1, nz * gridSize | 0)];
     };
-    const deaths = new Map(), sniper = new Map();
+    const deaths = new Map(), sniper = new Map(), fire = new Map();
     const bump = (map, key, slot) => { const v = map.get(key) || [0, 0]; v[slot] += 1; map.set(key, v); };
     for (const e of (round.kill_positions || [])) {
         const c = grid(e[0], e[1]);
@@ -95,8 +95,14 @@ function gridRound(round, gridSize) {
             const a = grid(e[3], e[4]);
             if (a) bump(sniper, a[0] + ',' + a[1], e[5] === 2 ? 1 : 0);
         }
+        if (e.length >= 6 && e[3] != null && c) {  // líneas de fuego
+            const a = grid(e[3], e[4]);
+            if (a && (a[0] !== c[0] || a[1] !== c[1]))
+                bump(fire, a[0] + ',' + a[1] + ',' + c[0] + ',' + c[1], e[5] === 2 ? 1 : 0);
+        }
     }
     const cells2 = (m) => [...m.entries()].map(([k, v]) => { const [gx, gy] = k.split(',').map(Number); return [gx, gy, v[0], v[1]]; });
+    const fireArr = [...fire.entries()].map(([k, v]) => { const [ax, ay, vx, vy] = k.split(',').map(Number); return [ax, ay, vx, vy, v[0], v[1]]; });
     // movement: ya viene gridado (move_grid_size), por fase [ph,gx,gy,c]. Pasa directo.
     const mv = round.movement || {};
     const mg = mv.grid || gridSize;
@@ -116,6 +122,7 @@ function gridRound(round, gridSize) {
         sniper: { cells: cells2(sniper) },
         movement: { phases: mv.phases, team1: rescale(mv.team1), team2: rescale(mv.team2) },
         spawns: { team1: cells1(sp[1]), team2: cells1(sp[2]) },
+        firelines: fireArr,
         flags: round.flags || [],
     };
 }
@@ -153,6 +160,28 @@ function buildDensity(cells, grid) {
         d[i + 3] = Math.min(255, Math.round(alpha * 0.82) + 30);
     }
     octx.putImageData(img, 0, 0);
+    return off;
+}
+
+/** Render firelines (atacante→víctima) a un canvas offscreen (segmentos coloreados). */
+function buildLines(lines, team, grid) {
+    if (!lines || !lines.length) return null;
+    const val = team === '1' ? (l) => l[4] : team === '2' ? (l) => l[5] : (l) => l[4] + l[5];
+    let maxV = 0; for (const l of lines) maxV = Math.max(maxV, val(l));
+    if (!maxV) return null;
+    const off = document.createElement('canvas'); off.width = DENSITY; off.height = DENSITY;
+    const o = off.getContext('2d');
+    o.globalCompositeOperation = 'lighter'; o.lineCap = 'round';
+    const toXY = (gx, gy) => { if (FLIP_Y) gy = grid - 1 - gy; return [((gx + 0.5) / grid) * DENSITY, ((gy + 0.5) / grid) * DENSITY]; };
+    for (const l of lines) {
+        const v = val(l); if (!v) continue;
+        const a = Math.min(0.85, 0.12 + (v / maxV) * 0.7);
+        const [x1, y1] = toXY(l[0], l[1]), [x2, y2] = toXY(l[2], l[3]);
+        const t2dom = team === '2' || (team === 'all' && l[5] > l[4]);
+        o.strokeStyle = `rgba(${t2dom ? '255,90,90' : '90,160,255'},${a})`;
+        o.lineWidth = Math.max(1.5, (v / maxV) * 5);
+        o.beginPath(); o.moveTo(x1, y1); o.lineTo(x2, y2); o.stroke();
+    }
     return off;
 }
 
@@ -275,6 +304,7 @@ const LAYER_LABEL = {
     movement: 'rutas más transitadas',
     spawns: 'puntos de aparición (spawns)',
     sniper: `bajas a >${SNIPER_MIN_DIST}m con arma personal (posición del tirador)`,
+    fire: 'líneas de fuego (de dónde a dónde se mata)',
 };
 
 /** Layers object para un (gamemode) o el formato viejo top-level (backward-compat). */
@@ -362,8 +392,12 @@ export async function initHeatmaps() {
             if (phaseLbl) phaseLbl.textContent = v === 0 ? 'Todas las etapas' : `${PHASE_NAMES(v - 1)} (${v}/${phases})`;
         }
 
-        const cells = layerCells(layers, layer, team, phase);
-        vp.density = buildDensity(cells, hm.grid_size || 128);
+        if (layer === 'fire') {
+            vp.density = buildLines(layers.firelines, team, hm.grid_size || 128);
+        } else {
+            const cells = layerCells(layers, layer, team, phase);
+            vp.density = buildDensity(cells, hm.grid_size || 128);
+        }
         resetView();
         if (meta) {
             const phaseNote = (phases && phase !== 'all') ? ` · etapa ${Number(phaseSlider.value)}/${phases}` : '';
