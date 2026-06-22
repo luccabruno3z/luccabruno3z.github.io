@@ -378,3 +378,73 @@ def build_player_rounds(rounds: list[dict], clan_player_names: set | None) -> No
     with open(os.path.join(PLAYER_ROUNDS_DIR, "index.json"), "w", encoding="utf-8") as f:
         json.dump(index_payload, f, ensure_ascii=False)
     logger.info("Player rounds: %d players, %d files (re)written", len(by_player), written)
+
+
+PLAYER_HEATMAP_DIR = os.path.join(DEMOS_DIR, "heatmaps", "players")
+
+
+def build_player_heatmaps(rounds: list[dict], clan_player_names: set | None,
+                          grid_size: int = 128) -> None:
+    """Heatmap por jugador: dónde mata (kills, pos. del atacante) y dónde muere (deaths,
+    pos. de la víctima), por mapa, gridado igual que los heatmaps de mapa (512/1024).
+
+    Lee los nombres de `kill_positions` ([…, victim_ign, attacker_ign]) y los matchea a
+    nombres de prstats (solo jugadores trackeados). Escribe diff-based
+    `heatmaps/players/<safe>.json` = {player, grid_size, maps:{map:{kills,deaths}}} + index.
+    Los nombres recién se capturan, así que arranca con poca data y crece."""
+    os.makedirs(PLAYER_HEATMAP_DIR, exist_ok=True)
+    matcher = ClanMatcher(clan_player_names)
+
+    def grid(x, z, ms):
+        if ms <= 0:
+            return None
+        full = ms * 1024.0
+        nx = (x + ms * 512.0) / full
+        nz = (z + ms * 512.0) / full
+        if nx < 0 or nx > 1 or nz < 0 or nz > 1:
+            return None
+        return (min(grid_size - 1, int(nx * grid_size)), min(grid_size - 1, int(nz * grid_size)))
+
+    by_player: dict = defaultdict(lambda: defaultdict(
+        lambda: {"kills": defaultdict(int), "deaths": defaultdict(int)}))
+    for rd in rounds:
+        ms = rd.get("map_size", 0) or 0
+        if ms <= 0:
+            continue
+        mapname = rd.get("map_name", "unknown")
+        for e in (rd.get("kill_positions") or []):
+            if len(e) < 10:        # rondas viejas sin nombres
+                continue
+            vign, aign = e[8], e[9]
+            vm = matcher.match(vign) if vign else None
+            if vm:
+                c = grid(e[0], e[1], ms)
+                if c:
+                    by_player[vm][mapname]["deaths"][c] += 1
+            am = matcher.match(aign) if aign else None
+            if am and e[3] is not None:
+                c = grid(e[3], e[4], ms)
+                if c:
+                    by_player[am][mapname]["kills"][c] += 1
+
+    written = 0
+    index: dict = {}
+    for player, maps in by_player.items():
+        safe = safe_filename(player)
+        out_maps = {m: {"kills": [[gx, gy, c] for (gx, gy), c in d["kills"].items()],
+                        "deaths": [[gx, gy, c] for (gx, gy), c in d["deaths"].items()]}
+                    for m, d in maps.items()}
+        index[player] = {"file": f"{safe}.json"}
+        path = os.path.join(PLAYER_HEATMAP_DIR, f"{safe}.json")
+        content = json.dumps({"player": player, "grid_size": grid_size, "maps": out_maps},
+                             ensure_ascii=False)
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                if f.read() == content:
+                    continue
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(content)
+        written += 1
+    with open(os.path.join(PLAYER_HEATMAP_DIR, "index.json"), "w", encoding="utf-8") as f:
+        json.dump({"players": index}, f, ensure_ascii=False)
+    logger.info("Player heatmaps: %d jugadores, %d archivos (re)escritos", len(by_player), written)

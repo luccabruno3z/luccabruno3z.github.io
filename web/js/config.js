@@ -19,6 +19,7 @@ export const LOGO_MANIFEST_URL = `${BASE_URL}/logos/manifest.json`;
 export const ALIASES_URL       = `${DEMOS_URL}/aliases.json`;
 export const SYNERGY_URL       = `${DEMOS_URL}/synergy.json`;
 export const HEATMAPS_URL      = `${DEMOS_URL}/heatmaps`;
+export const PLAYER_HEATMAP_URL = `${HEATMAPS_URL}/players`;
 // Optional per-map minimap backgrounds (manifest like logos: {map: ext}). The
 // heatmap renderer draws the image when present and falls back to a neutral grid.
 export const MAP_IMG_URL       = `${BASE_URL}/web/img/maps`;

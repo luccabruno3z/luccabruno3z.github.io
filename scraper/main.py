@@ -40,6 +40,7 @@ from .rounds_store import (
     ClanMatcher,
     build_leaderboards,
     build_player_rounds,
+    build_player_heatmaps,
 )
 from .scoring import calculate_scores, compute_tier_thresholds
 from .server_discovery import discover_servers
@@ -408,6 +409,9 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
         # Per-player round timelines for the web profile view (diff-based write,
         # so only players with new rounds get their file rewritten).
         build_player_rounds(existing_rounds, clan_player_names)
+
+        # Heatmap por jugador (dónde mata / dónde muere), de los nombres en kill_positions.
+        build_player_heatmaps(existing_rounds, clan_player_names)
 
     # 6. Rebuild precomputed period leaderboards for the Discord bot. Always run
     #    (rolling windows shift over time even with no new rounds).

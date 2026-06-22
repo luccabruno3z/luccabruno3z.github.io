@@ -9,7 +9,7 @@
    cell UV maps directly to the minimap — no recalibration.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, state } from './data.js';
+import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, loadPlayerHeatmap, state } from './data.js';
 import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
 import { MAP_IMG_URL, REPLAY_VIEWER_URL } from './config.js';
 
@@ -127,8 +127,10 @@ function gridRound(round, gridSize) {
     };
 }
 
-/** Colorize a [[gx,gy,value]] cell list into an offscreen canvas (or null). */
-function buildDensity(cells, grid) {
+/** Colorize a [[gx,gy,value]] cell list → offscreen canvas. Si `rgb` (=[r,g,b]) se da,
+ *  usa ese color sólido (para el heatmap por jugador: kills verde / muertes rojo);
+ *  si no, la rampa multicolor por defecto. */
+function buildDensity(cells, grid, rgb) {
     if (!cells.length) return null;
     let maxV = 0;
     for (const c of cells) if (c[2] > maxV) maxV = c[2];
@@ -155,8 +157,8 @@ function buildDensity(cells, grid) {
     const d = img.data; const lut = gradientLUT();
     for (let i = 0; i < d.length; i += 4) {
         const alpha = d[i + 3]; if (!alpha) continue;
-        const idx = alpha << 2;
-        d[i] = lut[idx]; d[i + 1] = lut[idx + 1]; d[i + 2] = lut[idx + 2];
+        if (rgb) { d[i] = rgb[0]; d[i + 1] = rgb[1]; d[i + 2] = rgb[2]; }
+        else { const idx = alpha << 2; d[i] = lut[idx]; d[i + 1] = lut[idx + 1]; d[i + 2] = lut[idx + 2]; }
         d[i + 3] = Math.min(255, Math.round(alpha * 0.82) + 30);
     }
     octx.putImageData(img, 0, 0);
@@ -197,7 +199,7 @@ function mapImage(mapName) {
 }
 
 // ── Viewport (pan/zoom) ──────────────────────────────────────────────────────
-const vp = { scale: 1, tx: 0, ty: 0, img: null, density: null, canvas: null, ctx: null,
+const vp = { scale: 1, tx: 0, ty: 0, img: null, density: null, extra: null, canvas: null, ctx: null,
              flags: null, mapSize: 0, showFlags: true };
 
 /** World (x,z) → coords del canvas VIEW (misma normalización + FLIP_Y que el heatmap). */
@@ -244,6 +246,7 @@ function render() {
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
     if (vp.img) ctx.drawImage(vp.img, 0, 0, VIEW, VIEW);
     if (vp.density) { ctx.globalAlpha = 0.9; ctx.drawImage(vp.density, 0, 0, VIEW, VIEW); ctx.globalAlpha = 1; }
+    if (vp.extra) { ctx.globalAlpha = 0.9; ctx.drawImage(vp.extra, 0, 0, VIEW, VIEW); ctx.globalAlpha = 1; }
     drawFlags(ctx);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
@@ -354,9 +357,41 @@ export async function initHeatmaps() {
 
     const PHASE_NAMES = (n) => ['Apertura', 'Inicio', 'Desarrollo', 'Mitad', 'Avance', 'Cierre'][n] || `Fase ${n + 1}`;
 
+    const playerInput = document.getElementById('heatmap-player');
+    let playerCache = { q: null, data: null };
+
     // Re-render con el estado actual (gamemode/round/layer/team/etapa). round='all' → agregado.
     async function render() {
         if (!hm) return;
+        vp.extra = null;
+
+        // Modo "por jugador": kills (verde) vs muertes (rojo) en el mapa seleccionado.
+        const pname = playerInput ? playerInput.value.trim() : '';
+        if (pname) {
+            if (playerCache.q !== pname) playerCache = { q: pname, data: await loadPlayerHeatmap(pname) };
+            const phm = playerCache.data;
+            const md = phm && phm.maps ? phm.maps[mapSel.value] : null;
+            vp.mapSize = hm.map_size || 0;
+            vp.flags = (gamemodeLayers(hm, gmSel ? gmSel.value : null) || {}).flags || [];
+            if (phaseRow) phaseRow.hidden = true;
+            if (!md) {
+                vp.density = null; resetView();
+                if (meta) meta.innerHTML = `<span class="empty-state">${escapeHtml(pname)}: sin kills/muertes registradas en ${escapeHtml(mapLabel(mapSel.value))} (se acumulan desde las partidas nuevas).</span>`;
+                return;
+            }
+            const g = phm.grid_size || 128;
+            vp.density = buildDensity(md.kills, g, [80, 255, 130]);   // kills = verde
+            vp.extra = buildDensity(md.deaths, g, [255, 80, 80]);     // muertes = rojo
+            resetView();
+            if (meta) {
+                const K = md.kills.reduce((s, c) => s + c[2], 0), D = md.deaths.reduce((s, c) => s + c[2], 0);
+                meta.innerHTML = `${escapeHtml(phm.player)} en ${escapeHtml(mapLabel(mapSel.value))} — `
+                    + `<span style="color:#50ff82">${K} kills</span> · <span style="color:#ff5050">${D} muertes</span>`
+                    + ' <span class="muted">· rueda: zoom · arrastrá: mover</span>';
+            }
+            return;
+        }
+
         const round = roundSel ? roundSel.value : 'all';
         let layers, ctxNote = '';
         if (round && round !== 'all') {
@@ -410,6 +445,10 @@ export async function initHeatmaps() {
     if (phaseSlider) phaseSlider.addEventListener('input', render);
     const flagsToggle = document.getElementById('heatmap-flags');
     if (flagsToggle) flagsToggle.addEventListener('change', () => { vp.showFlags = flagsToggle.checked; render(); });
+    if (playerInput) {
+        let t;
+        playerInput.addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 350); });
+    }
 
     // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.
     async function selectMap() {

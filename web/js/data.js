@@ -9,7 +9,7 @@
 import {
     ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
-    SYNERGY_URL, HEATMAPS_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
+    SYNERGY_URL, HEATMAPS_URL, PLAYER_HEATMAP_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
     CACHE_TTL,
 } from './config.js';
 import { normalizeName } from './utils.js';
@@ -206,6 +206,12 @@ export async function loadHeatmapIndex() {
     const data = await cachedFetch(`${HEATMAPS_URL}/index.json`, { silent: true });
     if (Array.isArray(data)) state.heatmapIndex = data;
     return state.heatmapIndex;
+}
+
+/** Per-player kill/death heatmap ({player, grid_size, maps:{map:{kills,deaths}}}) or null. */
+export async function loadPlayerHeatmap(ign) {
+    if (!ign) return null;
+    return cachedFetch(`${PLAYER_HEATMAP_URL}/${normalizeName(ign)}.json`, { silent: true });
 }
 
 /** Load a single map's heatmap grid (memoized by file name). */
