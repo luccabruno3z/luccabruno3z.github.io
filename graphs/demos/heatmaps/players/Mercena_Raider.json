@@ -1,1 +1,1 @@
-{"player": "Mercena.Raider", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [], "deaths": [[84, 61, 1]]}}}
+{"player": "Mercena.Raider", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [], "deaths": [[84, 61, 1]]}, "carentan": {"kills": [[94, 89, 1], [93, 89, 1], [95, 89, 1]], "deaths": [[87, 58, 1], [88, 60, 1], [93, 90, 1], [93, 65, 1]]}}}

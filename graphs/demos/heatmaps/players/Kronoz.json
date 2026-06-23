@@ -1,1 +1,1 @@
-{"player": "Kronoz", "grid_size": 128, "maps": {"kafar_halab": {"kills": [[105, 66, 1], [88, 70, 5]], "deaths": [[92, 71, 1], [100, 75, 1]]}}}
+{"player": "Kronoz", "grid_size": 128, "maps": {"kafar_halab": {"kills": [[105, 66, 1], [88, 70, 5]], "deaths": [[92, 71, 1], [100, 75, 1]]}, "krivaja_valley": {"kills": [], "deaths": [[100, 22, 2], [97, 10, 1], [84, 9, 1]]}, "beirut": {"kills": [[46, 43, 1]], "deaths": [[60, 29, 1]]}}}
