@@ -26,6 +26,7 @@ EXTENSIONS = [
     "bot.cogs.automation",
     "bot.cogs.detailed_stats",
     "bot.cogs.polls",
+    "bot.cogs.suggestions",
 ]
 
 

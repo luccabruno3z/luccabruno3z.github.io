@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .env
 *.egg-info/
+
+# Bot runtime data (efímero / datos de usuarios — no commitear)
+bot/data/suggestions.json
+bot/data/suggestions.json.tmp
+bot/data/guild_settings.json
