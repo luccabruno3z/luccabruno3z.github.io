@@ -1,1 +1,1 @@
-{"player": "GRAMAS", "grid_size": 128, "maps": {"beirut": {"kills": [], "deaths": [[41, 59, 1], [40, 58, 1], [43, 59, 1], [44, 58, 1]]}}}
+{"player": "GRAMAS", "grid_size": 128, "maps": {"beirut": {"kills": [], "deaths": [[41, 59, 1], [40, 58, 1], [43, 59, 1], [44, 58, 1]]}, "kokan": {"kills": [[88, 35, 1]], "deaths": [[87, 34, 1], [88, 35, 1]]}}}
