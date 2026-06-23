@@ -1,1 +1,1 @@
-{"player": "MOULIYDRA", "grid_size": 128, "maps": {"reichswald": {"kills": [[99, 80, 1], [62, 22, 1], [63, 23, 1], [67, 10, 1]], "deaths": [[98, 82, 1]]}}}
+{"player": "MOULIYDRA", "grid_size": 128, "maps": {"reichswald": {"kills": [[99, 80, 1], [62, 22, 1], [63, 23, 1], [67, 10, 1]], "deaths": [[98, 82, 1]]}, "donbas": {"kills": [], "deaths": [[52, 89, 1], [21, 65, 1], [21, 66, 1], [40, 82, 1]]}}}
