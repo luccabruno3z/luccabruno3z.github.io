@@ -1,1 +1,1 @@
-{"player": "mon_", "grid_size": 128, "maps": {"muttrah_city_2": {"kills": [], "deaths": [[23, 67, 1]]}, "reichswald": {"kills": [], "deaths": [[86, 28, 1]]}, "silent_eagle": {"kills": [[58, 93, 1]], "deaths": [[62, 90, 1], [53, 111, 1]]}}}
+{"player": "mon_", "grid_size": 128, "maps": {"muttrah_city_2": {"kills": [], "deaths": [[23, 67, 1]]}, "reichswald": {"kills": [], "deaths": [[86, 28, 1]]}, "silent_eagle": {"kills": [[58, 93, 1]], "deaths": [[62, 90, 1], [53, 111, 1]]}, "operation_thunder": {"kills": [[40, 58, 1]], "deaths": [[28, 58, 1], [28, 59, 1], [40, 58, 1]]}}}
