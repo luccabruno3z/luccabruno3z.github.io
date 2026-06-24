@@ -1,1 +1,1 @@
-{"player": "FirefoxBR", "grid_size": 128, "maps": {"muttrah_city_2": {"kills": [], "deaths": [[24, 35, 1], [28, 33, 1]]}, "khamisiyah": {"kills": [[64, 61, 3], [63, 61, 1]], "deaths": []}, "masirah": {"kills": [], "deaths": [[67, 82, 1]]}}}
+{"player": "FirefoxBR", "grid_size": 128, "maps": {"muttrah_city_2": {"kills": [], "deaths": [[24, 35, 1], [28, 33, 1]]}, "masirah": {"kills": [], "deaths": [[67, 82, 1]]}, "khamisiyah": {"kills": [[64, 61, 3], [63, 61, 1]], "deaths": []}}}
