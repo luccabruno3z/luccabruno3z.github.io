@@ -1,6 +1,6 @@
 """Suggestions cog — buzón de observaciones/sugerencias de usuarios.
 
-`-sugerir <texto>` (alias sug/sugerencia): cualquiera deja una observación → se guarda en
+`-sugerencia <texto>` (alias sug): cualquiera deja una observación → se guarda en
 `bot/data/suggestions.json` (lista JSON, escritura atómica). `-expsug` (owner): exporta
 todo como adjunto .json + un resumen.
 
@@ -72,17 +72,18 @@ class Suggestions(commands.Cog):
         except Exception as exc:  # nunca romper el guardado por el espejo
             logger.warning("No se pudo espejar la sugerencia #%s: %s", entry.get("id"), exc)
 
-    # ── -sugerir <texto> ─────────────────────────────────────────────────────
+    # ── -sugerencia <texto> ──────────────────────────────────────────────────
+    # (nombre `sugerencia`; `sugerir` ya lo usa -sugerir_equipo en compare.py)
     @commands.hybrid_command(
-        aliases=["sug", "sugerencia"],
+        aliases=["sug"],
         description="Dejá una observación o sugerencia para el equipo del bot",
     )
     @commands.cooldown(3, 300, commands.BucketType.user)  # 3 cada 5 min por usuario
-    async def sugerir(self, ctx: commands.Context, *, contenido: str):
+    async def sugerencia(self, ctx: commands.Context, *, contenido: str):
         """Guarda una observación/sugerencia del usuario."""
         contenido = (contenido or "").strip()
         if not contenido:
-            await ctx.send("Escribí algo después del comando. Ej: `-sugerir el -top tarda en cargar`")
+            await ctx.send("Escribí algo después del comando. Ej: `-sugerencia el -top tarda en cargar`")
             return
         if len(contenido) > MAX_LEN:
             contenido = contenido[:MAX_LEN] + "…"
@@ -103,12 +104,12 @@ class Suggestions(commands.Cog):
         await self._mirror(entry)
         await ctx.send(f"✅ ¡Gracias por tu aporte! Quedó registrada como sugerencia **#{entry['id']}**.")
 
-    @sugerir.error
-    async def sugerir_error(self, ctx: commands.Context, error):
+    @sugerencia.error
+    async def sugerencia_error(self, ctx: commands.Context, error):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f"Tranqui 🙂 ya mandaste varias; probá de nuevo en {error.retry_after:.0f}s.")
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send("Te falta el texto: `-sugerir <tu observación>`.")
+            await ctx.send("Te falta el texto: `-sugerencia <tu observación>`.")
 
     # ── -expsug (owner) ──────────────────────────────────────────────────────
     @commands.command(aliases=["expsugerencias", "exportsug"])
