@@ -24,7 +24,10 @@ from bot.services.storage import DATA_DIR
 
 logger = logging.getLogger(__name__)
 
-_FILE = os.path.join(DATA_DIR, "suggestions.json")
+# Directorio del archivo. En Railway apuntamos SUGGESTIONS_DIR a un volumen persistente
+# (/data) para que las sugerencias sobrevivan a los redeploys (disco efímero por defecto).
+_DIR = os.getenv("SUGGESTIONS_DIR") or DATA_DIR
+_FILE = os.path.join(_DIR, "suggestions.json")
 _TZ = timezone(timedelta(hours=-3))  # hora de Argentina
 MAX_LEN = 1000
 
@@ -42,7 +45,7 @@ def _load() -> list:
 
 def _save(items: list) -> None:
     """Escritura atómica (temp + replace) para no corromper el .json ante un crash."""
-    os.makedirs(DATA_DIR, exist_ok=True)
+    os.makedirs(_DIR, exist_ok=True)
     tmp = _FILE + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False, indent=2)
