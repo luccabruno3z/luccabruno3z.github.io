@@ -1,1 +1,1 @@
-{"player": "Tegi", "grid_size": 128, "maps": {"grostok": {"kills": [], "deaths": [[38, 101, 1]]}, "kokan": {"kills": [[84, 39, 1]], "deaths": [[84, 37, 1]]}, "stalingrad": {"kills": [], "deaths": [[92, 56, 1]]}}}
+{"player": "Tegi", "grid_size": 128, "maps": {"grostok": {"kills": [], "deaths": [[38, 101, 1]]}, "kokan": {"kills": [[84, 39, 1]], "deaths": [[84, 37, 1]]}, "stalingrad": {"kills": [], "deaths": [[92, 56, 1]]}, "iron_ridge": {"kills": [], "deaths": [[116, 95, 1], [72, 70, 1], [72, 77, 1]]}}}
