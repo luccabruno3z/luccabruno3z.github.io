@@ -147,25 +147,7 @@ class Suggestions(commands.Cog):
             await ctx.send("Solo el dueño del bot puede exportar las sugerencias.")
 
 
-def _persist_selfcheck() -> None:
-    """Diagnóstico: cuenta arranques en _DIR. Si el contador crece entre redeploys, el
-    volumen persiste; si se reinicia a 1, _DIR es efímero. Log al iniciar."""
-    boots = 0
-    try:
-        os.makedirs(_DIR, exist_ok=True)
-        bc = os.path.join(_DIR, "_boot_count.json")
-        if os.path.exists(bc):
-            with open(bc, encoding="utf-8") as f:
-                boots = json.load(f).get("boots", 0)
-        boots += 1
-        with open(bc, "w", encoding="utf-8") as f:
-            json.dump({"boots": boots}, f)
-    except Exception as exc:
-        logger.warning("Suggestions persist self-check falló: %s", exc)
-    logger.info("Suggestions store: dir=%s · boots=%d · sugerencias guardadas=%d",
-                _DIR, boots, len(_load()))
-
-
 async def setup(bot: commands.Bot):
-    _persist_selfcheck()
+    # Log del store al iniciar (dir + cuántas hay) — confirma que usa el volumen.
+    logger.info("Suggestions store: dir=%s · %d sugerencias guardadas", _DIR, len(_load()))
     await bot.add_cog(Suggestions(bot))
