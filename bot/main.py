@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 import discord
@@ -11,6 +12,16 @@ from discord.ext import commands
 from bot.config import COMMAND_PREFIX
 from bot.services.data_fetcher import DataFetcher
 from bot.services.guild_settings import GuildSettings
+
+# Logging a stdout para que se vea en `railway logs` (sin esto, Python solo emite
+# WARNING+). Nivel configurable con LOG_LEVEL (default INFO); discord en WARNING para
+# no spamear el heartbeat/gateway.
+logging.basicConfig(
+    level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(), logging.INFO),
+    stream=sys.stdout,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logging.getLogger("discord").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
