@@ -1,1 +1,1 @@
-{"player": "CapOctopus", "grid_size": 128, "maps": {"tad_sae": {"kills": [[46, 114, 1]], "deaths": [[46, 114, 1], [50, 114, 1], [41, 115, 1]]}, "ramiel": {"kills": [], "deaths": [[92, 25, 1], [113, 48, 1], [106, 36, 1]]}}}
+{"player": "CapOctopus", "grid_size": 128, "maps": {"tad_sae": {"kills": [[46, 114, 1]], "deaths": [[46, 114, 1], [50, 114, 1], [41, 115, 1]]}, "ramiel": {"kills": [], "deaths": [[92, 25, 1], [113, 48, 1], [106, 36, 1]]}, "korbach_offensive": {"kills": [[28, 62, 1], [29, 62, 5]], "deaths": [[29, 62, 1]]}}}

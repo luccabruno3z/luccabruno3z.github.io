@@ -1,1 +1,1 @@
-{"player": "=KRAKEN=", "grid_size": 128, "maps": {"charlies_point": {"kills": [], "deaths": [[60, 52, 1]]}, "fallujah_west": {"kills": [[90, 88, 2], [91, 89, 1], [91, 83, 1], [72, 69, 1]], "deaths": [[37, 102, 1], [120, 85, 1], [91, 83, 1], [79, 64, 1], [72, 69, 1]]}}}
+{"player": "=KRAKEN=", "grid_size": 128, "maps": {"fallujah_west": {"kills": [[90, 88, 2], [91, 89, 1], [91, 83, 1], [72, 69, 1]], "deaths": [[37, 102, 1], [120, 85, 1], [91, 83, 1], [79, 64, 1], [72, 69, 1]]}, "charlies_point": {"kills": [], "deaths": [[60, 52, 1]]}}}
