@@ -26,6 +26,7 @@ from bot.config import (
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
+from bot.ui.player_hub import PlayerHubView
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
     format_number,
@@ -1152,15 +1153,11 @@ class Stats(commands.Cog):
 
         embed.set_footer(text=standard_footer(jugador_encontrado))
 
-        # Botones de acción (incluye 📖 Glosario, como -estadisticas). Las acciones de
-        # demos (detalles/rondas) solo si el modo lo permite.
+        # Hub unificado: dropdown de tabs (perfil/estadísticas/historial/demos…) +
+        # botones de acción (comparar/rondas/📖 glosario). Las tabs de demos solo si el modo lo permite.
         mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-        wanted = ("demo", "hist", "cmp", "rounds", "glos") if mode in ("combined", "demos") \
-            else ("hist", "cmp", "glos")
-        view = discord.ui.View(timeout=None)
-        for a in build_actions(jugador_encontrado["Player"]):
-            if a.action in wanted:
-                view.add_item(a)
+        allow_demos = mode in ("combined", "demos")
+        view = PlayerHubView(jugador_encontrado["Player"], "perfil", allow_demos)
         await ctx.send(embed=embed, file=file, view=view)
 
     # ── -ranking_semanal ────────────────────────────────────────────────

@@ -14,6 +14,7 @@ from bot.assets.kit_mapping import (
     weapon_vtype, weapon_category, clean_seat,
 )
 from bot.assets.vehicle_mapping import get_vehicle_emoji, get_vehicle_emoji_by_name
+from bot.ui.player_hub import PlayerHubView
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
 from bot.ui.leaderboard_card import LeaderboardView
@@ -157,7 +158,7 @@ class DetailedStats(commands.Cog):
             )
 
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
-        await ctx.send(embed=embed, file=file)
+        await ctx.send(embed=embed, file=file, view=PlayerHubView(player["ign"], "kits"))
 
     # ── -vehiculos <jugador> ─────────────────────────────────────────────
 
@@ -241,11 +242,12 @@ class DetailedStats(commands.Cog):
             )
 
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
+        hub = PlayerHubView(player["ign"], "vehiculos")
         if file:
-            await ctx.send(embed=embed, file=file)
+            await ctx.send(embed=embed, file=file, view=hub)
         else:
             embed.set_thumbnail(url=BOT_THUMBNAIL)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, view=hub)
 
     # ── -assets <jugador> ────────────────────────────────────────────────
 
@@ -321,14 +323,15 @@ class DetailedStats(commands.Cog):
 
         embed.set_footer(text=f"Datos de {player['rounds_played']} rondas | {standard_footer()}")
 
+        hub = PlayerHubView(player["ign"], "assets")
         if chart_items:
             buf = render_horizontal_bars(chart_items, title=f"Kills por tipo de asset - {player['ign']}", max_value=100, value_suffix="%")
             file = discord.File(buf, filename="assets.png")
             embed.set_image(url="attachment://assets.png")
-            await ctx.send(embed=embed, file=file)
+            await ctx.send(embed=embed, file=file, view=hub)
         else:
             embed.set_thumbnail(url=BOT_THUMBNAIL)
-            await ctx.send(embed=embed)
+            await ctx.send(embed=embed, view=hub)
 
     # ── -revives <jugador> ───────────────────────────────────────────────
 
