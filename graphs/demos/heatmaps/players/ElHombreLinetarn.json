@@ -1,1 +1,1 @@
-{"player": "ElHombreLinetarn", "grid_size": 128, "maps": {"sahel": {"kills": [], "deaths": [[52, 79, 1], [55, 77, 1]]}, "iron_ridge": {"kills": [[93, 73, 2]], "deaths": [[87, 102, 1], [93, 73, 2]]}}}
+{"player": "ElHombreLinetarn", "grid_size": 128, "maps": {"sahel": {"kills": [], "deaths": [[52, 79, 1], [55, 77, 1]]}, "iron_ridge": {"kills": [[93, 73, 2]], "deaths": [[87, 102, 1], [93, 73, 2]]}, "beirut": {"kills": [[69, 44, 3], [69, 45, 1]], "deaths": [[82, 12, 2], [69, 44, 1]]}}}
