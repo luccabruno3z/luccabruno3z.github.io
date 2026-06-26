@@ -11,17 +11,26 @@ base kit. E.g. us_rifleman_ziptie, fr_rifleman, ru_rifleman_alt = "Fusilero".
 import os
 import json
 import logging
+import unicodedata
 from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+
+def _norm(s: str) -> str:
+    """Clave normalizada: sin acentos, casefold, trim (para matchear nombres ES que
+    difieren en acentos/mayúsculas entre el scraper y el bot)."""
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return s.casefold().strip()
+
 # (keyword, readable_name, emoji_name, asset_file)
 # Order matters — first match wins. More specific keywords first.
 KIT_CATEGORIES = [
-    ("sniper", "Sniper", "pr_sniper", "kit_Sniper.png"),
+    ("sniper", "Francotirador", "pr_sniper", "kit_Sniper.png"),
     ("marksman", "Tirador", "pr_marksman", "kit_Marksman.png"),
     ("spotter", "Observador", "pr_spotter", "kit_Spotter.png"),
-    ("medic", "Medico", "pr_medic", "kit_Medic.png"),
+    ("medic", "Médico", "pr_medic", "kit_Medic.png"),
     ("officer", "Oficial", "pr_officer", "kit_Officer.png"),
     ("grenadier", "Granadero", "pr_grenadier", "kit_Grenadier.png"),
     ("breacher", "Breacher", "pr_engineer", "kit_Engineer.png"),
@@ -33,13 +42,13 @@ KIT_CATEGORIES = [
     ("pilot", "Piloto", "pr_pilot", "kit_Pilot.png"),
     ("specop", "Fuerzas Esp.", "pr_specops", "kit_Specops.png"),
     ("recon", "Reconocimiento", "pr_recon", "kit_recon.png"),
-    ("aa", "Anti-Aereo", "pr_aa", "kit_AA.png"),
+    ("aa", "Antiaéreo", "pr_aa", "kit_AA.png"),
     ("hat", "HAT", "pr_at", "kit_AT.png"),
     ("lat", "LAT", "pr_at", "kit_AT.png"),
     ("anti-tank", "Anti-Tanque", "pr_at", "kit_AT.png"),
     ("at", "Anti-Tanque", "pr_at", "kit_AT.png"),
     ("rifleman_ap", "Fusilero AP", "pr_rifle", "kit_Rifle.png"),
-    ("automatic_rifle", "Fus. Automatico", "pr_mg", "kit_MG.png"),
+    ("automatic_rifle", "Fus. Automático", "pr_mg", "kit_MG.png"),
     ("assault", "Asalto", "pr_assault", "kit_Light_Assault.png"),
     ("rifleman", "Fusilero", "pr_rifle", "kit_Rifle.png"),
     ("rifle", "Fusilero", "pr_rifle", "kit_Rifle.png"),
@@ -61,6 +70,7 @@ def set_aliases(data: dict) -> None:
     global _aliases
     if isinstance(data, dict):
         _aliases = data
+        _rebuild_kit_emoji_index()  # incorpora los nombres ES del scraper
         logger.info("Loaded asset aliases: %s",
                     ", ".join(f"{k}:{len(v)}" for k, v in data.items()))
 
@@ -110,6 +120,26 @@ def classify_kit(raw_name: str) -> tuple[str, str, str]:
     return ("Otro", "pr_rifle", "kit_Rifle.png")
 
 
+# Índice nombre-legible(normalizado) → emoji_name. Incluye los readables de
+# KIT_CATEGORIES y los del scraper (aliases.json: code→readable), para que
+# get_kit_emoji resuelva sin importar la variante ES (acentos/wording).
+_readable_emoji: dict[str, str] = {}
+
+
+def _rebuild_kit_emoji_index() -> None:
+    idx: dict[str, str] = {}
+    for _kw, readable, emoji_name, _a in KIT_CATEGORIES:
+        idx.setdefault(_norm(readable), emoji_name)
+    for code in (_aliases.get("kits") or {}):
+        readable, emoji_name, _a = classify_kit(code)
+        idx.setdefault(_norm(readable), emoji_name)
+    global _readable_emoji
+    _readable_emoji = idx
+
+
+_rebuild_kit_emoji_index()  # base inicial (KIT_CATEGORIES); set_aliases lo re-arma con el scraper
+
+
 def get_kit_display(raw_name: str) -> str:
     """Get 'emoji ReadableName' for a raw kit name."""
     readable, emoji_name, _ = classify_kit(raw_name)
@@ -131,11 +161,16 @@ def normalize_kits(kits_dict: dict[str, int]) -> dict[str, int]:
 
 
 def get_kit_emoji(readable_name: str) -> str:
-    """Get just the emoji string for a readable kit name (for inline use)."""
+    """Emoji para un nombre legible de kit. Resuelve tanto los nombres de
+    KIT_CATEGORIES como los del scraper (kit_performance / normalize_kits), que
+    difieren en acentos/wording — vía el índice normalizado."""
+    if not readable_name:
+        return ""
     for _, readable, emoji_name, _ in KIT_CATEGORIES:
         if readable == readable_name:
             return _emoji_cache.get(emoji_name, "")
-    return ""
+    emoji_name = _readable_emoji.get(_norm(readable_name))
+    return _emoji_cache.get(emoji_name, "") if emoji_name else ""
 
 
 def get_emoji_by_name(emoji_name: str) -> str:

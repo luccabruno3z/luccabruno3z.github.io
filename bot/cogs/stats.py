@@ -1152,13 +1152,16 @@ class Stats(commands.Cog):
 
         embed.set_footer(text=standard_footer(jugador_encontrado))
 
-        # Add demo details button if mode allows
+        # Botones de acción (incluye 📖 Glosario, como -estadisticas). Las acciones de
+        # demos (detalles/rondas) solo si el modo lo permite.
         mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-        if mode in ("combined", "demos"):
-            view = DemoDetailsView(jugador, self.bot)
-            await ctx.send(embed=embed, file=file, view=view)
-        else:
-            await ctx.send(embed=embed, file=file)
+        wanted = ("demo", "hist", "cmp", "rounds", "glos") if mode in ("combined", "demos") \
+            else ("hist", "cmp", "glos")
+        view = discord.ui.View(timeout=None)
+        for a in build_actions(jugador_encontrado["Player"]):
+            if a.action in wanted:
+                view.add_item(a)
+        await ctx.send(embed=embed, file=file, view=view)
 
     # ── -ranking_semanal ────────────────────────────────────────────────
 
