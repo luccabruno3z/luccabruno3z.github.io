@@ -27,6 +27,21 @@ _COG_LABELS = {
 _HIDDEN = {"apagar", "setup_emojis", "help_redirect", "ayuda", "expsug"}
 # Comandos que viven en otro cog pero conceptualmente van en otra categoría del help.
 _CMD_CATEGORY = {"perfil": "📈 Gráficos"}  # el radar es un gráfico, aunque esté en Stats
+# Descripción de respaldo para los comandos sin docstring ni description= en el decorador.
+_DESCRIPTIONS = {
+    "estadisticas": "Estadísticas completas de un jugador (tarjeta).",
+    "top": "Ranking de jugadores por categoría y métrica.",
+    "buscar_usuario": "Busca un jugador por nombre (coincidencia parcial).",
+    "promedios": "Promedios de estadísticas de un clan.",
+    "promedios_tops": "Top de clanes por promedio de una métrica.",
+    "analizar_equipo": "Analiza la composición y el balance de un equipo.",
+    "comparar_equipos": "Compara dos equipos lado a lado.",
+    "sugerir_equipo": "Sugiere una alineación para un clan.",
+    "guias": "Links a las guías de la página.",
+    "pagina": "Link a la página de estadísticas.",
+    "visualizador": "Link al visualizador 2D de partidas.",
+    "hola": "Saludo rápido del bot.",
+}
 _ACCENT = 0x00FFFF
 
 
@@ -43,10 +58,12 @@ def build_help_categories(bot) -> dict[str, list[tuple[str, str]]]:
             graph_shortcuts += 1
             continue
         label = _CMD_CATEGORY.get(cmd.name) or _COG_LABELS.get(cmd.cog_name or "", "🧩 Otros")
-        invocation = f"`-{cmd.name}`"
+        invocation = f"**`-{cmd.name}`**"
         if cmd.aliases:
-            invocation += "  " + " ".join(f"`-{a}`" for a in cmd.aliases[:3])
-        desc = (cmd.help or "").strip().split("\n")[0] or "—"
+            invocation += " " + " ".join(f"`-{a}`" for a in cmd.aliases[:3])
+        desc = (cmd.description or cmd.help or "").strip().split("\n")[0]
+        if not desc:
+            desc = _DESCRIPTIONS.get(cmd.name, "")
         cats.setdefault(label, []).append((invocation, desc))
     if graph_shortcuts:
         cats.setdefault("📈 Gráficos", []).append(
@@ -82,17 +99,23 @@ class HelpView(discord.ui.LayoutView):
     def _render(self):
         self.clear_items()
         entries = self.cats.get(self.category, [])
-        lines = [f"# 🎖️ Comandos — {self.category}", ""]
+        # Cada comando en su bloque: nombre en negrita, descripción como subtexto
+        # atenuado debajo, y una línea en blanco entre comandos (legibilidad).
+        n = len(entries)
+        lines = [f"## {self.category}", f"-# {n} comando{'s' if n != 1 else ''}", ""]
         for inv, desc in entries:
-            lines.append(f"{inv} — {desc}")
-        block = "\n".join(lines)[:3900]
+            lines.append(inv)
+            if desc:
+                lines.append(f"-# {desc}")
+            lines.append("")
+        block = "\n".join(lines)[:3950]
 
         container = discord.ui.Container(
             discord.ui.TextDisplay(block),
             discord.ui.Separator(),
             discord.ui.ActionRow(_HelpSelect(self.order, self.category)),
             discord.ui.TextDisplay(
-                "-# ¿No entendés un término? Usá `/glosario` o el botón 📖 en las tarjetas."
+                "-# Elegí otra categoría ↑ · ¿dudás de un término? `/glosario` o el botón 📖"
             ),
             accent_colour=_ACCENT,
         )
