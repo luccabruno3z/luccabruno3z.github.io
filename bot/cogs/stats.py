@@ -1351,16 +1351,19 @@ class Stats(commands.Cog):
             await ctx.send(embed=embed)
             return
 
-        # ── Find target group: 10 players ranked above ───────────────────
+        # ── Target aspiracional: una banda ~15% MÁS ARRIBA en el ranking (no los 10 de
+        # al lado, cuyo promedio ya solés superar — por eso a veces no daba plan). Así
+        # siempre hay metas concretas hasta estar cerca del #1.
         player_index = ranking - 1  # 0-based index
-        target_start = max(0, player_index - 10)
-        target_group = jugadores_ordenados[target_start:player_index]
-
+        goal_index = max(0, int(player_index * 0.85) - 1)  # ~15% más arriba
+        target_group = jugadores_ordenados[max(0, goal_index - 7): goal_index + 8]
+        if not target_group:
+            target_group = jugadores_ordenados[:15]
         if not target_group:
             await ctx.send("⚠️ No hay suficientes datos para generar un plan de mejora.")
             return
 
-        target_rank = target_start + 1  # rank of the highest player in target group
+        target_rank = goal_index + 1  # rank objetivo
 
         # ── Calculate target averages ─────────────────────────────────────
         def avg(key, players):
@@ -1409,6 +1412,38 @@ class Stats(commands.Cog):
             rounds_gap = (target_rounds - rounds_played) / rounds_played if rounds_played > 0 else 1.0
             gaps.append(("Rondas Jugadas", rounds_gap, rounds_played, target_rounds, True))
 
+        # ── Metas de DEMOS (integradas): métricas de juego vs el promedio de quienes
+        # tienen data de demos. Solo si el jugador tiene esa data (rondas nuevas).
+        demo_data = None
+        demo_player = None
+        try:
+            demo_data = await self.fetcher.fetch_player_details()
+            demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign") if demo_data else None
+        except Exception:
+            demo_player = None
+        if demo_player and demo_data:
+            def _alive_pct(p):
+                a, pl = p.get("alive_seconds", 0), p.get("played_seconds", 0)
+                return (a / pl) if (a and pl) else None
+
+            def _kpm(p):
+                a, k = p.get("alive_seconds", 0), p.get("total_kills", 0)
+                return (k / (a / 60)) if a else None
+
+            def _squad(p):
+                rs, rws = p.get("rounds_in_squad", 0), p.get("rounds_with_squad_data", 0)
+                return (rs / rws) if rws else None
+
+            def _baseline(fn):
+                vals = [v for v in (fn(q) for q in demo_data) if v is not None]
+                return (sum(vals) / len(vals)) if vals else None
+
+            for label, fn in (("Tiempo vivo", _alive_pct), ("Kills/min", _kpm),
+                              ("Juego en escuadra", _squad)):
+                pv, base = fn(demo_player), _baseline(fn)
+                if pv is not None and base and pv < base:
+                    gaps.append((label, (base - pv) / base, pv, base, True))
+
         if not gaps:
             # Player is already better than target group in all metrics
             embed = discord.Embed(
@@ -1433,29 +1468,37 @@ class Stats(commands.Cog):
         medal_emojis = ["1️⃣", "2️⃣", "3️⃣"]
         weakness_categories = []
 
+        _PCT_METRICS = ("Tiempo vivo", "Juego en escuadra")  # se muestran como porcentaje
         for i, (name, gap_val, player_val, target_val, higher_better) in enumerate(top_gaps):
-            pct = abs(gap_val) * 100
+            medal = medal_emojis[i]
             if higher_better:
                 if name == "Rondas Jugadas":
-                    diff = int(target_val - player_val)
                     metas_lines.append(
-                        f"{medal_emojis[i]} **Jugar {diff} rondas más** para ganar experiencia"
+                        f"{medal} **Jugar {int(target_val - player_val)} rondas más** para ganar experiencia"
+                    )
+                elif name in _PCT_METRICS:
+                    metas_lines.append(
+                        f"{medal} **Subir {name}** de `{player_val:.0%}` a `{target_val:.0%}`"
+                    )
+                elif name == "Kills/min":
+                    metas_lines.append(
+                        f"{medal} **Subir Kills/min** de `{player_val:.2f}` a `{target_val:.2f}`"
                     )
                 else:
                     metas_lines.append(
-                        f"{medal_emojis[i]} **Subir {name}** de `{player_val:.2f}` a `{target_val:.2f}` (+{pct:.1f}%)"
+                        f"{medal} **Subir {name}** de `{player_val:.2f}` a `{target_val:.2f}` (+{abs(gap_val) * 100:.1f}%)"
                     )
             else:
                 metas_lines.append(
-                    f"{medal_emojis[i]} **Reducir {name}** de `{player_val:.2f}` a `{target_val:.2f}` (-{pct:.1f}%)"
+                    f"{medal} **Reducir {name}** de `{player_val:.2f}` a `{target_val:.2f}` (-{abs(gap_val) * 100:.1f}%)"
                 )
 
-            # Categorize weakness
-            if name in ("K/D", "Kills/Ronda"):
+            # Categorize weakness (para elegir consejos)
+            if name in ("K/D", "Kills/Ronda", "Kills/min"):
                 weakness_categories.append("combat")
-            elif name == "Muertes/Ronda":
+            elif name in ("Muertes/Ronda", "Tiempo vivo"):
                 weakness_categories.append("survival")
-            elif name == "Score/Ronda":
+            elif name in ("Score/Ronda", "Juego en escuadra"):
                 weakness_categories.append("objective")
             elif name == "Rondas Jugadas":
                 weakness_categories.append("experience")
@@ -1628,44 +1671,38 @@ class Stats(commands.Cog):
             inline=False,
         )
 
-        # ── Demo-based suggestions (if available) ────────────────────────
+        # ── Consejos cualitativos de demos (reusa el demo_player ya traído) ──────
         demo_suggestions = []
-        try:
-            demo_data = await self.fetcher.fetch_player_details()
-            if demo_data:
-                demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign")
+        if demo_player:
+            tw_ratio = demo_player.get("teamwork_ratio", 0)
+            medic_rounds = demo_player.get("rounds_as_medic", 0)
+            kits = demo_player.get("kits_used", {})
+            top_kit_raw = max(kits, key=kits.get) if kits else None
+            top_kit_display = get_kit_display(top_kit_raw) if top_kit_raw else None
+            is_medic = top_kit_raw and "medic" in top_kit_raw.lower()
+            revives_round = demo_player.get("total_revives_given", 0) / max(
+                medic_rounds or demo_player.get("rounds_played", 1), 1)
 
-                if demo_player:
-                    tw_ratio = demo_player.get("teamwork_ratio", 0)
-                    revives_round = demo_player.get("total_revives_given", 0) / max(demo_player.get("rounds_played", 1), 1)
-                    kits = demo_player.get("kits_used", {})
-                    top_kit_raw = max(kits, key=kits.get) if kits else None
-                    top_kit_display = get_kit_display(top_kit_raw) if top_kit_raw else None
-
-                    if tw_ratio < 0.20:
-                        demo_suggestions.append(
-                            f"🤝 Tu teamwork ratio es bajo ({tw_ratio:.0%}). "
-                            "Probá jugar medic o capturar flags para subir tu score."
-                        )
-                    if revives_round < 0.3 and top_kit_raw and "medic" in top_kit_raw.lower():
-                        demo_suggestions.append(
-                            f"💉 Jugás medic pero reviveás poco ({revives_round:.1f}/ronda). "
-                            "Priorizá revivir compañeros caídos."
-                        )
-                    if top_kit_display:
-                        demo_suggestions.append(
-                            f"🎖️ Tu kit principal es **{top_kit_display}**. "
-                            "Especializarte en un rol mejora tu consistencia."
-                        )
-
-                    winrate = demo_player.get("wins", 0) / max(demo_player.get("wins", 0) + demo_player.get("losses", 0), 1)
-                    if winrate < 0.45 and demo_player.get("wins", 0) + demo_player.get("losses", 0) > 5:
-                        demo_suggestions.append(
-                            f"📉 Tu winrate es {winrate:.0%}. "
-                            "Enfocate en juego de equipo: revives, flags y soporte."
-                        )
-        except Exception:
-            pass
+            if tw_ratio and tw_ratio < 0.20:
+                demo_suggestions.append(
+                    f"🤝 Tu teamwork ratio es bajo ({tw_ratio:.0%}). "
+                    "Probá jugar medic o capturar flags para subir tu score."
+                )
+            if is_medic and medic_rounds and revives_round < 1.5:
+                demo_suggestions.append(
+                    f"💉 Jugás medic pero reviveás poco ({revives_round:.1f}/ronda de médico). "
+                    "Priorizá revivir compañeros caídos."
+                )
+            if demo_player.get("total_teamkills", 0) >= 10:
+                demo_suggestions.append(
+                    f"🛡️ Cuidado con los teamkills ({demo_player['total_teamkills']}). "
+                    "Identificá bien a aliados antes de disparar."
+                )
+            if top_kit_display:
+                demo_suggestions.append(
+                    f"🎖️ Tu kit principal es **{top_kit_display}**. "
+                    "Especializarte en un rol mejora tu consistencia."
+                )
 
         if demo_suggestions:
             embed.add_field(
