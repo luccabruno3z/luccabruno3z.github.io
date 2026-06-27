@@ -26,7 +26,7 @@ from bot.config import (
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
-from bot.ui.player_hub import PlayerHubView
+from bot.ui.player_hub import PlayerHubView, build_estadisticas
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
     format_number,
@@ -314,25 +314,12 @@ class Stats(commands.Cog):
         if mode not in ("combined", "demos"):
             actions = [a for a in actions if a.action in ("hist", "cmp", "glos")]
 
-        card = PlayerCard(
-            jugador_encontrado,
-            tier_name=tname,
-            tier_emoji=temoji,
-            archetype=archetype,
-            ranking_global=ranking_global,
-            ranking_clan=ranking_clan,
-            clan_logo_url=clan_image_url,
-            breakdown=breakdown,
-            footer=footer,
-            trend=trend,
-            next_tier=next_tier,
-            warning=warning,
-            highlights=highlights,
-            activity=activity_line,
-            accent=color.value,
-            actions=actions,
-        )
-        await ctx.send(view=card)
+        # Vista unificada: embed enriquecido + dropdown de tabs (#2). El embed lo arma el
+        # mismo builder que la tab "Estadísticas" del hub, así son idénticos.
+        embed, _ = await build_estadisticas(jugador_encontrado["Player"], self.bot)
+        view = PlayerHubView(jugador_encontrado["Player"], "estadisticas",
+                             mode in ("combined", "demos"))
+        await ctx.send(embed=embed, view=view)
 
     # ── -top <cantidad> <categoria> <metrica> ─────────────────────────────
 

@@ -17,6 +17,7 @@ class Misc(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self._synced = False
+        self._emojis_synced = False
 
     # ── on_ready ──────────────────────────────────────────────────────────
 
@@ -26,7 +27,34 @@ class Misc(commands.Cog):
             await self.bot.tree.sync()
             self._synced = True
             logger.info("Slash commands sincronizados.")
+        if not self._emojis_synced:
+            try:
+                await self._sync_app_emojis()
+                self._emojis_synced = True
+            except Exception as exc:
+                logger.warning("No se pudieron sincronizar los app emojis: %s", exc)
         logger.info("Bot conectado como %s", self.bot.user)
+
+    async def _sync_app_emojis(self):
+        """Repuebla los caches de emojis (kit/vehículo/rango/clan) desde los Application
+        Emojis ya subidos a Discord. El disco de Railway es efímero → sin esto, tras cada
+        redeploy se pierde el mapeo nombre→id y desaparecen los iconos hasta re-correr
+        -setup_emojis. Acá se reconstruye solo al arrancar (los emojis siguen en Discord)."""
+        from bot.assets.kit_mapping import update_emoji_cache
+        from bot.assets.rank_mapping import update_rank_emoji_cache, get_all_rank_assets
+        from bot.assets.clan_mapping import update_clan_emoji_cache, get_all_clan_assets
+        rank_names = {n for n, _ in get_all_rank_assets()}
+        clan_names = {n for n, _ in get_all_clan_assets()}
+        emojis = await self.bot.fetch_application_emojis()
+        for e in emojis:
+            token = f"<{'a' if e.animated else ''}:{e.name}:{e.id}>"
+            if e.name in rank_names:
+                update_rank_emoji_cache(e.name, token)
+            elif e.name in clan_names:
+                update_clan_emoji_cache(e.name, token)
+            else:
+                update_emoji_cache(e.name, token)
+        logger.info("App emojis sincronizados desde Discord: %d", len(emojis))
 
     # ── on_command_error ──────────────────────────────────────────────────
 

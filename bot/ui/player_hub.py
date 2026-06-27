@@ -59,32 +59,78 @@ def _notfound(name, demos=False):
 
 
 # ── Builders: cada uno → (embed, file|None) ───────────────────────────────────
+def _bar(pct, width=12):
+    pct = max(0.0, min(100.0, pct or 0.0))
+    filled = round(pct / 100 * width)
+    return "█" * filled + "░" * (width - filled)
+
+
 async def build_estadisticas(name, bot):
     data = await bot.data_fetcher.fetch_all_players()
-    p = find_player(data, name)
+    ordered = sorted(data, key=lambda x: x.get("Performance Score", 0), reverse=True)
+    p = find_player(ordered, name)
     if not p:
         return _notfound(name)
+    pl = p.get("Player", name)
+    low = pl.lower()
     ps = p.get("Performance Score", 0)
+    clan = p.get("Clan", "—")
+    rk_global = next((i + 1 for i, e in enumerate(ordered) if e.get("Player", "").lower() == low), "N/A")
+    clan_list = [e for e in ordered if e.get("Clan") == clan]
+    rk_clan = next((i + 1 for i, e in enumerate(clan_list) if e.get("Player", "").lower() == low), "N/A")
     try:
         tc = await bot.data_fetcher.fetch_tier_config()
         thr = tc.get("thresholds") if isinstance(tc, dict) else None
     except Exception:
         thr = None
     se, sn = get_player_archetype(p)
+    rounds = p.get("Rounds", 1) or 1
+    dpr = p.get("Total Deaths", 0) / rounds
     embed = discord.Embed(
-        title=f"📊 {p.get('Player', name)}",
-        description=f"{tier_emoji(ps, thr)} **{_tier_name(ps, thr)}** · {se} {sn} · `{p.get('Clan', '—')}`",
+        title=f"📊 {pl}",
+        description=(f"{tier_emoji(ps, thr)} **{_tier_name(ps, thr)}** · {se} {sn} · `{clan}`\n"
+                    f"Ranking global **#{rk_global}** · clan **#{rk_clan}**"),
         color=performance_color(ps, thr),
     )
-    embed.add_field(name="Combate", value=(
-        f"💥 K/D `{p.get('K/D Ratio', 0):.2f}`\n"
-        f"🔫 KPR `{p.get('Kills per Round', 0):.2f}`\n"
-        f"🎯 SPR `{p.get('Score per Round', 0):.2f}`"), inline=True)
-    embed.add_field(name="Volumen", value=(
+    embed.add_field(name="💥 Combate", value=(
+        f"K/D `{p.get('K/D Ratio', 0):.2f}`\n🔫 KPR `{p.get('Kills per Round', 0):.2f}`\n"
+        f"📉 DPR `{dpr:.2f}`\n🎯 SPR `{p.get('Score per Round', 0):.2f}`"), inline=True)
+    embed.add_field(name="📦 Volumen", value=(
         f"☠️ {format_number(p.get('Total Kills', 0))} kills\n"
         f"💀 {format_number(p.get('Total Deaths', 0))} muertes\n"
+        f"🏆 {format_number(p.get('Total Score', 0))} score\n"
         f"🎮 {format_number(p.get('Rounds', 0))} rondas"), inline=True)
-    embed.add_field(name="🌟 Performance", value=f"**{ps:.2f}**", inline=True)
+    bd = [("Combate (K/D)", p.get("Normalized_KD", 0) * 100),
+          ("Puntuación (SPR)", p.get("Normalized_Score", 0) * 100),
+          ("Agresividad (KPR)", p.get("Normalized_Kills_Per_Round", 0) * 100),
+          ("Experiencia", p.get("Normalized_Rounds", 0) * 100)]
+    embed.add_field(name=f"📈 Desglose · 🌟 Performance {ps:.2f}",
+                    value="\n".join(f"`{_bar(v)}` {lbl} **{v:.0f}**" for lbl, v in bd), inline=False)
+    # Rondas destacadas + actividad (de la data de demos, si hay).
+    try:
+        demo = await bot.data_fetcher.fetch_player_details()
+        dp = find_player(demo, pl, key="ign") if demo else None
+    except Exception:
+        dp = None
+    if dp:
+        best, worst = dp.get("best_round"), dp.get("worst_round")
+        hl = []
+        if isinstance(best, dict) and best.get("kills", 0) > 0:
+            hl.append(f"🏆 Mejor: {best.get('kills', 0)} kills en {best.get('map', '?')}")
+        if isinstance(worst, dict):
+            hl.append(f"💀 Peor: {worst.get('kills', 0)} kills en {worst.get('map', '?')}")
+        if hl:
+            embed.add_field(name="🎯 Rondas destacadas", value="\n".join(hl), inline=False)
+        last, played = dp.get("last_round_date"), dp.get("played_seconds", 0) or 0
+        parts = []
+        if last:
+            parts.append(f"📅 Última vez: **{last}**")
+        if played >= 60:
+            hours = played / 3600
+            parts.append(f"⏱️ Tiempo jugado: **{hours:.1f} h** *(registrado)*" if hours >= 1
+                         else f"⏱️ Tiempo jugado: **{int(played // 60)} min** *(registrado)*")
+        if parts:
+            embed.add_field(name="​", value=" · ".join(parts), inline=False)
     embed.set_thumbnail(url=BOT_THUMBNAIL)
     embed.set_footer(text=standard_footer(p))
     return embed, None
