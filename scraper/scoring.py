@@ -155,7 +155,7 @@ def _compute_ps_v3(
     score_c = spr_pct * W_SCORE
     experience = min(math.log(max(rounds, 1) + 1) / math.log(1001), 1.0) * W_EXPERIENCE
 
-    # Demo components (absolute normalization)
+    # Demo components (absolute normalization).
     if demo and demo.get("rounds_played", 0) >= 5:
         demo = _sanitize_demo_data(demo)
         w, l = demo.get("wins", 0), demo.get("losses", 0)
@@ -168,7 +168,11 @@ def _compute_ps_v3(
             tws = demo.get("total_teamwork_score", 0)
             tw = tws / ts if ts > 0 else 0
             tw = max(0.0, min(tw, 1.0))
-        teamwork = min(tw / 0.60, 1.0) * W_TEAMWORK
+        # PISO NEUTRAL en teamwork: el teamwork_score de PR puede ser NEGATIVO (fragger
+        # con fuego amigo/teamkills), y sin piso un jugador con datos puntuaría POR DEBAJO
+        # de uno sin datos (que recibe NEUTRAL). Se pisa en NEUTRAL: los demos en teamwork
+        # solo suman por encima del baseline, no penalizan debajo de "sin datos".
+        teamwork = max(min(tw / 0.60, 1.0), NEUTRAL) * W_TEAMWORK
 
         cons = demo.get("consistency_score", 50)
         if cons < 0:
