@@ -79,7 +79,7 @@ function tabResumen(p) {
             ${statRow('Score', formatNumber(p.total_score || 0))}
             ${statRow('Revives dados', formatNumber(p.total_revives_given || 0))}
             ${statRow('Vehículos destruidos', formatNumber(p.total_vehicles_destroyed || 0))}
-            ${statRow('Banderas capturadas', formatNumber(p.total_flags_captured || 0))}
+            ${statRow('Revives / ronda', ((p.total_revives_given || 0) / (p.rounds_played || 1)).toFixed(2))}
             ${statRow('Kit favorito', escapeHtml(favKit))}
             ${statRow('Arma favorita', escapeHtml(favWeapon))}
         </div>`;

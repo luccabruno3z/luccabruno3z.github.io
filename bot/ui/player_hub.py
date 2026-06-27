@@ -294,8 +294,9 @@ async def build_assets(name, bot):
 
 
 # tab_id -> (label, emoji, builder, needs_demos)
+# Nota: "Estadísticas" NO es tab del dropdown — es una PlayerCard (Components V2) que no
+# se puede renderizar dentro de un mensaje embed. Se accede con -estadisticas (premium).
 TABS = {
-    "estadisticas": ("Estadísticas", "📊", build_estadisticas, False),
     "perfil": ("Perfil", "🎯", build_perfil, False),
     "historial": ("Historial", "📈", build_historial, False),
     "resumen": ("Resumen demos", "🧾", build_resumen, True),

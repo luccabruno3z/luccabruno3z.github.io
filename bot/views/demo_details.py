@@ -102,56 +102,78 @@ class DemoDetailsView(discord.ui.View):
             color=discord.Color.dark_teal(),
         )
 
-        # Revives
-        revives_given = player_data.get("total_revives_given", 0)
-        revives_received = player_data.get("total_revives_received", 0)
+        # 🩹 Revives (+ por ronda — la "insignia" pedida)
+        rg = player_data.get("total_revives_given", 0)
+        rr = player_data.get("total_revives_received", 0)
+        rpr = (rg / rounds) if rounds else 0
         embed.add_field(
             name="\U0001fa78 Revives",
-            value=f"Dados: **{revives_given}**\nRecibidos: **{revives_received}**",
+            value=f"Dados: **{rg}** · Recibidos: **{rr}**\n💉 **{rpr:.2f}** por ronda",
             inline=True,
         )
 
-        # Top 3 kits (normalized from faction variants)
+        # ⚔️ Combate (demo): K/D + racha/clutch/first-blood (de rondas nuevas)
+        tk = player_data.get("total_kills", 0)
+        td = player_data.get("total_deaths", 0)
+        combat = [f"K/D **{tk / max(td, 1):.2f}** ({tk}/{td})"]
+        if player_data.get("best_killstreak"):
+            combat.append(f"🔥 Mejor racha: **{player_data['best_killstreak']}**")
+        if player_data.get("total_clutch_kills"):
+            combat.append(f"😤 Clutch: **{player_data['total_clutch_kills']}**")
+        if player_data.get("total_first_bloods"):
+            combat.append(f"🩸 First blood: **{player_data['total_first_bloods']}**")
+        embed.add_field(name="⚔️ Combate", value="\n".join(combat), inline=True)
+
+        # ⏱️ Tiempo / vida (de rondas nuevas; vacío para data vieja)
+        alive = player_data.get("alive_seconds", 0)
+        played = player_data.get("played_seconds", 0)
+        lives = player_data.get("lives", 0)
+        if alive and played:
+            t = [f"❤️ Vivo: **{alive / played * 100:.0f}%**"]
+            if lives:
+                t.append(f"⏳ Vida prom: **{alive / lives:.0f}s**")
+            t.append(f"🎯 **{tk / (alive / 60):.2f}** kills/min")
+            embed.add_field(name="⏱️ Tiempo", value="\n".join(t), inline=True)
+
+        # 🛡️ Disciplina
+        tkill = player_data.get("total_teamkills", 0)
+        sui = player_data.get("total_suicides_demo", 0)
+        if tkill or sui:
+            embed.add_field(name="\U0001f6e1️ Disciplina",
+                            value=f"Teamkills: **{tkill}** · Suicidios: **{sui}**", inline=True)
+
+        # 🤝 Teamwork: score + % en escuadra + vehículos destruidos
+        tw = player_data.get("total_teamwork_score", 0)
+        vd = player_data.get("total_vehicles_destroyed", 0)
+        tw_lines = []
+        if tw:
+            tw_lines.append(f"🤝 Score: **{format_number(tw)}**")
+        ris, rws = player_data.get("rounds_in_squad", 0), player_data.get("rounds_with_squad_data", 0)
+        if rws:
+            tw_lines.append(f"🪖 En escuadra: **{ris / rws * 100:.0f}%**")
+        if vd:
+            tw_lines.append(f"💥 Vehíc. destruidos: **{vd}**")
+        if tw_lines:
+            embed.add_field(name="\U0001f91d Teamwork", value="\n".join(tw_lines), inline=True)
+
+        # 🎒 Top Kits / 🔫 Top Armas / 🚁 Top Vehículos
         raw_kits = player_data.get("kits_used", {})
         if raw_kits:
-            normalized = normalize_kits(raw_kits)
-            top3 = sorted(normalized.items(), key=lambda x: x[1], reverse=True)[:3]
+            top3 = sorted(normalize_kits(raw_kits).items(), key=lambda x: x[1], reverse=True)[:3]
             lines = []
             for i, (k, v) in enumerate(top3, 1):
                 emoji = get_kit_emoji(k)
-                label = f"{emoji} {k}" if emoji else k
-                lines.append(f"{i}. {label} ({v})")
+                lines.append(f"{i}. {emoji + ' ' if emoji else ''}{k} ({v})")
             embed.add_field(name="\U0001f392 Top Kits", value="\n".join(lines), inline=True)
-
-        # Top 3 weapons agrupadas por modelo (excluye entorno "?")
         weapons_dict = _group_counts(player_data.get("kill_weapons", {}),
                                      weapon_model_name, exclude=lambda c: not is_personal_weapon(c))
         if weapons_dict:
-            lines = [f"{i}. **{w}** ({c} kills)" for i, (w, c) in enumerate(self._top3(weapons_dict), 1)]
+            lines = [f"{i}. **{w}** ({c})" for i, (w, c) in enumerate(self._top3(weapons_dict), 1)]
             embed.add_field(name="\U0001f52b Top Armas", value="\n".join(lines), inline=True)
-
-        # Top 3 vehicles agrupados por nombre
         vehicles_dict = _group_counts(player_data.get("vehicle_kills", {}), clean_vehicle_name)
         if vehicles_dict:
-            lines = [f"{i}. **{v}** ({c} kills)" for i, (v, c) in enumerate(self._top3(vehicles_dict), 1)]
-            embed.add_field(name="\U0001f681 Top Vehiculos", value="\n".join(lines), inline=True)
-
-        # Flags captured
-        flags = player_data.get("total_flags_captured", 0)
-        embed.add_field(
-            name="\U0001f6a9 Flags Capturadas",
-            value=f"**{flags}**",
-            inline=True,
-        )
-
-        # Teamwork score
-        tw = player_data.get("total_teamwork_score", 0)
-        if tw > 0:
-            embed.add_field(
-                name="\U0001f91d Teamwork Score",
-                value=f"**{format_number(tw)}**",
-                inline=True,
-            )
+            lines = [f"{i}. **{v}** ({c})" for i, (v, c) in enumerate(self._top3(vehicles_dict), 1)]
+            embed.add_field(name="\U0001f681 Top Vehículos", value="\n".join(lines), inline=True)
 
         embed.set_thumbnail(url=BOT_THUMBNAIL)
         if rounds > 0:

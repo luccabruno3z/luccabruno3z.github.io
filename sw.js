@@ -1,4 +1,4 @@
-const CACHE_NAME = "ldh-stats-v14";
+const CACHE_NAME = "ldh-stats-v15";
 
 // Install: skip waiting (no precache to avoid blocking on fetch failures)
 self.addEventListener("install", () => self.skipWaiting());
