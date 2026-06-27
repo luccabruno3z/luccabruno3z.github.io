@@ -102,13 +102,17 @@ class DemoDetailsView(discord.ui.View):
             color=discord.Color.dark_teal(),
         )
 
-        # 🩹 Revives (+ por ronda — la "insignia" pedida)
+        # 🩹 Revives (+ por ronda DE MÉDICO — solo el médico revive en PR)
         rg = player_data.get("total_revives_given", 0)
         rr = player_data.get("total_revives_received", 0)
-        rpr = (rg / rounds) if rounds else 0
+        medic_rounds = player_data.get("rounds_as_medic", 0)
+        if medic_rounds:
+            rev_line = f"💉 **{rg / medic_rounds:.2f}** por ronda de médico"
+        else:
+            rev_line = f"💉 **{(rg / rounds) if rounds else 0:.2f}** por ronda"
         embed.add_field(
             name="\U0001fa78 Revives",
-            value=f"Dados: **{rg}** · Recibidos: **{rr}**\n💉 **{rpr:.2f}** por ronda",
+            value=f"Dados: **{rg}** · Recibidos: **{rr}**\n{rev_line}",
             inline=True,
         )
 

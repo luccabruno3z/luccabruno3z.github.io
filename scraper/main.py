@@ -469,6 +469,7 @@ def _aggregate_player_details(
                     "total_teamwork_score": 0,
                     "total_revives_given": 0,
                     "total_revives_received": 0,
+                    "rounds_as_medic": 0,  # rondas donde usó el kit médico (para revives/ronda)
                     "total_vehicles_destroyed": 0,
                     "total_flags_captured": 0,
                     "kits_used": {},
@@ -543,7 +544,13 @@ def _aggregate_player_details(
             p["total_vehicles_destroyed"] += pdata.get("vehicles_destroyed", 0)
             p["total_flags_captured"] += pdata.get("flags_captured", 0)
 
-            for kit, count in pdata.get("kits_used", {}).items():
+            round_kits = pdata.get("kits_used", {})
+            # Ronda "de médico" si usó algún kit médico (todos los codes médicos llevan
+            # "medic"). En PR solo el médico revive, así revives/ronda-de-médico es la
+            # métrica correcta. Se calcula de toda la data (los kits por ronda ya existen).
+            if any("medic" in str(k).lower() for k in round_kits):
+                p["rounds_as_medic"] += 1
+            for kit, count in round_kits.items():
                 p["kits_used"][kit] = p["kits_used"].get(kit, 0) + count
             # Desempeño por kit: agrupar kit_kills/kit_deaths crudos por ROL (alias),
             # consistente con normalize_kits del bot. Solo presente en rondas nuevas.
