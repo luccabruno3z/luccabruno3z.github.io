@@ -83,7 +83,7 @@ class Suggestions(commands.Cog):
     )
     @commands.cooldown(3, 300, commands.BucketType.user)  # 3 cada 5 min por usuario
     async def sugerencia(self, ctx: commands.Context, *, contenido: str):
-        """Guarda una observación/sugerencia del usuario."""
+        """Dejá una observación o sugerencia para el equipo (bugs, ideas, mejoras)."""
         contenido = (contenido or "").strip()
         if not contenido:
             await ctx.send("Escribí algo después del comando. Ej: `-sugerencia el -top tarda en cargar`")

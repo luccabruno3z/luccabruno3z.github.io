@@ -21,8 +21,10 @@ _COG_LABELS = {
     "Roles": "🔧 Roles (admin)",
     "Automation": "⚙️ Automatización (admin)",
     "Misc": "ℹ️ General",
+    "Suggestions": "ℹ️ General",
 }
-_HIDDEN = {"apagar", "setup_emojis", "help_redirect", "ayuda"}  # internos / el help mismo
+# internos / owner-only / el help mismo (no se muestran)
+_HIDDEN = {"apagar", "setup_emojis", "help_redirect", "ayuda", "expsug"}
 # Comandos que viven en otro cog pero conceptualmente van en otra categoría del help.
 _CMD_CATEGORY = {"perfil": "📈 Gráficos"}  # el radar es un gráfico, aunque esté en Stats
 _ACCENT = 0x00FFFF
