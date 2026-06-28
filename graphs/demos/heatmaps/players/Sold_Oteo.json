@@ -1,1 +1,1 @@
-{"player": "Sold|Oteo", "grid_size": 128, "maps": {"sbeneh_outskirts": {"kills": [[45, 54, 1], [46, 54, 1], [46, 55, 2]], "deaths": [[46, 54, 1]]}, "dovre_winter": {"kills": [[101, 90, 2]], "deaths": [[120, 78, 1], [101, 90, 1]]}}}
+{"player": "Sold|Oteo", "grid_size": 128, "maps": {"dovre_winter": {"kills": [[101, 90, 2]], "deaths": [[120, 78, 1], [101, 90, 1]]}, "sbeneh_outskirts": {"kills": [[45, 54, 1], [46, 54, 1], [46, 55, 2]], "deaths": [[46, 54, 1]]}}}
