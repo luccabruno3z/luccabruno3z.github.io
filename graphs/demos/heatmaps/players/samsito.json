@@ -1,1 +1,1 @@
-{"player": "samsito", "grid_size": 128, "maps": {"kafar_halab": {"kills": [[44, 86, 1], [95, 65, 1]], "deaths": [[88, 71, 1]]}, "beirut": {"kills": [[63, 40, 2], [63, 39, 1]], "deaths": [[63, 40, 1]]}}}
+{"player": "samsito", "grid_size": 128, "maps": {"kafar_halab": {"kills": [[44, 86, 1], [95, 65, 1]], "deaths": [[88, 71, 1]]}, "beirut": {"kills": [[63, 40, 2], [63, 39, 1]], "deaths": [[63, 40, 1]]}, "carentan": {"kills": [[37, 108, 1], [95, 102, 1], [96, 102, 1], [97, 107, 1], [98, 107, 1], [96, 107, 1]], "deaths": [[91, 108, 1]]}}}
