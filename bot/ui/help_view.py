@@ -90,7 +90,10 @@ class HelpView(discord.ui.LayoutView):
         super().__init__(timeout=300)
         self.cats = build_help_categories(bot)
         # Stable, sensible order: known labels first, then the rest.
-        known = [v for v in _COG_LABELS.values() if v in self.cats]
+        # dict.fromkeys dedupea preservando orden: varios cogs pueden mapear a la
+        # misma etiqueta (Misc y Suggestions → "ℹ️ General"); sin dedupe el Select
+        # recibe dos opciones con el mismo value → 400 Invalid Form Body.
+        known = [v for v in dict.fromkeys(_COG_LABELS.values()) if v in self.cats]
         rest = [c for c in self.cats if c not in known]
         self.order = known + rest
         self.category = category if category in self.cats else (self.order[0] if self.order else "")
