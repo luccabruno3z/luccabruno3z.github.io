@@ -30,6 +30,7 @@ CLAN_URLS = {
     "LA-9": "https://prstats.realitymod.org/clan/166/la-9",
     "WK": "https://prstats.realitymod.org/clan/26959/wk",
     "FAL": "https://prstats.realitymod.org/clan/14393/fal",
+    "GoSTML": "https://prstats.realitymod.org/clan/25438/gostml",
 }
 
 SCORING_VERSION = "v3"

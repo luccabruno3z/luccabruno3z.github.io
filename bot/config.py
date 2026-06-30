@@ -78,7 +78,7 @@ def tier_config_url() -> str:
 # ── Clan logo URLs ───────────────────────────────────────────────────────────
 # Clans that use .gif instead of .png for their logo
 _GIF_CLANS = {"ADG"}
-_NO_LOGO_CLANS = {"E-102", "PTFS", "ARA", "TANGO", "SF", "KKCK", "SPTS"}
+_NO_LOGO_CLANS = {"E-102", "PTFS", "ARA", "TANGO", "SF", "KKCK", "SPTS", "GoSTML"}
 
 def clan_logo_url(clan: str) -> str:
     """Return the logo URL for a clan, using .gif for known GIF clans."""
@@ -92,7 +92,7 @@ def clan_logo_url(clan: str) -> str:
 CLAN_NAMES = [
     "LDH", "SAE", "FI", "FI-R", "141", "R-LDH", "A-LDH",
     "WD", "300", "E-LAM", "RIM:LA", "ADG", "FASO", "PORN",
-    "E-102", "PTFS", "ARA", "TANGO", "SF", "KKCK", "SPTS",
+    "E-102", "PTFS", "ARA", "TANGO", "SF", "KKCK", "SPTS", "GoSTML",
 ]
 
 # ── Clan emojis (Discord custom emoji markup) ────────────────────────────────
@@ -118,6 +118,7 @@ CLAN_EMOJIS = {
     "SF": "",
     "KKCK": "",
     "SPTS": "",
+    "GoSTML": "",
 }
 
 # ── Flag emojis for timezone selection ────────────────────────────────────────
@@ -213,6 +214,7 @@ TOP_CATEGORIES = {
     "sf": "SF",
     "kkck": "KKCK",
     "spts": "SPTS",
+    "gostml": "GoSTML",
 }
 
 # ── Clan JSON URL map (uppercase) for sugerir_equipo ──────────────────────────
@@ -238,6 +240,7 @@ CLAN_JSON_MAP = {
     "SF": json_url("SF"),
     "KKCK": json_url("KKCK"),
     "SPTS": json_url("SPTS"),
+    "GoSTML": json_url("GoSTML"),
 }
 
 # ── Graph alias mapping (command alias -> clan name) ──────────────────────────
@@ -264,4 +267,5 @@ GRAPH_ALIASES = {
     "graficosf": "SF",
     "graficokkck": "KKCK",
     "graficospts": "SPTS",
+    "graficogostml": "GoSTML",
 }
