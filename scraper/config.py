@@ -96,13 +96,15 @@ DEMO_SERVERS = {
     # en _list_demos_from_directory).
     "Alliance-EU": "https://alliance-community.com/servers/primary/prdemos/",
     # Russian Frontier: HFS como latamsquad. uri = "Трекеры (.PRdemo)/" (URL-encoded).
-    "RussianFrontier": "https://russianfrontier.ru/~/api/get_file_list?uri=/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
+    # DESACTIVADO (2026-06-30): el host da connect timeout (puerto 443 no responde).
+    # Reactivar cuando vuelva a estar accesible (descomentar acá y en HFS_DOWNLOAD_BASE).
+    # "RussianFrontier": "https://russianfrontier.ru/~/api/get_file_list?uri=/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
 }
 
 # HFS servers need a base URL mapping for downloads (API URL != download URL)
 HFS_DOWNLOAD_BASE = {
     "LATAMSQUAD-SV1": "https://latamsquad.dev/Project-Reality-BF2/PRdemos-2D/sv1/",
-    "RussianFrontier": "https://russianfrontier.ru/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
+    # "RussianFrontier": "https://russianfrontier.ru/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",  # DESACTIVADO 2026-06-30 (timeout)
 }
 
 # Servers cuyo directorio de demos está particionado por mes (YYYY_MM/), p.ej.
