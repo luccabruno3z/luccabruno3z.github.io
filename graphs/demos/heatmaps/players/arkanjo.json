@@ -1,1 +1,1 @@
-{"player": "arkanjo", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [[96, 63, 1]], "deaths": [[84, 66, 1], [44, 76, 1], [86, 34, 1]]}}}
+{"player": "arkanjo", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [[96, 63, 1]], "deaths": [[84, 66, 1], [44, 76, 1], [86, 34, 1]]}, "karbala": {"kills": [], "deaths": [[47, 64, 1], [46, 67, 1]]}}}
