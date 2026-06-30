@@ -1,1 +1,1 @@
-{"player": "elpapas", "grid_size": 128, "maps": {"operation_marlin": {"kills": [[45, 74, 1], [46, 74, 1]], "deaths": [[46, 74, 1]]}, "operation_falcon": {"kills": [[99, 43, 1]], "deaths": [[101, 44, 1]]}, "dragon_fly": {"kills": [[70, 85, 1]], "deaths": [[71, 55, 1], [70, 85, 1]]}}}
+{"player": "elpapas", "grid_size": 128, "maps": {"dragon_fly": {"kills": [[70, 85, 1]], "deaths": [[71, 55, 1], [70, 85, 1]]}, "operation_falcon": {"kills": [[99, 43, 1]], "deaths": [[101, 44, 1]]}, "operation_marlin": {"kills": [[45, 74, 1], [46, 74, 1]], "deaths": [[46, 74, 1]]}}}

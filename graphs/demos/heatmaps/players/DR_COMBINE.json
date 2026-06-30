@@ -1,1 +1,1 @@
-{"player": "DR.COMBINE", "grid_size": 128, "maps": {"donbas": {"kills": [], "deaths": [[30, 104, 1]]}, "road_to_damascus": {"kills": [], "deaths": [[56, 104, 1], [76, 109, 1]]}}}
+{"player": "DR.COMBINE", "grid_size": 128, "maps": {"donbas": {"kills": [], "deaths": [[30, 104, 1]]}, "road_to_damascus": {"kills": [], "deaths": [[56, 104, 1], [76, 109, 1]]}, "fields_of_kassel": {"kills": [[118, 23, 1], [84, 52, 1]], "deaths": []}}}

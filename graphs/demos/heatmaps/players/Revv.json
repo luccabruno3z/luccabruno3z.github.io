@@ -1,1 +1,1 @@
-{"player": "Revv", "grid_size": 128, "maps": {"operation_marlin": {"kills": [], "deaths": [[51, 72, 1]]}, "yamalia": {"kills": [], "deaths": [[29, 38, 1], [25, 46, 1], [39, 58, 1]]}, "road_to_damascus": {"kills": [[73, 57, 1]], "deaths": [[75, 51, 1], [73, 57, 1]]}}}
+{"player": "Revv", "grid_size": 128, "maps": {"operation_marlin": {"kills": [], "deaths": [[51, 72, 1], [75, 51, 1]]}, "yamalia": {"kills": [], "deaths": [[29, 38, 1], [25, 46, 1], [39, 58, 1]]}, "road_to_damascus": {"kills": [[73, 57, 1]], "deaths": [[75, 51, 1], [73, 57, 1]]}}}
