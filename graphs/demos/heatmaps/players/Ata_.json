@@ -1,1 +1,1 @@
-{"player": "Ata.", "grid_size": 128, "maps": {"zakho": {"kills": [[66, 24, 5], [83, 14, 1]], "deaths": [[90, 22, 1]]}, "kashan_desert": {"kills": [[48, 63, 1]], "deaths": [[51, 66, 1], [48, 63, 2]]}}}
+{"player": "Ata.", "grid_size": 128, "maps": {"zakho": {"kills": [[66, 24, 5], [83, 14, 1]], "deaths": [[90, 22, 1]]}, "kashan_desert": {"kills": [[48, 63, 1]], "deaths": [[51, 66, 1], [48, 63, 2]]}, "saaremaa": {"kills": [], "deaths": [[85, 39, 1]]}}}

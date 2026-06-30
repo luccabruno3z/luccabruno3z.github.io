@@ -1,1 +1,1 @@
-{"player": "NatRat", "grid_size": 128, "maps": {"karbala": {"kills": [], "deaths": [[54, 73, 1]]}, "ramiel": {"kills": [[32, 105, 1], [26, 115, 1], [35, 111, 2]], "deaths": []}}}
+{"player": "NatRat", "grid_size": 128, "maps": {"ramiel": {"kills": [[32, 105, 1], [26, 115, 1], [35, 111, 2]], "deaths": []}, "karbala": {"kills": [], "deaths": [[54, 73, 1]]}}}

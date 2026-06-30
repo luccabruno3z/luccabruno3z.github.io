@@ -1,1 +1,1 @@
-{"player": "hiromi", "grid_size": 128, "maps": {"bamyan": {"kills": [], "deaths": [[42, 78, 1], [50, 72, 2]]}, "omaha_beach": {"kills": [[57, 44, 1]], "deaths": [[64, 35, 1], [77, 33, 1]]}}}
+{"player": "hiromi", "grid_size": 128, "maps": {"omaha_beach": {"kills": [[57, 44, 1]], "deaths": [[64, 35, 1], [77, 33, 1]]}, "bamyan": {"kills": [], "deaths": [[42, 78, 1], [50, 72, 2]]}}}

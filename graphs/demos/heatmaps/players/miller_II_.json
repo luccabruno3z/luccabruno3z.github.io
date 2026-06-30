@@ -1,1 +1,1 @@
-{"player": "miller(II)", "grid_size": 128, "maps": {"wanda_shan": {"kills": [[56, 62, 2], [95, 32, 1], [56, 49, 1]], "deaths": [[56, 62, 1], [56, 49, 1]]}}}
+{"player": "miller(II)", "grid_size": 128, "maps": {"wanda_shan": {"kills": [[56, 62, 2], [95, 32, 1], [56, 49, 1]], "deaths": [[56, 62, 1], [56, 49, 1]]}, "operation_falcon": {"kills": [[10, 99, 1], [13, 101, 1], [14, 102, 2]], "deaths": [[13, 101, 1]]}}}
