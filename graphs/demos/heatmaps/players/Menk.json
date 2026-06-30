@@ -1,1 +1,1 @@
-{"player": "Menk", "grid_size": 128, "maps": {"fallujah_west": {"kills": [[107, 18, 1]], "deaths": [[108, 18, 1], [120, 19, 1], [92, 99, 1], [71, 21, 1], [68, 17, 1]]}, "krivaja_valley": {"kills": [], "deaths": [[54, 51, 1], [58, 62, 1], [56, 66, 1]]}}}
+{"player": "Menk", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [], "deaths": [[54, 51, 1], [58, 62, 1], [56, 66, 1]]}, "fallujah_west": {"kills": [[107, 18, 1]], "deaths": [[108, 18, 1], [120, 19, 1], [92, 99, 1], [71, 21, 1], [68, 17, 1]]}}}

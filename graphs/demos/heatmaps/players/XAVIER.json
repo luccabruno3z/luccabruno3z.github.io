@@ -1,1 +1,1 @@
-{"player": "XAVIER", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [], "deaths": [[60, 77, 1]]}, "kokan": {"kills": [[58, 40, 1]], "deaths": [[58, 45, 1], [59, 39, 1], [78, 41, 1]]}}}
+{"player": "XAVIER", "grid_size": 128, "maps": {"kokan": {"kills": [[58, 40, 1]], "deaths": [[58, 45, 1], [59, 39, 1], [78, 41, 1]]}, "assault_on_grozny": {"kills": [], "deaths": [[60, 77, 1]]}}}

@@ -1,1 +1,1 @@
-{"player": "Sauro", "grid_size": 128, "maps": {"road_to_damascus": {"kills": [[65, 14, 1]], "deaths": [[65, 14, 1], [68, 17, 1]]}, "donbas": {"kills": [], "deaths": [[60, 64, 1]]}, "ulyanovsk": {"kills": [], "deaths": [[103, 64, 1]]}}}
+{"player": "Sauro", "grid_size": 128, "maps": {"ulyanovsk": {"kills": [], "deaths": [[103, 64, 1]]}, "donbas": {"kills": [], "deaths": [[60, 64, 1]]}, "road_to_damascus": {"kills": [[65, 14, 1]], "deaths": [[65, 14, 1], [68, 17, 1]]}}}

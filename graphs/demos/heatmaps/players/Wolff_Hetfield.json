@@ -1,1 +1,1 @@
-{"player": "Wolff_Hetfield", "grid_size": 128, "maps": {"ulyanovsk": {"kills": [], "deaths": [[15, 99, 1], [16, 96, 1], [14, 98, 1]]}, "goose_green": {"kills": [[87, 70, 1], [89, 83, 2]], "deaths": [[96, 67, 2], [97, 68, 1], [90, 84, 1]]}}}
+{"player": "Wolff_Hetfield", "grid_size": 128, "maps": {"goose_green": {"kills": [[87, 70, 1], [89, 83, 2]], "deaths": [[96, 67, 2], [97, 68, 1], [90, 84, 1]]}, "ulyanovsk": {"kills": [], "deaths": [[15, 99, 1], [16, 96, 1], [14, 98, 1]]}}}
