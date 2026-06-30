@@ -1,1 +1,1 @@
-{"player": "_BadSanta", "grid_size": 128, "maps": {"ramiel": {"kills": [[16, 84, 2]], "deaths": [[16, 84, 1], [16, 83, 2], [15, 88, 1], [15, 84, 1]]}, "burning_sands": {"kills": [[48, 62, 1], [48, 60, 1], [54, 57, 3]], "deaths": []}, "karbala": {"kills": [], "deaths": [[93, 30, 1]]}}}
+{"player": "_BadSanta", "grid_size": 128, "maps": {"karbala": {"kills": [], "deaths": [[93, 30, 1]]}, "burning_sands": {"kills": [[48, 62, 1], [48, 60, 1], [54, 57, 3]], "deaths": []}, "ramiel": {"kills": [[16, 84, 2]], "deaths": [[16, 84, 1], [16, 83, 2], [15, 88, 1], [15, 84, 1]]}}}

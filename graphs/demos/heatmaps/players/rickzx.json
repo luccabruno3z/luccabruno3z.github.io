@@ -1,1 +1,1 @@
-{"player": "rickzx", "grid_size": 128, "maps": {"carentan": {"kills": [[23, 59, 3]], "deaths": [[55, 68, 1], [22, 59, 1], [17, 44, 1], [27, 33, 1]]}, "operation_falcon": {"kills": [], "deaths": [[94, 102, 1], [83, 88, 1]]}}}
+{"player": "rickzx", "grid_size": 128, "maps": {"operation_falcon": {"kills": [], "deaths": [[94, 102, 1], [83, 88, 1]]}, "carentan": {"kills": [[23, 59, 3]], "deaths": [[55, 68, 1], [22, 59, 1], [17, 44, 1], [27, 33, 1]]}}}
