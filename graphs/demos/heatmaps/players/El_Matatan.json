@@ -1,1 +1,1 @@
-{"player": "El_Matatan", "grid_size": 128, "maps": {"sahel": {"kills": [], "deaths": [[91, 29, 1]]}}}
+{"player": "El_Matatan", "grid_size": 128, "maps": {"sahel": {"kills": [[83, 57, 1]], "deaths": [[91, 29, 1], [91, 62, 1], [78, 62, 1]]}, "masirah": {"kills": [], "deaths": [[27, 28, 1]]}}}

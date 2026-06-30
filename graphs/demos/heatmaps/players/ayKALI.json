@@ -1,1 +1,1 @@
-{"player": "ayKALI", "grid_size": 128, "maps": {"zakho": {"kills": [], "deaths": [[73, 44, 1]]}}}
+{"player": "ayKALI", "grid_size": 128, "maps": {"zakho": {"kills": [], "deaths": [[73, 44, 1]]}, "fallujah_west": {"kills": [], "deaths": [[43, 16, 1], [56, 21, 1]]}, "sahel": {"kills": [[44, 83, 1]], "deaths": [[23, 28, 1]]}, "karbala": {"kills": [[13, 72, 1], [65, 60, 1]], "deaths": [[23, 65, 1]]}, "battle_of_debrecen": {"kills": [[58, 67, 1], [57, 62, 1], [60, 73, 1]], "deaths": [[59, 60, 1], [55, 56, 1], [63, 60, 1], [97, 51, 1], [72, 50, 1]]}}}

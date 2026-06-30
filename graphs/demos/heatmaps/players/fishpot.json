@@ -1,1 +1,1 @@
-{"player": "fishpot", "grid_size": 128, "maps": {"sahel": {"kills": [], "deaths": [[121, 46, 1]]}}}
+{"player": "fishpot", "grid_size": 128, "maps": {"sahel": {"kills": [], "deaths": [[121, 46, 1]]}, "beirut": {"kills": [[36, 56, 1], [32, 55, 1]], "deaths": [[87, 33, 1], [30, 55, 1]]}, "talbisah": {"kills": [], "deaths": [[43, 65, 1], [34, 53, 1]]}, "zakho": {"kills": [], "deaths": [[98, 31, 2], [94, 2, 1]]}}}
