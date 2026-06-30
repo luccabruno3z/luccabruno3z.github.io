@@ -44,7 +44,7 @@ jobs:
 
     - name: Ejecutar scraper
       run: python -m scraper
-      timeout-minutes: 20  # temporal: runs más grandes (MAX_DEMOS_PER_RUN=150) para catch-up
+      timeout-minutes: 50  # temporal: catch-up Alliance EU (MAX_DEMOS_PER_RUN=400, DEMO_TIME_BUDGET=2400s + headroom). Volver a 20 al nivelar.
 
     - name: Validar output JSON
       run: |

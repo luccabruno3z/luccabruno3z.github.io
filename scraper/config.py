@@ -118,12 +118,16 @@ MONTHLY_DEMO_SERVERS = {
 # GitHub throttlea los cron sub-horarios (un "*/10" corre cada ~2-3h), así que en
 # vez de muchos runs chicos hacemos pocos runs grandes: más demos por corrida.
 # HFS baja secuencial (~2s/demo) → 150 ≈ 5 min. Bajar a 25 para el ritmo normal.
-MAX_DEMOS_PER_RUN = 150
+# CATCH-UP (2026-06-30, backlog de Alliance EU ~9k): subido a 400. Volver a 150/25
+# cuando se nivele (y bajar DEMO_TIME_BUDGET + timeout-minutes del workflow).
+MAX_DEMOS_PER_RUN = 400
 
 # Maximum wall-clock seconds for the entire demo phase (download + parse).
 # If exceeded between batches, remaining demos are left for the next run.
-# Acompaña a MAX_DEMOS_PER_RUN (temporal, catch-up). Normal: 120.
-DEMO_TIME_BUDGET = 900
+# Escala proporcional a MAX_DEMOS_PER_RUN (~2s/demo): 400 → 2400s (40 min). Debe
+# quedar por debajo del timeout-minutes del step en daily_update.yml (con headroom
+# para el scrape de clanes + charts + commit). Normal: 120.
+DEMO_TIME_BUDGET = 2400
 
 # Gamemodes excluidos de las stats: gungame es un minijuego de ciclar armas (no son
 # rondas competitivas y distorsionan kills/kits). Se filtran tanto al descargar
