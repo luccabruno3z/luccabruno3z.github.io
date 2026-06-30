@@ -1,1 +1,1 @@
-{"player": "FORL", "grid_size": 128, "maps": {"ras_el_masri_2": {"kills": [], "deaths": [[43, 68, 1]]}, "albasrah_2": {"kills": [], "deaths": [[51, 53, 1]]}, "gaza_2": {"kills": [], "deaths": [[27, 67, 1], [25, 64, 1], [86, 4, 1]]}}}
+{"player": "FORL", "grid_size": 128, "maps": {"gaza_2": {"kills": [], "deaths": [[27, 67, 1], [25, 64, 1], [86, 4, 1]]}, "albasrah_2": {"kills": [], "deaths": [[51, 53, 1]]}, "ras_el_masri_2": {"kills": [], "deaths": [[43, 68, 1]]}}}
