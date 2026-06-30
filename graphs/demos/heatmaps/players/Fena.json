@@ -1,1 +1,1 @@
-{"player": "Fena", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [[80, 91, 1]], "deaths": [[80, 91, 1], [59, 101, 1]]}}}
+{"player": "Fena", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [[80, 91, 1]], "deaths": [[80, 91, 1], [59, 101, 1]]}, "operation_marlin": {"kills": [[73, 68, 1]], "deaths": [[72, 74, 1], [70, 72, 2], [67, 79, 1], [70, 71, 2], [75, 67, 1]]}}}
