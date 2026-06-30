@@ -95,7 +95,10 @@ def _list_demos_from_directory(html: str, base_url: str) -> List[str]:
         parsed = urlparse(href)
         demo_param = parse_qs(parsed.query).get("demo", [None])[0]
         if demo_param and _DEMO_RE.search(demo_param):
-            real_url = demo_param
+            # `?demo=` puede traer una URL completa (RealityBrasil) o una ruta
+            # relativa-desde-raíz sin host (Alliance EU: /servers/.../tracker_*.PRdemo).
+            # urljoin deja las absolutas intactas y resuelve las relativas contra el host.
+            real_url = urljoin(base_url, demo_param)
         else:
             real_url = urljoin(base_url, href)
 

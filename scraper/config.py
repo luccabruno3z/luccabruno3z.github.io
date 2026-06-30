@@ -89,6 +89,12 @@ DEMO_SERVERS = {
     "RealityBrasil-2": "https://files.realitybrasil.org/PRServer/BattleRecorder/?srv=2",
     "RealityBrasil-4": "https://files.realitybrasil.org/PRServer/BattleRecorder/?srv=4",
     "LATAMSQUAD-SV1": "https://latamsquad.dev/~/api/get_file_list?uri=/Project-Reality-BF2/PRdemos-2D/sv1/",
+    # Alliance EU (alliance-community.com): listado Apache plano. El link "Battle
+    # records" de prstats apunta al dir padre (/servers/primary/, sin .PRdemo), así
+    # que la auto-discovery no lo agarra; los demos están un nivel abajo en prdemos/.
+    # Trae links del visor con ?demo=<ruta relativa-desde-raíz> (resuelto por urljoin
+    # en _list_demos_from_directory).
+    "Alliance-EU": "https://alliance-community.com/servers/primary/prdemos/",
     # Russian Frontier: HFS como latamsquad. uri = "Трекеры (.PRdemo)/" (URL-encoded).
     "RussianFrontier": "https://russianfrontier.ru/~/api/get_file_list?uri=/%D0%A2%D1%80%D0%B5%D0%BA%D0%B5%D1%80%D1%8B%20%28.PRdemo%29/",
 }
