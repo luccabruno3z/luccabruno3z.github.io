@@ -1,1 +1,1 @@
-{"player": "EM0", "grid_size": 128, "maps": {"saaremaa": {"kills": [], "deaths": [[90, 43, 1], [105, 55, 1]]}}}
+{"player": "EM0", "grid_size": 128, "maps": {"saaremaa": {"kills": [], "deaths": [[90, 43, 1], [105, 55, 1]]}, "sahel": {"kills": [[52, 72, 1], [45, 78, 2]], "deaths": [[82, 62, 1]]}, "ulyanovsk": {"kills": [[38, 55, 1], [47, 64, 1]], "deaths": [[64, 72, 1], [60, 63, 1]]}}}
