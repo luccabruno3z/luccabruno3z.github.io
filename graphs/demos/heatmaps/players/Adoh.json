@@ -1,1 +1,1 @@
-{"player": "Adoh", "grid_size": 128, "maps": {"op_barracuda": {"kills": [[54, 42, 1]], "deaths": [[54, 42, 1]]}}}
+{"player": "Adoh", "grid_size": 128, "maps": {"op_barracuda": {"kills": [[54, 42, 1]], "deaths": [[54, 42, 1]]}, "kafar_halab": {"kills": [], "deaths": [[13, 42, 1], [32, 42, 1]]}, "fallujah_west": {"kills": [[96, 60, 1]], "deaths": [[21, 99, 1], [19, 96, 1], [16, 112, 1]]}}}

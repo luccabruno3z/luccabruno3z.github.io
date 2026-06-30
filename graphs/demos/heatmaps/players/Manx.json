@@ -1,1 +1,1 @@
-{"player": "Manx", "grid_size": 128, "maps": {"grostok": {"kills": [], "deaths": [[14, 95, 1], [68, 109, 1]]}, "dragon_fly": {"kills": [], "deaths": [[70, 76, 1], [75, 77, 1]]}}}
+{"player": "Manx", "grid_size": 128, "maps": {"grostok": {"kills": [], "deaths": [[14, 95, 1], [68, 109, 1]]}, "dragon_fly": {"kills": [], "deaths": [[70, 76, 1], [75, 77, 1]]}, "assault_on_grozny": {"kills": [[50, 61, 1]], "deaths": [[50, 61, 1], [41, 56, 1], [37, 56, 1]]}}}
