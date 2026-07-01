@@ -1,1 +1,1 @@
-{"player": "wizzard_remake", "grid_size": 128, "maps": {"albasrah_2": {"kills": [], "deaths": [[46, 55, 1], [61, 31, 1]]}, "gaza_2": {"kills": [[60, 69, 1]], "deaths": [[108, 17, 1], [102, 17, 1], [60, 69, 1]]}}}
+{"player": "wizzard_remake", "grid_size": 128, "maps": {"gaza_2": {"kills": [[60, 69, 1]], "deaths": [[108, 17, 1], [102, 17, 1], [60, 69, 1]]}, "albasrah_2": {"kills": [], "deaths": [[46, 55, 1], [61, 31, 1]]}}}

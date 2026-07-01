@@ -1,1 +1,1 @@
-{"player": "DHASK", "grid_size": 128, "maps": {"kafar_halab": {"kills": [], "deaths": [[29, 47, 1], [58, 49, 1]]}, "beirut": {"kills": [[65, 55, 1]], "deaths": [[65, 54, 1]]}}}
+{"player": "DHASK", "grid_size": 128, "maps": {"beirut": {"kills": [[65, 55, 1]], "deaths": [[65, 54, 1]]}, "kafar_halab": {"kills": [], "deaths": [[29, 47, 1], [58, 49, 1]]}}}

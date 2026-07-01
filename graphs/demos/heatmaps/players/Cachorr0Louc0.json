@@ -1,1 +1,1 @@
-{"player": "Cachorr0Louc0", "grid_size": 128, "maps": {"gaza_2": {"kills": [[76, 48, 1]], "deaths": [[75, 48, 1], [59, 68, 1], [61, 57, 1], [101, 24, 1], [61, 65, 2], [122, 45, 1]]}, "road_to_damascus": {"kills": [[98, 61, 1]], "deaths": [[80, 42, 1]]}}}
+{"player": "Cachorr0Louc0", "grid_size": 128, "maps": {"road_to_damascus": {"kills": [[98, 61, 1]], "deaths": [[80, 42, 1]]}, "gaza_2": {"kills": [[76, 48, 1]], "deaths": [[75, 48, 1], [59, 68, 1], [61, 57, 1], [101, 24, 1], [61, 65, 2], [122, 45, 1]]}}}
