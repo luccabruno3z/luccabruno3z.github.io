@@ -88,7 +88,9 @@ def clan_logo_url(clan: str) -> str:
     return f"{BASE_URL}/logos/Logo_{clan}.{ext}"
 
 
-# ── Clan list ─────────────────────────────────────────────────────────────────
+# ── Clan list (FALLBACK offline) ──────────────────────────────────────────────
+# Fuente real de clanes en runtime: bot.clans (derivado de clan_averages.json).
+# Esta lista solo se usa si el fetch inicial falla al arrancar (ClanRegistry).
 CLAN_NAMES = [
     "LDH", "SAE", "FI", "FI-R", "141", "R-LDH", "A-LDH",
     "WD", "300", "E-LAM", "RIM:LA", "ADG", "FASO", "PORN",
@@ -190,82 +192,10 @@ METRIC_KEY_MAP = {
     "score": "Total Score",
 }
 
-# ── Valid categories for the top command (lowercase -> clan name) ──────────────
-TOP_CATEGORIES = {
-    "general": None,  # uses all_players_url()
-    "ldh": "LDH",
-    "sae": "SAE",
-    "fi": "FI",
-    "141": "141",
-    "fi-r": "FI-R",
-    "r-ldh": "R-LDH",
-    "a-ldh": "A-LDH",
-    "e-lam": "E-LAM",
-    "300": "300",
-    "rim-la": "RIM:LA",
-    "adg": "ADG",
-    "faso": "FASO",
-    "porn": "PORN",
-    "wd": "WD",
-    "e-102": "E-102",
-    "ptfs": "PTFS",
-    "ara": "ARA",
-    "tango": "TANGO",
-    "sf": "SF",
-    "kkck": "KKCK",
-    "spts": "SPTS",
-    "gostml": "GoSTML",
-}
-
-# ── Clan JSON URL map (uppercase) for sugerir_equipo ──────────────────────────
-CLAN_JSON_MAP = {
-    "LDH": json_url("LDH"),
-    "SAE": json_url("SAE"),
-    "FI": json_url("FI"),
-    "FI-R": json_url("FI-R"),
-    "141": json_url("141"),
-    "R-LDH": json_url("R-LDH"),
-    "A-LDH": json_url("A-LDH"),
-    "WD": json_url("WD"),
-    "300": json_url("300"),
-    "E-LAM": json_url("E-LAM"),
-    "RIM:LA": json_url("RIM:LA"),
-    "ADG": json_url("ADG"),
-    "FASO": json_url("FASO"),
-    "PORN": json_url("PORN"),
-    "E-102": json_url("E-102"),
-    "PTFS": json_url("PTFS"),
-    "ARA": json_url("ARA"),
-    "TANGO": json_url("TANGO"),
-    "SF": json_url("SF"),
-    "KKCK": json_url("KKCK"),
-    "SPTS": json_url("SPTS"),
-    "GoSTML": json_url("GoSTML"),
-}
-
-# ── Graph alias mapping (command alias -> clan name) ──────────────────────────
-# Used to register backward-compatible graficoldh, graficosae, etc.
-GRAPH_ALIASES = {
-    "graficoldh": "LDH",
-    "graficosae": "SAE",
-    "graficofi": "FI",
-    "graficofi_r": "FI-R",
-    "grafico141": "141",
-    "graficor_ldh": "R-LDH",
-    "graficoa_ldh": "A-LDH",
-    "graficowd": "WD",
-    "grafico300": "300",
-    "graficoe_lam": "E-LAM",
-    "graficorim_la": "RIM:LA",
-    "graficoadg": "ADG",
-    "graficofaso": "FASO",
-    "graficoporn": "PORN",
-    "graficoe_102": "E-102",
-    "graficoptfs": "PTFS",
-    "graficoara": "ARA",
-    "graficotango": "TANGO",
-    "graficosf": "SF",
-    "graficokkck": "KKCK",
-    "graficospts": "SPTS",
-    "graficogostml": "GoSTML",
-}
+# ── Categorías de -top / URLs por clan / atajos -grafico<clan> ────────────────
+# Antes vivían acá como dicts hardcodeados (TOP_CATEGORIES, CLAN_JSON_MAP,
+# GRAPH_ALIASES) que había que sincronizar a mano con scraper/config.py y quedaban
+# desincronizados. Ahora se DERIVAN de clan_averages.json en runtime vía
+# bot.services.clan_registry.ClanRegistry (bot.clans). Agregar un clan = solo tocar
+# scraper/config.py. La URL de JSON por clan sale de json_url(); las categorías y
+# los atajos, de ClanRegistry.top_categories() / grafico_alias().

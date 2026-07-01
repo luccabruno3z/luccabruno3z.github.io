@@ -8,10 +8,10 @@ from discord import app_commands
 
 from bot.config import (
     BOT_THUMBNAIL,
-    CLAN_JSON_MAP,
-    CLAN_NAMES,
+    json_url,
     performance_color,
 )
+from bot.services.clan_registry import clan_choices
 from bot.services.chart_renderer import render_kd_chart, render_comparison_chart, render_multi_comparison, render_radar_chart, render_horizontal_bars, render_comparison_bars, render_probability_bar
 from bot.utils import format_number, find_player, highlight_winner, advantage_pct, progress_bar, relative_time, sample_reliability, standard_footer, ERR_DB
 from bot.views.demo_details import DemoDetailsView
@@ -84,11 +84,14 @@ async def player_name_autocomplete(
     return [app_commands.Choice(name=n, value=n) for n in filtered[:25]]
 
 
-# ── Choices for sugerir_equipo clan ────────────────────────────────────────
+# ── Autocomplete de clan (data-driven desde bot.clans) ──────────────────────
+# Antes eran choices estáticos (limitados a 25); con >25 clanes usamos autocomplete.
 
-CLAN_CHOICES = [
-    app_commands.Choice(name=c, value=c) for c in list(CLAN_JSON_MAP.keys())[:25]
-]
+async def clan_autocomplete(
+    interaction: discord.Interaction, current: str,
+) -> list[app_commands.Choice[str]]:
+    """Autocomplete de clanes para -sugerir_equipo y -compare_tops."""
+    return clan_choices(interaction.client, current)
 
 
 class Compare(commands.Cog):
@@ -500,7 +503,7 @@ class Compare(commands.Cog):
     async def _send_sugerencia(self, ctx: commands.Context, clan: str, num_jugadores: int, offset: int = 0):
         """Internal helper: build and send a team suggestion embed at a given offset."""
         try:
-            data = await self.fetcher.fetch_json(CLAN_JSON_MAP[clan])
+            data = await self.fetcher.fetch_json(json_url(clan))
         except Exception as e:
             await ctx.send(ERR_DB)
             logger.error("Error: %s", e)
@@ -588,7 +591,7 @@ class Compare(commands.Cog):
         clan="Nombre del clan",
         num_jugadores="Cantidad de jugadores (2-8)",
     )
-    @app_commands.choices(clan=CLAN_CHOICES)
+    @app_commands.autocomplete(clan=clan_autocomplete)
     async def sugerir_equipo(self, ctx: commands.Context, clan: str = None, num_jugadores: int = 8):
         if not clan:
             await ctx.send("Uso: `-sugerir_equipo <clan> <cantidad>`.")
@@ -601,14 +604,15 @@ class Compare(commands.Cog):
             )
             return
 
-        if clan not in CLAN_JSON_MAP:
+        clan_tag = self.bot.clans.resolve(clan) if getattr(self.bot, "clans", None) else None
+        if not clan_tag:
             await ctx.send(
                 f"Clan '{clan}' no reconocido. "
-                f"Los clanes validos son: {', '.join(CLAN_JSON_MAP.keys())}."
+                f"Los clanes validos son: {', '.join(self.bot.clans.tags)}."
             )
             return
 
-        await self._send_sugerencia(ctx, clan, num_jugadores, offset=0)
+        await self._send_sugerencia(ctx, clan_tag, num_jugadores, offset=0)
 
     # ── -comparar_equipos <equipo1> <equipo2> <jugadores...> ──────────────
 
@@ -956,7 +960,7 @@ class Compare(commands.Cog):
         clan2="Segundo clan",
         cantidad="Cantidad de tops a comparar (default: 5)",
     )
-    @app_commands.choices(clan1=CLAN_CHOICES, clan2=CLAN_CHOICES)
+    @app_commands.autocomplete(clan1=clan_autocomplete, clan2=clan_autocomplete)
     async def compare_tops(
         self,
         ctx: commands.Context,

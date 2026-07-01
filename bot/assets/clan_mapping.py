@@ -55,13 +55,23 @@ def get_clan_emoji(clan: str) -> str:
 
 
 def get_all_clan_assets() -> list[tuple[str, str]]:
-    """Return (emoji_name, logo_path) for every clan that has a logo file."""
-    from bot.config import CLAN_NAMES
+    """Return (emoji_name, logo_path) for every clan logo present.
+
+    Escanea directamente logos/ (data-driven) en vez de iterar una lista de clanes:
+    así cubre cualquier clan nuevo que traiga su Logo_<clan>.png sin tocar código.
+    Los archivos ya usan la convención de emoji-name (Logo_R_LDH.png, etc.)."""
     assets: list[tuple[str, str]] = []
-    for clan in CLAN_NAMES:
-        for ext in ("png", "gif"):
-            path = os.path.join(_LOGOS_DIR, f"Logo_{clan}.{ext}")
-            if os.path.exists(path):
-                assets.append((emoji_name_for(clan), path))
-                break
+    if not os.path.isdir(_LOGOS_DIR):
+        return assets
+    seen: set[str] = set()
+    for fname in sorted(os.listdir(_LOGOS_DIR)):
+        stem, ext = os.path.splitext(fname)
+        if (
+            ext.lower() in (".png", ".gif")
+            and stem.startswith("Logo_")
+            and stem != "Logo_default"
+            and stem not in seen
+        ):
+            seen.add(stem)
+            assets.append((stem, os.path.join(_LOGOS_DIR, fname)))
     return assets

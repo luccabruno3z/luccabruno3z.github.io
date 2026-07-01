@@ -11,9 +11,8 @@ logger = logging.getLogger(__name__)
 from bot.config import (
     graph_url,
     all_players_graph_url,
-    GRAPH_ALIASES,
-    CLAN_NAMES,
 )
+from bot.services.clan_registry import clan_choices, grafico_alias
 from bot.services.history_chart import build_history_embed
 
 
@@ -22,13 +21,8 @@ from bot.services.history_chart import build_history_embed
 async def clan_name_autocomplete(
     interaction: discord.Interaction, current: str,
 ) -> list[app_commands.Choice[str]]:
-    """Autocomplete for clan names."""
-    options = ["all", "todos"] + CLAN_NAMES
-    if current:
-        filtered = [c for c in options if current.lower() in c.lower()]
-    else:
-        filtered = options
-    return [app_commands.Choice(name=c, value=c) for c in filtered[:25]]
+    """Autocomplete for clan names (data-driven desde bot.clans) + all/todos."""
+    return clan_choices(interaction.client, current, extra=["all", "todos"])
 
 
 async def player_name_autocomplete(
@@ -50,9 +44,13 @@ async def player_name_autocomplete(
 class Charts(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        # Register backward-compatible aliases as commands
-        for alias, clan in GRAPH_ALIASES.items():
-            self._register_alias(alias, clan)
+        # Atajos -grafico<clan> generados desde el registro de clanes (bot.clans).
+        # Se registran una vez al cargar el cog; un clan nuevo recibe su atajo al
+        # próximo arranque (mientras tanto -grafico <clan> ya lo cubre).
+        registry = getattr(bot, "clans", None)
+        clan_tags = registry.tags if registry else []
+        for clan in clan_tags:
+            self._register_alias(grafico_alias(clan), clan)
 
     # ── Dynamic alias registration ────────────────────────────────────────
 
@@ -92,18 +90,18 @@ class Charts(commands.Cog):
             )
             return
 
-        # Normalize: accept lowercase input
-        clan_upper = clan.upper()
-        if clan_upper not in CLAN_NAMES:
-            valid = ", ".join(CLAN_NAMES)
+        # Resolver contra el registro (tolera mayúsculas/slugs).
+        clan_tag = self.bot.clans.resolve(clan) if getattr(self.bot, "clans", None) else None
+        if not clan_tag:
+            valid = ", ".join(self.bot.clans.tags) if getattr(self.bot, "clans", None) else ""
             await ctx.send(
                 f"❗ Clan '{clan}' no reconocido. Clanes válidos: {valid}, `all`/`todos`."
             )
             return
 
-        url = graph_url(clan_upper)
+        url = graph_url(clan_tag)
         await ctx.send(
-            f"[Aquí tienes el gráfico interactivo de {clan_upper}!]({url})"
+            f"[Aquí tienes el gráfico interactivo de {clan_tag}!]({url})"
         )
 
     # ── -historial <jugador> ──────────────────────────────────────────────

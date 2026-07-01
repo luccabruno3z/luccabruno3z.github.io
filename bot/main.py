@@ -10,6 +10,7 @@ import discord
 from discord.ext import commands
 
 from bot.config import COMMAND_PREFIX
+from bot.services.clan_registry import ClanRegistry
 from bot.services.data_fetcher import DataFetcher
 from bot.services.guild_settings import GuildSettings
 
@@ -86,6 +87,18 @@ async def main():
     load_clan_emoji_cache()
     # Humanized asset aliases (kits/weapons/vehicles/maps) shared with the web.
     await load_aliases()
+
+    # Registro de clanes data-driven (bot.clans). Se baja clan_averages.json y de ahí
+    # salen categorías de -top, autocompletes, URLs por clan y atajos -grafico<clan>.
+    # DEBE quedar listo ANTES de load_extension: el cog Charts registra los atajos en
+    # su setup. Fallback a la lista bundled si el fetch falla (arranque offline).
+    try:
+        averages = await bot.data_fetcher.fetch_clan_averages()
+        bot.clans = ClanRegistry.from_averages(averages)
+    except Exception as exc:
+        logger.warning("No se pudo derivar clanes de clan_averages.json (%s); uso fallback.", exc)
+        bot.clans = ClanRegistry.from_averages(None)
+    logger.info("Clan registry: %d clanes (%s)", len(bot.clans.tags), ", ".join(bot.clans.tags))
 
     # Load all cogs
     for ext in EXTENSIONS:

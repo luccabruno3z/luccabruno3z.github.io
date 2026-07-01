@@ -16,13 +16,13 @@ from bot.config import (
     CLAN_EMOJIS,
     BOT_THUMBNAIL,
     METRIC_KEY_MAP,
-    TOP_CATEGORIES,
     all_players_url,
     json_url,
     performance_color,
     BASE_URL,
     clan_logo_url,
 )
+from bot.services.clan_registry import clan_choices
 from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
@@ -76,11 +76,16 @@ async def player_name_autocomplete(
     return [app_commands.Choice(name=n, value=n) for n in filtered[:25]]
 
 
-# ── Choices for top command ────────────────────────────────────────────────
+# ── Choices / autocomplete for top command ─────────────────────────────────
+# `categoria` es autocomplete (no choices estáticos): hay >25 clanes y Discord
+# limita choices a 25; además así se deriva de bot.clans (data-driven).
 
-CATEGORIA_CHOICES = [
-    app_commands.Choice(name=k, value=k) for k in TOP_CATEGORIES.keys()
-]
+async def categoria_autocomplete(
+    interaction: discord.Interaction, current: str,
+) -> list[app_commands.Choice[str]]:
+    """Autocomplete de categorías de -top: 'general' + clanes de bot.clans."""
+    return clan_choices(interaction.client, current, extra=["general"])
+
 
 METRICA_CHOICES = [
     app_commands.Choice(name="performance", value="performance"),
@@ -344,7 +349,8 @@ class Stats(commands.Cog):
         metrica="Métrica para ordenar",
         activos="Filtrar solo jugadores activos",
     )
-    @app_commands.choices(categoria=CATEGORIA_CHOICES, metrica=METRICA_CHOICES)
+    @app_commands.choices(metrica=METRICA_CHOICES)
+    @app_commands.autocomplete(categoria=categoria_autocomplete)
     async def top(
         self,
         ctx: commands.Context,
@@ -356,10 +362,11 @@ class Stats(commands.Cog):
         # Check data mode
         mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
 
-        if categoria.lower() not in TOP_CATEGORIES:
+        categorias = self.bot.clans.top_categories()
+        if categoria.lower() not in categorias:
             await ctx.send(
-                "❗ **Categoría inválida.** Las categorías válidas son:\n"
-                f"`{'`, `'.join(TOP_CATEGORIES.keys())}`."
+                "❗ **Categoría inválida.** Usá `general` o un clan válido "
+                "(autocompletado en el slash command)."
             )
             return
 
@@ -444,7 +451,7 @@ class Stats(commands.Cog):
             await ctx.send(embed=embed, file=file)
             return
 
-        clan_name = TOP_CATEGORIES[categoria.lower()]
+        clan_name = categorias[categoria.lower()]
         try:
             if clan_name is None:
                 data = await self.fetcher.fetch_all_players()
