@@ -339,7 +339,12 @@ def render_history_chart(
     # Benchmark del clan en PS (linea horizontal de referencia, eje izquierdo).
     if bench_ps is not None:
         ax.axhline(bench_ps, color="#9AD0FF", linestyle=":", linewidth=1.5,
-                   alpha=0.85, label=f"{bench_label} (PS)")
+                   alpha=0.9, zorder=5, label=f"{bench_label} (PS)")
+        # Cuando el jugador está por debajo del top del clan, bench_ps es el valor
+        # más alto del eje izquierdo → la autoescala lo pega al borde superior, justo
+        # donde también cae el benchmark de K/D (que se dibuja en ax2, por encima) y lo
+        # tapa. Le damos headroom al eje de PS para separarlos y que ambos se vean.
+        ax.set_ylim(min(0.0, min(scores)) - 0.03, max(max(scores), bench_ps) * 1.15)
 
     handles, labels = ax.get_legend_handles_labels()
 
