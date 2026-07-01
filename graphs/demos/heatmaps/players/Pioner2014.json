@@ -1,1 +1,1 @@
-{"player": "Pioner2014", "grid_size": 128, "maps": {"operation_marlin": {"kills": [[43, 58, 1]], "deaths": [[42, 57, 1], [14, 31, 1], [46, 70, 1], [52, 28, 1]]}, "beirut": {"kills": [[70, 52, 1]], "deaths": [[69, 52, 1], [74, 51, 1]]}}}
+{"player": "Pioner2014", "grid_size": 128, "maps": {"beirut": {"kills": [[70, 52, 1]], "deaths": [[69, 52, 1], [74, 51, 1]]}, "operation_marlin": {"kills": [[43, 58, 1]], "deaths": [[42, 57, 1], [14, 31, 1], [46, 70, 1], [52, 28, 1]]}}}

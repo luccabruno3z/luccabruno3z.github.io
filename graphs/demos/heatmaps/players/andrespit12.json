@@ -1,1 +1,1 @@
-{"player": "andrespit12", "grid_size": 128, "maps": {"ramiel": {"kills": [[16, 65, 2], [16, 73, 1]], "deaths": [[34, 74, 1]]}, "assault_on_grozny": {"kills": [], "deaths": [[50, 64, 1]]}}}
+{"player": "andrespit12", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [], "deaths": [[50, 64, 1]]}, "ramiel": {"kills": [[16, 65, 2], [16, 73, 1]], "deaths": [[34, 74, 1]]}}}
