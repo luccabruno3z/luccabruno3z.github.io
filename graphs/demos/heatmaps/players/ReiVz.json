@@ -1,1 +1,1 @@
-{"player": "ReiVz", "grid_size": 128, "maps": {"fallujah_west": {"kills": [[30, 98, 1], [13, 89, 1], [15, 113, 2], [39, 113, 7]], "deaths": [[18, 92, 1]]}, "operation_soul_rebel": {"kills": [[38, 74, 1]], "deaths": [[21, 84, 1], [61, 105, 1], [59, 124, 1]]}}}
+{"player": "ReiVz", "grid_size": 128, "maps": {"operation_soul_rebel": {"kills": [[38, 74, 1]], "deaths": [[21, 84, 1], [61, 105, 1], [59, 124, 1]]}, "fallujah_west": {"kills": [[30, 98, 1], [13, 89, 1], [15, 113, 2], [39, 113, 7]], "deaths": [[18, 92, 1]]}}}

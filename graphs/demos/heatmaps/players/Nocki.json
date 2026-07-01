@@ -1,1 +1,1 @@
-{"player": "Nocki", "grid_size": 128, "maps": {"fallujah_west": {"kills": [], "deaths": [[10, 80, 1], [51, 88, 1], [112, 88, 1]]}, "beirut": {"kills": [], "deaths": [[67, 23, 1]]}}}
+{"player": "Nocki", "grid_size": 128, "maps": {"beirut": {"kills": [], "deaths": [[67, 23, 1]]}, "fallujah_west": {"kills": [], "deaths": [[10, 80, 1], [51, 88, 1], [112, 88, 1]]}}}

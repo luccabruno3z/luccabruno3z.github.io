@@ -1,1 +1,1 @@
-{"player": "PkP", "grid_size": 128, "maps": {"zakho": {"kills": [[37, 45, 1]], "deaths": [[46, 34, 1]]}, "krivaja_valley": {"kills": [[52, 67, 1]], "deaths": [[56, 62, 1], [40, 68, 1], [36, 70, 1]]}}}
+{"player": "PkP", "grid_size": 128, "maps": {"krivaja_valley": {"kills": [[52, 67, 1]], "deaths": [[56, 62, 1], [40, 68, 1], [36, 70, 1]]}, "zakho": {"kills": [[37, 45, 1]], "deaths": [[46, 34, 1]]}}}
