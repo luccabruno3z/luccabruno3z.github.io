@@ -1,1 +1,1 @@
-{"player": "wachiturroo", "grid_size": 128, "maps": {"black_gold": {"kills": [[44, 90, 1], [41, 90, 1]], "deaths": [[40, 90, 1], [44, 90, 1], [45, 90, 1], [42, 89, 1]]}, "gaza_2": {"kills": [[91, 55, 1]], "deaths": []}}}
+{"player": "wachiturroo", "grid_size": 128, "maps": {"gaza_2": {"kills": [[91, 55, 1]], "deaths": []}, "black_gold": {"kills": [[44, 90, 1], [41, 90, 1]], "deaths": [[40, 90, 1], [44, 90, 1], [45, 90, 1], [42, 89, 1]]}}}

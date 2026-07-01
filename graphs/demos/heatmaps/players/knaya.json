@@ -1,1 +1,1 @@
-{"player": "knaya", "grid_size": 128, "maps": {"dovre_winter": {"kills": [], "deaths": [[65, 83, 1]]}, "grostok": {"kills": [], "deaths": [[49, 47, 1], [55, 71, 1]]}, "kokan": {"kills": [[82, 39, 1]], "deaths": [[89, 32, 1], [84, 37, 1], [86, 37, 1]]}}}
+{"player": "knaya", "grid_size": 128, "maps": {"kokan": {"kills": [[82, 39, 1]], "deaths": [[89, 32, 1], [84, 37, 1], [86, 37, 1]]}, "grostok": {"kills": [], "deaths": [[49, 47, 1], [55, 71, 1]]}, "dovre_winter": {"kills": [], "deaths": [[65, 83, 1]]}}}
