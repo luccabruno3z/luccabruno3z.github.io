@@ -1,1 +1,1 @@
-{"player": "Maribondo1", "grid_size": 128, "maps": {"musa_qala": {"kills": [], "deaths": [[50, 62, 1]]}, "donbas": {"kills": [[25, 34, 1]], "deaths": [[52, 74, 1], [25, 33, 1]]}}}
+{"player": "Maribondo1", "grid_size": 128, "maps": {"donbas": {"kills": [[25, 34, 1]], "deaths": [[52, 74, 1], [25, 33, 1]]}, "musa_qala": {"kills": [], "deaths": [[50, 62, 1]]}, "kafar_halab": {"kills": [[66, 85, 1], [76, 71, 2], [75, 71, 1], [80, 63, 2], [65, 63, 1], [77, 61, 1]], "deaths": [[79, 61, 1], [63, 78, 1]]}}}
