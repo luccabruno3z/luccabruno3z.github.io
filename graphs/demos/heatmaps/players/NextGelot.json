@@ -1,1 +1,1 @@
-{"player": "NextGelot", "grid_size": 128, "maps": {"adak": {"kills": [[55, 49, 3]], "deaths": [[52, 56, 1]]}}}
+{"player": "NextGelot", "grid_size": 128, "maps": {"adak": {"kills": [[55, 49, 3]], "deaths": [[52, 56, 1]]}, "ramiel": {"kills": [], "deaths": [[124, 42, 1]]}, "operation_marlin": {"kills": [[92, 71, 1], [57, 67, 1]], "deaths": [[67, 13, 1]]}}}
