@@ -16,7 +16,7 @@ import re
 
 import discord
 
-from bot.config import BASE_URL, BOT_THUMBNAIL
+from bot.config import BASE_URL, BOT_THUMBNAIL, MIN_ROUNDS
 from bot.services.chart_renderer import render_history_chart
 from bot.utils import find_player, format_number, standard_footer
 
@@ -28,7 +28,7 @@ def safe_filename(name: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_\-]", "_", name)
 
 
-def clan_top_benchmark(all_players, clan, n=5, min_rounds=50):
+def clan_top_benchmark(all_players, clan, n=5, min_rounds=MIN_ROUNDS):
     """Promedio de PS y K/D de los mejores `n` jugadores del clan (por Performance
     Score, calificados con >= min_rounds). Devuelve (ps, kd) o (None, None)."""
     if not isinstance(all_players, list) or not clan:

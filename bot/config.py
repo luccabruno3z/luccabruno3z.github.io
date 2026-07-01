@@ -3,6 +3,11 @@
 # ── Base URL ──────────────────────────────────────────────────────────────────
 BASE_URL = "https://luccabruno3z.github.io"
 
+# Mínimo de rondas para calificar (rankings/benchmarks). Fuente única compartida:
+# scraper LOW_ROUNDS_THRESHOLD y web min_rounds — el scraper lo publica en
+# tier_config.json; esta constante es el fallback del bot. Ver .rebuild/CONTRACT.md.
+MIN_ROUNDS = 50
+
 # ── URL builders ──────────────────────────────────────────────────────────────
 
 def graph_url(clan: str) -> str:

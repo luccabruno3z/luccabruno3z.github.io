@@ -26,7 +26,7 @@ if __name__ == "__main__" and __package__ is None:
 
 from .aliases import build_aliases, resolve_kit, resolve_weapon
 from .charts import generate_all_players_chart, generate_clan_charts
-from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET, EXCLUDED_GAMEMODES
+from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET, EXCLUDED_GAMEMODES, NORM_CAPS, LOW_ROUNDS_THRESHOLD
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
 from .fetcher import fetch_all_clans
 from .history import update_history
@@ -141,6 +141,16 @@ def run() -> None:
         "thresholds": thresholds,
         "target_distribution": [0.10, 0.30, 0.35, 0.20, 0.05],
         "predictor_weights": {"ps": 0.40, "kd": 0.25, "kpr": 0.15, "winrate": 0.20},
+        # Constantes compartidas con bot y web (fuente única). El scraper es el dueño;
+        # bot/web las leen de acá y solo caen a sus fallbacks si el JSON no está.
+        # Claves web-friendly (spr/kpr) mapeadas desde las internas del scraper.
+        "norm_caps": {
+            "kd": NORM_CAPS["kd"],
+            "spr": NORM_CAPS["score_per_round"],
+            "kpr": NORM_CAPS["kills_per_round"],
+            "rounds": NORM_CAPS["rounds"],
+        },
+        "min_rounds": LOW_ROUNDS_THRESHOLD,
         "ps_stats": {
             "mean": round(float(ps_col.mean()), 4),
             "median": round(float(ps_col.median()), 4),

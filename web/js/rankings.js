@@ -50,12 +50,14 @@ function renderRankings() {
     }
 
     // Exclude players below the rounds threshold; report how many were excluded.
-    const qualified = pool.filter(p => (p.Rounds || 0) >= MIN_ROUNDS_FOR_RANKING);
+    // Fuente única: el umbral sale de tier_config.json (min_rounds) con fallback a config.js.
+    const minRounds = state.tierConfigData?.min_rounds ?? MIN_ROUNDS_FOR_RANKING;
+    const qualified = pool.filter(p => (p.Rounds || 0) >= minRounds);
     const excluded = pool.length - qualified.length;
 
     if (!qualified.length) {
         const where = clanLabel ? ` para el clan ${escapeHtml(clanLabel)}` : '';
-        results.innerHTML = `<div class="empty-state">No hay jugadores con al menos ${MIN_ROUNDS_FOR_RANKING} rondas${where}.</div>`;
+        results.innerHTML = `<div class="empty-state">No hay jugadores con al menos ${minRounds} rondas${where}.</div>`;
         return;
     }
 
@@ -89,7 +91,7 @@ function renderRankings() {
     }).join('');
 
     const excludedNote = excluded > 0
-        ? `<p class="rankings-excluded">${excluded} jugador${excluded === 1 ? '' : 'es'} excluido${excluded === 1 ? '' : 's'} por tener menos de ${MIN_ROUNDS_FOR_RANKING} rondas.</p>`
+        ? `<p class="rankings-excluded">${excluded} jugador${excluded === 1 ? '' : 'es'} excluido${excluded === 1 ? '' : 's'} por tener menos de ${minRounds} rondas.</p>`
         : '';
 
     results.innerHTML = `

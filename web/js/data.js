@@ -10,7 +10,7 @@ import {
     ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
     SYNERGY_URL, HEATMAPS_URL, PLAYER_HEATMAP_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
-    CACHE_TTL,
+    CACHE_TTL, NORM_CAPS,
 } from './config.js';
 import { normalizeName } from './utils.js';
 
@@ -102,6 +102,12 @@ export async function loadData() {
 export async function loadTierConfig() {
     try {
         state.tierConfigData = await cachedFetch(TIER_CONFIG_URL);
+        // Fuente única: el scraper publica norm_caps en tier_config.json. Actualizamos
+        // el objeto NORM_CAPS in-place (binding vivo) para que predictor/utils usen los
+        // mismos valores que el scraper sin duplicar la constante. min_rounds se lee
+        // directo de state.tierConfigData donde se necesita (con fallback a config.js).
+        const nc = state.tierConfigData?.norm_caps;
+        if (nc && typeof nc === 'object') Object.assign(NORM_CAPS, nc);
     } catch (_) {
         console.warn('tier_config.json no disponible; usando umbrales por defecto');
     }

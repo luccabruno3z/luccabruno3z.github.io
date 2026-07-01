@@ -107,11 +107,23 @@ AUTOCOMPLETE_DEBOUNCE_MS = 150
   "version": "v3",
   "thresholds": { "elite":0.82919, "veterano":0.6787, "experimentado":0.5401, "soldado":0.38326 },
   "predictor_weights": { "kd":0.25, "kpr":0.15, "ps":0.4, "winrate":0.2 },
+  "norm_caps": { "kd":5.0, "spr":500.0, "kpr":10.0, "rounds":1000.0 },
+  "min_rounds": 50,
   "ps_stats": { "max":0.9068, "mean":0.533, "median":0.5551, "p95":0.8148 },
   "target_distribution": [0.1, 0.3, 0.35, 0.2, 0.05]
 }
 ```
 - **Used by:** `tierBadge()` (reads `thresholds`), `performPrediction()` (reads `predictor_weights`). `ps_stats`/`target_distribution`/`version`/`generated_at` are **not read** by the frontend.
+
+#### 1.3.1 Constantes compartidas (fuente única)
+`norm_caps` y `min_rounds` los publica **el scraper** (`scraper/config.py`: `NORM_CAPS`
++ `LOW_ROUNDS_THRESHOLD`) y son la **fuente única** para los tres componentes:
+- **Scraper:** dueño; los escribe en `tier_config.json`.
+- **Web:** `loadTierConfig()` hace `Object.assign(NORM_CAPS, norm_caps)` (binding vivo) →
+  `predictor.js`/`utils.js` los usan; `rankings.js` lee `min_rounds`. `web/js/config.js`
+  (`NORM_CAPS`, `MIN_ROUNDS_FOR_RANKING`) queda como **fallback** si falta el JSON.
+- **Bot:** `bot/config.py` `MIN_ROUNDS` como fallback (`clan_top_benchmark`).
+⚠️ Si cambia el valor, tocar **solo** `scraper/config.py`; los fallbacks deben coincidir.
 
 ### 1.4 `<CLAN>_players.json` (per-clan)
 - **URL:** `${GRAPHS_URL}/<CLAN>_players.json` (e.g. `LDH_players.json`).
