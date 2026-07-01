@@ -1,1 +1,1 @@
-{"player": "Sad-Boy", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [], "deaths": [[5, 51, 1]]}, "ras_el_masri_2": {"kills": [[13, 65, 8], [14, 64, 1], [11, 68, 4], [22, 76, 2]], "deaths": [[25, 75, 1], [22, 76, 1]]}}}
+{"player": "Sad-Boy", "grid_size": 128, "maps": {"ras_el_masri_2": {"kills": [[13, 65, 8], [14, 64, 1], [11, 68, 4], [22, 76, 2]], "deaths": [[25, 75, 1], [22, 76, 1]]}, "assault_on_grozny": {"kills": [], "deaths": [[5, 51, 1]]}}}
