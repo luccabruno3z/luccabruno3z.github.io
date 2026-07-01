@@ -1,1 +1,1 @@
-{"player": "Tall_Brain", "grid_size": 128, "maps": {"stalingrad": {"kills": [], "deaths": [[85, 53, 1], [84, 54, 1]]}, "donbas": {"kills": [], "deaths": [[53, 48, 1], [71, 29, 1]]}, "burning_sands": {"kills": [], "deaths": [[96, 50, 1]]}}}
+{"player": "Tall_Brain", "grid_size": 128, "maps": {"burning_sands": {"kills": [], "deaths": [[96, 50, 1]]}, "donbas": {"kills": [], "deaths": [[53, 48, 1], [71, 29, 1]]}, "stalingrad": {"kills": [], "deaths": [[85, 53, 1], [84, 54, 1]]}}}
