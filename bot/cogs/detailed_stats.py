@@ -589,11 +589,14 @@ class DetailedStats(commands.Cog):
             spec = "Especialista" if top_pct > 50 else "Versátil" if top_pct < 25 else "Balanceado"
             lines.append(f"\n📊 **Especialización:** {spec} ({top_pct:.0f}% en {top_kits[0][0]})")
 
-        # Revives/round if medic
+        # Revives/ronda-de-médico (como en demo_details): dividir por TODAS las rondas
+        # diluía la métrica de los que alternan kits. Fallback a rounds si el campo
+        # no está (player_details viejo).
         medic_count = normalized.get("Medico", 0)
         if medic_count > 0:
             revives_given = player.get("total_revives_given", 0)
-            lines.append(f"💉 **Medic** — Revives/ronda: **{revives_given / rounds:.2f}**")
+            medic_rounds = player.get("rounds_as_medic", 0) or rounds
+            lines.append(f"💉 **Medic** — Revives/ronda de médico: **{revives_given / medic_rounds:.2f}**")
 
         # Vehicles destroyed/round if AT/crewman
         at_count = sum(normalized.get(k, 0) for k in ("HAT", "LAT", "Anti-Tanque", "Tripulante"))
@@ -673,7 +676,11 @@ class DetailedStats(commands.Cog):
             for gm, gs in sorted(gm_stats.items(), key=lambda x: x[1].get("rounds", 0), reverse=True):
                 rds = gs.get("rounds", 0)
                 w = gs.get("wins", 0)
-                wr = gs.get("winrate", (w / rds * 100) if rds else 0)
+                # WR = W/(W+L), consistente con el winrate general (excluye rondas sin
+                # ganador). Se computa acá y no del campo publicado, que en data vieja
+                # era wins/rounds (diluido).
+                decided = w + gs.get("losses", 0)
+                wr = (w / decided * 100) if decided else 0
                 kd = gs.get("kd", 0)
                 kpr = gs.get("avg_kpr", 0)
                 lines.append(
@@ -698,7 +705,10 @@ class DetailedStats(commands.Cog):
             for faction, fdata in sorted(faction_stats.items(), key=lambda x: x[1].get("rounds", 0), reverse=True):
                 f_rounds = fdata.get("rounds", 0)
                 f_wins = fdata.get("wins", 0)
-                f_wr = (f_wins / f_rounds * 100) if f_rounds > 0 else 0
+                # W/(W+L) si el scraper ya publica losses por facción; fallback al
+                # esquema viejo (wins/rounds) mientras tanto.
+                f_decided = f_wins + fdata.get("losses", 0) if "losses" in fdata else f_rounds
+                f_wr = (f_wins / f_decided * 100) if f_decided > 0 else 0
                 lines.append(f"  `{faction}` — **{f_wr:.0f}%** ({f_wins}W/{f_rounds}R)")
 
         # Stats in wins vs losses

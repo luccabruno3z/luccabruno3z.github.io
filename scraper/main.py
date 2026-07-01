@@ -512,8 +512,8 @@ def _aggregate_player_details(
                     "gamemode_stats": {},  # gm -> {rounds, wins, losses, kills, deaths, avg_kpr, avg_dpr}
                     "per_map_stats": {},
                     "faction_stats": {
-                        "blufor": {"rounds": 0, "wins": 0, "avg_kpr": 0.0},
-                        "opfor": {"rounds": 0, "wins": 0, "avg_kpr": 0.0},
+                        "blufor": {"rounds": 0, "wins": 0, "losses": 0, "avg_kpr": 0.0},
+                        "opfor": {"rounds": 0, "wins": 0, "losses": 0, "avg_kpr": 0.0},
                     },
                     "win_stats": {
                         "avg_kills_in_wins": 0.0,
@@ -667,6 +667,8 @@ def _aggregate_player_details(
                 p["faction_stats"][faction_key]["rounds"] += 1
                 if won:
                     p["faction_stats"][faction_key]["wins"] += 1
+                elif lost:
+                    p["faction_stats"][faction_key]["losses"] += 1
                 acc["faction_kills"][faction_key].append(round_kills)
 
             # Best/worst round tracking
@@ -744,7 +746,11 @@ def _aggregate_player_details(
             gs["avg_kpr"] = round(tk / len(kills_list), 2) if kills_list else 0.0
             gs["avg_dpr"] = round(td / len(deaths_list), 2) if deaths_list else 0.0
             gs["kd"] = round(tk / td, 2) if td > 0 else float(tk)
-            gs["winrate"] = round(gs["wins"] / gs["rounds"] * 100, 1) if gs["rounds"] else 0.0
+            # Winrate competitivo = W/(W+L): excluye rondas sin ganador (empates/cortadas),
+            # consistente con el winrate general y el componente del Performance Score.
+            # Antes era wins/rounds, que diluía el % con rondas sin resultado.
+            _decided = gs["wins"] + gs["losses"]
+            gs["winrate"] = round(gs["wins"] / _decided * 100, 1) if _decided else 0.0
 
         # Streaks
         longest_win = 0

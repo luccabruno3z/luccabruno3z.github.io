@@ -16,6 +16,7 @@ from bot.config import (
     CLAN_EMOJIS,
     BOT_THUMBNAIL,
     METRIC_KEY_MAP,
+    MIN_ROUNDS,
     all_players_url,
     json_url,
     performance_color,
@@ -464,9 +465,9 @@ class Stats(commands.Cog):
 
         metric_key = METRIC_KEY_MAP.get(metrica, metrica)
 
-        # Filter out players with < 50 rounds (unreliable sample)
-        MIN_ROUNDS_FOR_RANKING = 50
-        reliable_data = [p for p in data if p.get("Rounds", 0) >= MIN_ROUNDS_FOR_RANKING]
+        # Filter out players below the qualification threshold (unreliable sample).
+        # MIN_ROUNDS: constante compartida con scraper/web (P5, ver tier_config.json).
+        reliable_data = [p for p in data if p.get("Rounds", 0) >= MIN_ROUNDS]
         excluded_count = len(data) - len(reliable_data)
 
         if activos:
@@ -492,13 +493,13 @@ class Stats(commands.Cog):
             lines.append(f"{medal} **{nombre}** [{clan}] — {format_number(valor_metrica)}{tier}")
 
         # Footer info
-        excluded_note = f" · {excluded_count} jugadores excluidos (<50 rondas)" if excluded_count else ""
+        excluded_note = f" · {excluded_count} jugadores excluidos (<{MIN_ROUNDS} rondas)" if excluded_count else ""
         demo_note = " · Datos de demos también disponibles (-ayuda)" if mode == "combined" else ""
         footer_text = standard_footer(data) + excluded_note + demo_note
 
         ranking_desc = (
             f"Clasificación basada en **{metrica}**. "
-            f"Mínimo 50 rondas para participar."
+            f"Mínimo {MIN_ROUNDS} rondas para participar."
         )
 
         # Build chart from top players
