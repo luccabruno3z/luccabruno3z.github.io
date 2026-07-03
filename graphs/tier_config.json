@@ -1,11 +1,11 @@
 {
   "version": "v3",
-  "generated_at": "2026-07-03 13:55:58",
+  "generated_at": "2026-07-03 15:13:33",
   "thresholds": {
-    "elite": 0.8220699999999999,
-    "veterano": 0.7046,
+    "elite": 0.82273,
+    "veterano": 0.7045,
     "experimentado": 0.56968,
-    "soldado": 0.43156
+    "soldado": 0.43146
   },
   "target_distribution": [
     0.1,
@@ -28,9 +28,9 @@
   },
   "min_rounds": 50,
   "ps_stats": {
-    "mean": 0.4274,
+    "mean": 0.4275,
     "median": 0.4864,
-    "p95": 0.7974,
+    "p95": 0.7981,
     "max": 0.931
   }
 }
