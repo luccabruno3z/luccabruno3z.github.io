@@ -28,7 +28,7 @@ from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
 from bot.ui.player_hub import PlayerHubView
-from bot.ui.top_card import TopCard
+from bot.ui.top_card import TopCard, DEMO_METRIC_LABELS
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
     format_number,
@@ -398,59 +398,35 @@ class Stats(commands.Cog):
                 logger.error("Error: %s", e)
                 return
 
-            # Map demo data keys to prstats-compatible keys
-            demo_metric_map = {
-                "performance": "total_score",
-                "kd": None,  # computed
-                "kills": "total_kills",
-                "deaths": "total_deaths",
-                "rounds": "rounds_played",
-            }
+            # Normalizar al shape prstats para reusar la misma TopCard (el Select de
+            # métrica y el chart funcionan igual). Demos no tiene Performance Score
+            # → el set de métricas es DEMO_METRIC_LABELS y "performance" cae a Score
+            # (mismo mapeo que hacía el embed viejo).
+            normalized = []
+            for p in demo_data or []:
+                kills = p.get("total_kills", 0)
+                deaths = p.get("total_deaths", 0)
+                normalized.append({
+                    "Player": p.get("ign", "?"),
+                    "Clan": "",
+                    "Total Kills": kills,
+                    "Total Deaths": deaths,
+                    "Total Score": p.get("total_score", 0),
+                    "Rounds": p.get("rounds_played", 0),
+                    "K/D Ratio": kills / deaths if deaths > 0 else float(kills),
+                })
 
-            def demo_sort_key(p):
-                if metrica == "kd":
-                    deaths = p.get("total_deaths", 1) or 1
-                    return p.get("total_kills", 0) / deaths
-                return p.get(demo_metric_map.get(metrica, "total_score"), 0)
-
-            demo_sorted = sorted(demo_data, key=demo_sort_key, reverse=True)[:cantidad]
-
-            lines: list[str] = []
-            for index, p in enumerate(demo_sorted, start=1):
-                nombre = p.get("ign", "Desconocido")
-                medal = rank_medal(index)
-                if metrica == "kd":
-                    deaths = p.get("total_deaths", 1) or 1
-                    valor = p.get("total_kills", 0) / deaths
-                    lines.append(f"{medal} **{nombre}** — {valor:.2f}")
-                else:
-                    valor = p.get(demo_metric_map.get(metrica, "total_score"), 0)
-                    lines.append(f"{medal} **{nombre}** — {format_number(valor)}")
-
-            embed = discord.Embed(
-                title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()} - {metrica}) [Demos]",
-                description=f"Clasificación basada en **{metrica}** (datos de demos).",
-                color=discord.Color.orange(),
+            card = TopCard(
+                normalized,
+                categoria_label="DEMOS",
+                cantidad=cantidad,
+                metrica="score" if metrica == "performance" else metrica,
+                footer="Datos de demos (.PRdemo)",
+                author_id=ctx.author.id,
+                metric_labels=DEMO_METRIC_LABELS,
+                subtitle="Ranking por datos de demos · jugadores de clanes trackeados",
             )
-            embed.set_thumbnail(url=BOT_THUMBNAIL)
-            embed.add_field(
-                name="🔝 **Ranking**",
-                value="\n".join(lines) if lines else "No hay jugadores en esta categoría.",
-                inline=False,
-            )
-            embed.set_footer(text="Datos de demos (.PRdemo)")
-
-            # Build chart
-            chart_names = [p.get("ign", "?") for p in demo_sorted][:15]
-            if metrica == "kd":
-                chart_values = [p.get("total_kills", 0) / (p.get("total_deaths", 1) or 1) for p in demo_sorted][:15]
-            else:
-                chart_values = [p.get(demo_metric_map.get(metrica, "total_score"), 0) for p in demo_sorted][:15]
-            buf = render_bar_chart(chart_names, chart_values, f"Top {metrica}", "Jugadores", metrica)
-            file = discord.File(buf, filename="top_chart.png")
-            embed.set_image(url="attachment://top_chart.png")
-
-            await ctx.send(embed=embed, file=file)
+            card.message = await ctx.send(view=card, files=[card.build_chart_file()])
             return
 
         clan_name = categorias[categoria.lower()]

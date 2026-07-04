@@ -26,25 +26,28 @@ METRIC_LABELS = {
     "kills": "Kills",
     "deaths": "Deaths",
     "rounds": "Rondas",
+    "score": "Score",
 }
+
+# Set de métricas para el modo demos (player_details no tiene Performance Score;
+# el resto se normaliza a las claves prstats antes de armar la tarjeta).
+DEMO_METRIC_LABELS = {k: v for k, v in METRIC_LABELS.items() if k != "performance"}
 
 
 def _fmt_value(metric: str, v) -> str:
-    if metric == "performance":
-        return f"{v:.2f}"
-    if metric == "kd":
+    if metric in ("performance", "kd"):
         return f"{v:.2f}"
     return format_number(v)
 
 
 class _MetricSelect(discord.ui.Select):
-    def __init__(self, current: str):
+    def __init__(self, current: str, labels: dict[str, str]):
         super().__init__(
             placeholder="Métrica",
             min_values=1, max_values=1,
             options=[
                 discord.SelectOption(label=lbl, value=val, default=(val == current))
-                for val, lbl in METRIC_LABELS.items()
+                for val, lbl in labels.items()
             ],
         )
 
@@ -66,16 +69,22 @@ class TopCard(discord.ui.LayoutView):
         footer: str = "",
         author_id: int | None = None,
         thresholds: dict | None = None,
+        metric_labels: dict[str, str] | None = None,
+        subtitle: str | None = None,
     ):
         super().__init__(timeout=300)
         self.players = players  # ya filtrados por MIN_ROUNDS (y activos si aplica)
         self.categoria_label = categoria_label
         self.cantidad = cantidad
-        self.metrica = metrica
+        self.metric_labels = metric_labels or METRIC_LABELS
+        # Si la métrica pedida no existe en este set (p.ej. performance en demos),
+        # caer a la primera disponible.
+        self.metrica = metrica if metrica in self.metric_labels else next(iter(self.metric_labels))
         self.excluded = excluded
         self.footer = footer
         self.author_id = author_id
         self.thresholds = thresholds
+        self.subtitle = subtitle  # None → default "Mínimo X rondas [· excluidos]"
         self.message: discord.Message | None = None
         self._render()
 
@@ -94,12 +103,13 @@ class TopCard(discord.ui.LayoutView):
 
     def build_chart_file(self) -> discord.File:
         key = METRIC_KEY_MAP.get(self.metrica, self.metrica)
+        label = self.metric_labels.get(self.metrica, self.metrica)
         top = self._ranked()[:_CHART_MAX]
         buf = render_top_chart(
             [p.get("Player", "?") for p in top],
             [p.get(key, 0) for p in top],
-            METRIC_LABELS.get(self.metrica, self.metrica),
-            f"Top {len(top)} — {self.categoria_label} · {METRIC_LABELS.get(self.metrica, self.metrica)}",
+            label,
+            f"Top {len(top)} — {self.categoria_label} · {label}",
         )
         return discord.File(buf, filename=_CHART_FILENAME)
 
@@ -107,7 +117,7 @@ class TopCard(discord.ui.LayoutView):
     def _render(self):
         self.clear_items()
         key = METRIC_KEY_MAP.get(self.metrica, self.metrica)
-        label = METRIC_LABELS.get(self.metrica, self.metrica)
+        label = self.metric_labels.get(self.metrica, self.metrica)
         ranked = self._ranked()
 
         lines = []
@@ -120,12 +130,13 @@ class TopCard(discord.ui.LayoutView):
             tier = f" {tier_emoji(p.get(key, 0), self.thresholds)}" if self.metrica == "performance" else ""
             lines.append(f"{medal} **{p.get('Player', '?')}**{clan_bit} — **{value}**{tier}")
 
+        subtitle = self.subtitle if self.subtitle is not None else (
+            f"Mínimo {MIN_ROUNDS} rondas"
+            + (f" · {self.excluded} excluidos" if self.excluded else "")
+        )
         children: list[discord.ui.Item] = [
             discord.ui.TextDisplay(f"# 🏆 Top {len(ranked)} — {self.categoria_label} · {label}"),
-            discord.ui.TextDisplay(
-                f"-# Mínimo {MIN_ROUNDS} rondas"
-                + (f" · {self.excluded} excluidos" if self.excluded else "")
-            ),
+            discord.ui.TextDisplay(f"-# {subtitle}"),
             discord.ui.TextDisplay(
                 "\n".join(lines) if lines else "No hay jugadores con suficientes rondas en esta categoría."
             ),
@@ -136,7 +147,7 @@ class TopCard(discord.ui.LayoutView):
             )
         if self.footer:
             children.append(discord.ui.TextDisplay(f"-# {self.footer}"))
-        children.append(discord.ui.ActionRow(_MetricSelect(self.metrica)))
+        children.append(discord.ui.ActionRow(_MetricSelect(self.metrica, self.metric_labels)))
         self.add_item(discord.ui.Container(*children, accent_colour=_ACCENT))
 
     async def change_metric(self, interaction: discord.Interaction, metrica: str):
