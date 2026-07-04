@@ -13,7 +13,7 @@ from bot.config import (
 )
 from bot.services.clan_registry import clan_choices
 from bot.services.chart_renderer import render_kd_chart, render_comparison_chart, render_multi_comparison, render_radar_chart, render_horizontal_bars, render_comparison_bars, render_probability_bar
-from bot.utils import format_number, find_player, highlight_winner, advantage_pct, progress_bar, relative_time, sample_reliability, standard_footer, ERR_DB
+from bot.utils import format_number, find_player, versus_table, progress_bar, relative_time, sample_reliability, standard_footer, ERR_DB
 from bot.views.demo_details import DemoDetailsView
 from bot.ui.comparison_card import ComparisonCard
 
@@ -104,7 +104,7 @@ class Compare(commands.Cog):
 
     # ── -compare <entity1> <entity2> ──────────────────────────────────────
 
-    @commands.hybrid_command(aliases=["vs", "comp", "versus"])
+    @commands.hybrid_command(aliases=["comparar", "vs", "versus", "comp"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     @app_commands.describe(
         entity1="Primer jugador o clan",
@@ -179,27 +179,14 @@ class Compare(commands.Cog):
             }
 
             metrics = [
-                ("💥 K/D", the_player["K/D Ratio"], clan_avg["K/D Ratio"], True),
-                ("🔫 Kills/Ronda", the_player.get("Kills per Round", 0), clan_avg["Kills per Round"], True),
-                ("🎯 Score/Ronda", the_player.get("Score per Round", 0), clan_avg["Score per Round"], True),
-                ("🌟 Performance", the_player.get("Performance Score", 0), clan_avg["Performance Score"], True),
-                ("🎮 Rounds", the_player.get("Rounds", 0), clan_avg["Rounds"], True),
+                ("K/D", the_player["K/D Ratio"], clan_avg["K/D Ratio"], True),
+                ("Kills/Ronda", the_player.get("Kills per Round", 0), clan_avg["Kills per Round"], True),
+                ("Score/Ronda", the_player.get("Score per Round", 0), clan_avg["Score per Round"], True),
+                ("Performance", the_player.get("Performance Score", 0), clan_avg["Performance Score"], True),
+                ("Rondas", the_player.get("Rounds", 0), clan_avg["Rounds"], True),
             ]
+            table, p_wins, c_wins, _ties = versus_table(player_name, f"x̄ {clan_name_resolved}", metrics)
 
-            lines = []
-            p_wins = 0
-            for label, v1, v2, higher_better in metrics:
-                e1, e2 = highlight_winner(v1, v2, higher_better)
-                if e1 == "✅":
-                    p_wins += 1
-                if e1 == "✅":
-                    lines.append(f"{label}: {e1} **{format_number(v1)}** ({advantage_pct(v1, v2)}) vs {e2} {format_number(v2)}")
-                elif e2 == "✅":
-                    lines.append(f"{label}: {e1} {format_number(v1)} vs {e2} **{format_number(v2)}** ({advantage_pct(v2, v1)})")
-                else:
-                    lines.append(f"{label}: 🟰 {format_number(v1)} vs 🟰 {format_number(v2)}")
-
-            c_wins = len(metrics) - p_wins - sum(1 for _, v1, v2, _ in metrics if v1 == v2)
             if p_wins > c_wins:
                 verdict = f"**{player_name}** supera al promedio de **{clan_name_resolved}**"
             elif c_wins > p_wins:
@@ -212,7 +199,7 @@ class Compare(commands.Cog):
                 description=f"**{player_name}** ⚔️ **Promedio de {clan_name_resolved}** ({n} miembros)",
                 color=discord.Color.teal(),
             )
-            embed.add_field(name="📊 Comparación", value="\n".join(lines), inline=False)
+            embed.add_field(name="📊 Comparación (▲ = mejor)", value=table, inline=False)
             embed.add_field(name="🏆 Veredicto", value=verdict, inline=False)
 
             chart_labels = ["K/D", "Kills/R", "Score/R", "Performance", "Rounds"]
@@ -229,51 +216,24 @@ class Compare(commands.Cog):
             return
 
         if p1 and p2:
-            # Player vs Player — premium comparison
+            # Player vs Player — tabla alineada (una ▲ por fila, sin ruido de emojis)
             metrics = [
-                ("💥 K/D", p1["K/D Ratio"], p2["K/D Ratio"], True),
-                ("🔫 Kills/Ronda", p1.get("Kills per Round", 0), p2.get("Kills per Round", 0), True),
-                ("🎯 Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
-                ("🌟 Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
-                ("🎮 Rounds", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
-                ("☠️ Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
-                ("🏆 Total Score", p1.get("Total Score", 0), p2.get("Total Score", 0), True),
+                ("K/D", p1["K/D Ratio"], p2["K/D Ratio"], True),
+                ("Kills/Ronda", p1.get("Kills per Round", 0), p2.get("Kills per Round", 0), True),
+                ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
+                ("Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
+                ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
+                ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
+                ("Total Score", p1.get("Total Score", 0), p2.get("Total Score", 0), True),
             ]
-
-            lines = []
-            p1_wins = 0
-            for label, v1, v2, higher_better in metrics:
-                e1, e2 = highlight_winner(v1, v2, higher_better)
-                if e1 == "✅":
-                    p1_wins += 1
-                # Format: winner gets the advantage_pct shown next to them
-                if e1 == "✅":
-                    lines.append(
-                        f"{label}: {e1} **{format_number(v1)}** ({advantage_pct(v1, v2)}) vs {e2} {format_number(v2)}"
-                    )
-                elif e2 == "✅":
-                    lines.append(
-                        f"{label}: {e1} {format_number(v1)} vs {e2} **{format_number(v2)}** ({advantage_pct(v2, v1)})"
-                    )
-                else:
-                    lines.append(
-                        f"{label}: 🟰 {format_number(v1)} vs 🟰 {format_number(v2)}"
-                    )
-
-            p2_wins = len(metrics) - p1_wins - sum(1 for _, v1, v2, _ in metrics if v1 == v2)
+            table, p1_wins, p2_wins, _ties = versus_table(entity1, entity2, metrics)
 
             if p1_wins > p2_wins:
-                winner_name = entity1
+                summary = f"🏆 **{entity1}** gana **{p1_wins}/{len(metrics)}** categorías"
             elif p2_wins > p1_wins:
-                winner_name = entity2
+                summary = f"🏆 **{entity2}** gana **{p2_wins}/{len(metrics)}** categorías"
             else:
-                winner_name = None
-
-            summary = (
-                f"**Resultado:** {winner_name} gana {max(p1_wins, p2_wins)}/{len(metrics)} categorías"
-                if winner_name
-                else f"**Resultado:** Empate {p1_wins}/{len(metrics)} categorías cada uno"
-            )
+                summary = f"🤝 Empate: **{p1_wins}/{len(metrics)}** categorías cada uno"
 
             p1_rounds = p1.get("Rounds", 0)
             p2_rounds = p2.get("Rounds", 0)
@@ -288,30 +248,27 @@ class Compare(commands.Cog):
             mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
             demo_for = [entity1, entity2] if mode in ("combined", "demos") else None
 
-            card = ComparisonCard(
-                self, ctx, entity1, entity2,
-                lines=lines, summary=summary, warning=warning,
-                footer=standard_footer(p1), demo_for=demo_for,
-            )
-            card.message = await ctx.send(view=card)
-
-            # Radar comparison chart (if both players have radar data)
-            radar1 = p1.get("radar")
-            radar2 = p2.get("radar")
+            # Radar dentro de la misma tarjeta (antes iba como segundo mensaje/embed).
+            radar_file = None
+            radar1, radar2 = p1.get("radar"), p2.get("radar")
             if radar1 and radar2:
                 radar_labels = ["Letalidad", "Supervivencia", "Teamwork", "Impacto", "Consistencia", "Versatilidad"]
                 radar_keys = ["letalidad", "supervivencia", "teamwork", "impacto", "consistencia", "versatilidad"]
                 p1_values = {label: radar1.get(key, 0) for label, key in zip(radar_labels, radar_keys)}
                 p2_values = {label: radar2.get(key, 0) for label, key in zip(radar_labels, radar_keys)}
-
                 radar_buf = render_radar_chart(p1_values, p2_values, p1["Player"], p2["Player"])
                 radar_file = discord.File(radar_buf, filename="radar_vs.png")
-                radar_embed = discord.Embed(
-                    title=f"🕸️ Radar: {entity1} vs {entity2}",
-                    color=discord.Color.purple(),
-                )
-                radar_embed.set_image(url="attachment://radar_vs.png")
-                await ctx.send(embed=radar_embed, file=radar_file)
+
+            card = ComparisonCard(
+                self, ctx, entity1, entity2,
+                table=table, summary=summary, warning=warning,
+                footer=standard_footer(p1), demo_for=demo_for,
+                radar_filename="radar_vs.png" if radar_file else None,
+            )
+            if radar_file:
+                card.message = await ctx.send(view=card, files=[radar_file])
+            else:
+                card.message = await ctx.send(view=card)
 
         else:
             # Clan vs Clan comparison — premium format
@@ -353,31 +310,16 @@ class Compare(commands.Cog):
                 return
 
             clan_metrics = [
-                ("☠️ Total Kills", s1["kills"], s2["kills"], True),
-                ("💀 Total Deaths", s1["deaths"], s2["deaths"], False),
-                ("🏆 Total Score", s1["score"], s2["score"], True),
-                ("🎮 Total Rounds", s1["rounds"], s2["rounds"], True),
-                ("👥 Miembros", s1["members"], s2["members"], True),
-                ("💥 K/D Equipo", s1["team_kd"], s2["team_kd"], True),
-                ("📊 Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
-                ("🌟 Avg Performance", s1["avg_ps"], s2["avg_ps"], True),
+                ("Total Kills", s1["kills"], s2["kills"], True),
+                ("Total Deaths", s1["deaths"], s2["deaths"], False),
+                ("Total Score", s1["score"], s2["score"], True),
+                ("Total Rondas", s1["rounds"], s2["rounds"], True),
+                ("Miembros", s1["members"], s2["members"], True),
+                ("K/D Equipo", s1["team_kd"], s2["team_kd"], True),
+                ("Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
+                ("Avg Perf.", s1["avg_ps"], s2["avg_ps"], True),
             ]
-
-            lines = []
-            e1_wins = 0
-            for label, v1, v2, higher_better in clan_metrics:
-                em1, em2 = highlight_winner(v1, v2, higher_better)
-                if em1 == "✅":
-                    e1_wins += 1
-                if em1 == "✅":
-                    lines.append(f"{label}: {em1} **{format_number(v1)}** ({advantage_pct(v1, v2)}) vs {em2} {format_number(v2)}")
-                elif em2 == "✅":
-                    lines.append(f"{label}: {em1} {format_number(v1)} vs {em2} **{format_number(v2)}** ({advantage_pct(v2, v1)})")
-                else:
-                    lines.append(f"{label}: 🟰 {format_number(v1)} vs 🟰 {format_number(v2)}")
-
-            ties = sum(1 for _, v1, v2, _ in clan_metrics if v1 == v2)
-            e2_wins = len(clan_metrics) - e1_wins - ties
+            table, e1_wins, e2_wins, ties = versus_table(entity1, entity2, clan_metrics)
 
             if e1_wins > e2_wins:
                 winner = entity1
@@ -397,7 +339,7 @@ class Compare(commands.Cog):
                 description=f"**{entity1}** ({s1['members']} miembros) ⚔️ **{entity2}** ({s2['members']} miembros)",
                 color=discord.Color.gold(),
             )
-            embed.add_field(name="📊 Comparación", value="\n".join(lines), inline=False)
+            embed.add_field(name="📊 Comparación (▲ = mejor)", value=table, inline=False)
             embed.add_field(name="🏆 Veredicto", value=summary, inline=False)
 
             # Build clan vs clan chart
@@ -1044,32 +986,17 @@ class Compare(commands.Cog):
         s1 = aggregate(top1)
         s2 = aggregate(top2)
 
-        # Compare metrics
+        # Compare metrics — misma tabla alineada que -compare
         metrics = [
-            ("🌟 Avg Performance", s1["avg_ps"], s2["avg_ps"], True),
-            ("💥 Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
-            ("🔫 Avg Kills/Ronda", s1["avg_kpr"], s2["avg_kpr"], True),
-            ("🎯 Avg Score/Ronda", s1["avg_spr"], s2["avg_spr"], True),
-            ("💀 K/D Equipo", s1["team_kd"], s2["team_kd"], True),
-            ("☠️ Total Kills", s1["kills"], s2["kills"], True),
-            ("🏆 Total Score", s1["score"], s2["score"], True),
+            ("Avg Perf.", s1["avg_ps"], s2["avg_ps"], True),
+            ("Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
+            ("Avg Kills/R", s1["avg_kpr"], s2["avg_kpr"], True),
+            ("Avg Score/R", s1["avg_spr"], s2["avg_spr"], True),
+            ("K/D Equipo", s1["team_kd"], s2["team_kd"], True),
+            ("Total Kills", s1["kills"], s2["kills"], True),
+            ("Total Score", s1["score"], s2["score"], True),
         ]
-
-        lines = []
-        c1_wins = 0
-        for label, v1, v2, higher_better in metrics:
-            em1, em2 = highlight_winner(v1, v2, higher_better)
-            if em1 == "✅":
-                c1_wins += 1
-            if em1 == "✅":
-                lines.append(f"{label}: {em1} **{format_number(v1)}** ({advantage_pct(v1, v2)}) vs {em2} {format_number(v2)}")
-            elif em2 == "✅":
-                lines.append(f"{label}: {em1} {format_number(v1)} vs {em2} **{format_number(v2)}** ({advantage_pct(v2, v1)})")
-            else:
-                lines.append(f"{label}: 🟰 {format_number(v1)} vs 🟰 {format_number(v2)}")
-
-        ties = sum(1 for _, v1, v2, _ in metrics if v1 == v2)
-        c2_wins = len(metrics) - c1_wins - ties
+        table, c1_wins, c2_wins, ties = versus_table(c1, c2, metrics)
 
         if c1_wins > c2_wins:
             winner = c1
@@ -1110,8 +1037,8 @@ class Compare(commands.Cog):
         )
         embed.add_field(name="\u200b", value="\u200b", inline=False)  # spacer
         embed.add_field(
-            name="📊 Comparación",
-            value="\n".join(lines),
+            name="📊 Comparación (▲ = mejor)",
+            value=table,
             inline=False,
         )
         embed.add_field(

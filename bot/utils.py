@@ -97,6 +97,40 @@ def advantage_pct(val1: float, val2: float) -> str:
     return f"{pct:+.1f}%"
 
 
+def _vt_num(v: float) -> str:
+    """Número compacto para la tabla de -compare (ancho fijo, sin decimales de más)."""
+    if isinstance(v, float) and not float(v).is_integer():
+        return f"{v:,.2f}" if abs(v) < 1000 else f"{v:,.0f}"
+    return f"{int(v):,}"
+
+
+def versus_table(name1: str, name2: str, metrics: list[tuple]) -> tuple[str, int, int, int]:
+    """Tabla monoespaciada head-to-head para -compare (una ▲ marca al mejor por fila).
+
+    Reemplaza las líneas ❌/✅+emoji+negritas (ruido visual) por columnas alineadas.
+    *metrics*: lista de (label, v1, v2, higher_is_better).
+    Devuelve (bloque_markdown, wins1, wins2, ties). El % es la ventaja del ganador
+    (negativo en métricas lower-is-better, p.ej. -12% = 12% menos muertes).
+    """
+    c1, c2 = name1[:9], name2[:9]
+    rows = [f"{'':<13}{c1:>9}  {c2:>9}"]
+    wins1 = wins2 = ties = 0
+    for label, v1, v2, hib in metrics:
+        win1 = (v1 > v2) if hib else (v1 < v2)
+        win2 = (v2 > v1) if hib else (v2 < v1)
+        if win1:
+            wins1 += 1
+        elif win2:
+            wins2 += 1
+        else:
+            ties += 1
+        m1 = "▲" if win1 else " "
+        m2 = "▲" if win2 else " "
+        pct = advantage_pct(v1, v2) if win1 else (advantage_pct(v2, v1) if win2 else "=")
+        rows.append(f"{label:<13.13}{_vt_num(v1):>8}{m1} {_vt_num(v2):>8}{m2} {pct:>7}")
+    return "```\n" + "\n".join(rows) + "\n```", wins1, wins2, ties
+
+
 def find_player(data: list[dict], name: str, key: str = "Player") -> dict | None:
     """Find a player by name with priority cascade:
 

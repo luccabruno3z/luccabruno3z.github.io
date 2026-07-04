@@ -1,8 +1,9 @@
 """Components V2 comparison card for `-compare` (player vs player).
 
-A single Container with the head-to-head metric breakdown, the verdict, an
-optional small-sample caution, and an ActionRow: an "Invertir" button plus
-per-player demo buttons (reusing the persistent PlayerCardActionButton).
+A single Container: header, the aligned head-to-head table (see utils.versus_table),
+the verdict, an optional small-sample caution, the radar chart embedded via
+MediaGallery (same message — before it went as a separate embed), and an ActionRow
+with "Invertir" plus per-player demo buttons.
 """
 
 from __future__ import annotations
@@ -30,11 +31,12 @@ class ComparisonCard(discord.ui.LayoutView):
         entity1: str,
         entity2: str,
         *,
-        lines: list[str],
+        table: str,
         summary: str,
         warning: str | None = None,
         footer: str = "",
         demo_for: list[str] | None = None,
+        radar_filename: str | None = None,
     ):
         super().__init__(timeout=180)
         self.cog = cog
@@ -44,15 +46,17 @@ class ComparisonCard(discord.ui.LayoutView):
         self.message: discord.Message | None = None
 
         children: list[discord.ui.Item] = [
-            discord.ui.TextDisplay(f"# 🔍 {entity1}  ⚔️  {entity2}"),
-            discord.ui.Separator(),
-            discord.ui.TextDisplay("\n".join(lines)),
-            discord.ui.Separator(),
+            discord.ui.TextDisplay(f"# ⚔️ {entity1} vs {entity2}"),
+            discord.ui.TextDisplay("-# ▲ marca al mejor en cada categoría"),
+            discord.ui.TextDisplay(table),
             discord.ui.TextDisplay(summary),
         ]
         if warning:
             children.append(discord.ui.TextDisplay(f"-# ⚠️ {warning}"))
-        children.append(discord.ui.Separator(visible=False))
+        if radar_filename:
+            children.append(
+                discord.ui.MediaGallery(discord.MediaGalleryItem(f"attachment://{radar_filename}"))
+            )
         if footer:
             children.append(discord.ui.TextDisplay(f"-# {footer}"))
 
