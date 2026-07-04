@@ -28,6 +28,7 @@ from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
 from bot.ui.player_hub import PlayerHubView
+from bot.ui.top_card import TopCard
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
     format_number,
@@ -463,8 +464,6 @@ class Stats(commands.Cog):
             logger.error("Error: %s", e)
             return
 
-        metric_key = METRIC_KEY_MAP.get(metrica, metrica)
-
         # Filter out players below the qualification threshold (unreliable sample).
         # MIN_ROUNDS: constante compartida con scraper/web (P5, ver tier_config.json).
         reliable_data = [p for p in data if p.get("Rounds", 0) >= MIN_ROUNDS]
@@ -473,82 +472,30 @@ class Stats(commands.Cog):
         if activos:
             reliable_data = [p for p in reliable_data if p.get("Activity Index", 0) >= 40]
 
-        jugadores_ordenados = sorted(
-            reliable_data, key=lambda x: x.get(metric_key, 0), reverse=True
-        )
+        cantidad = min(cantidad, len(reliable_data))
 
-        cantidad = min(cantidad, len(jugadores_ordenados))
-        top_jugadores = jugadores_ordenados[:cantidad]
+        # Tarjeta Components V2: ranking + chart integrado + Select de métrica
+        # (reemplaza el embed naranja viejo con el chart en mensaje separado).
+        thresholds = None
+        try:
+            tier_config = await self.fetcher.fetch_tier_config()
+            if isinstance(tier_config, dict):
+                thresholds = tier_config.get("thresholds")
+        except Exception:
+            pass
 
-        # Build lines for all players
-        max_value = top_jugadores[0].get(metric_key, 0) if top_jugadores else 1
-        lines: list[str] = []
-        for index, jugador_entry in enumerate(top_jugadores, start=1):
-            nombre = jugador_entry.get("Player", "Desconocido")
-            valor_metrica = jugador_entry.get(metric_key, 0)
-            clan = jugador_entry.get("Clan", "N/A")
-            clan_emoji = get_clan_emoji(clan)
-            medal = rank_medal(index)
-            tier = " " + tier_emoji(valor_metrica) if metrica == "performance" else ""
-            lines.append(f"{medal} **{nombre}** [{clan}] — {format_number(valor_metrica)}{tier}")
-
-        # Footer info
-        excluded_note = f" · {excluded_count} jugadores excluidos (<{MIN_ROUNDS} rondas)" if excluded_count else ""
         demo_note = " · Datos de demos también disponibles (-ayuda)" if mode == "combined" else ""
-        footer_text = standard_footer(data) + excluded_note + demo_note
-
-        ranking_desc = (
-            f"Clasificación basada en **{metrica}**. "
-            f"Mínimo {MIN_ROUNDS} rondas para participar."
+        card = TopCard(
+            reliable_data,
+            categoria_label=categoria.upper(),
+            cantidad=cantidad,
+            metrica=metrica,
+            excluded=excluded_count,
+            footer=standard_footer(data) + demo_note,
+            author_id=ctx.author.id,
+            thresholds=thresholds,
         )
-
-        # Build chart from top players
-        chart_names = [p.get("Player", "?") for p in top_jugadores][:15]
-        chart_values = [p.get(metric_key, 0) for p in top_jugadores][:15]
-        buf = render_bar_chart(chart_names, chart_values, f"Top {metrica}", "Jugadores", metrica)
-        chart_file = discord.File(buf, filename="top_chart.png")
-
-        per_page = 8
-        if len(lines) > per_page:
-            # Send chart as a separate message so it doesn't disappear on page change
-            await ctx.send(file=chart_file)
-
-            pages: list[discord.Embed] = []
-            for i in range(0, len(lines), per_page):
-                chunk = lines[i : i + per_page]
-                page_num = (i // per_page) + 1
-                total_pages = (len(lines) + per_page - 1) // per_page
-                embed = discord.Embed(
-                    title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()} - {metrica})",
-                    description=f"{ranking_desc}\nPágina {page_num}/{total_pages}",
-                    color=discord.Color.orange(),
-                )
-                embed.set_thumbnail(url=BOT_THUMBNAIL)
-                embed.add_field(
-                    name="🔝 **Ranking**",
-                    value="\n".join(chunk),
-                    inline=False,
-                )
-                embed.set_footer(text=footer_text)
-                pages.append(embed)
-            view = PaginationView(pages)
-            msg = await ctx.send(embed=pages[0], view=view)
-            view.message = msg
-        else:
-            embed = discord.Embed(
-                title=f"🏆 **Top {cantidad} Jugadores** ({categoria.upper()} - {metrica})",
-                description=ranking_desc,
-                color=discord.Color.orange(),
-            )
-            embed.set_thumbnail(url=BOT_THUMBNAIL)
-            embed.add_field(
-                name="🔝 **Ranking**",
-                value="\n".join(lines) if lines else "No hay jugadores con suficientes rondas en esta categoría.",
-                inline=False,
-            )
-            embed.set_footer(text=footer_text)
-            embed.set_image(url="attachment://top_chart.png")
-            await ctx.send(embed=embed, file=chart_file)
+        card.message = await ctx.send(view=card, files=[card.build_chart_file()])
 
     # ── -buscar_usuario <parte_nombre> ────────────────────────────────────
 

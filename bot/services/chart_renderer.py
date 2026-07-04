@@ -32,6 +32,57 @@ def _save_to_buffer(fig) -> io.BytesIO:
 
 # ── Public renderers ──────────────────────────────────────────────────────────
 
+def render_top_chart(
+    names: list[str],
+    values: list[float],
+    metric_label: str,
+    title: str,
+) -> io.BytesIO:
+    """Ranking horizontal para -top: nombres legibles (sin rotación 45°), podio en
+    oro/plata/bronce y el resto en degradé cian. Reemplaza al bar chart vertical
+    viejo (línea roja de promedio, bordes blancos)."""
+    plt.style.use("dark_background")
+    n = len(names)
+    fig, ax = plt.subplots(figsize=(10, max(3.2, 0.5 * n + 1.4)))
+    fig.patch.set_facecolor("#121212")
+    ax.set_facecolor("#121212")
+
+    y = np.arange(n)[::-1]  # el #1 arriba
+    max_val = max(values) if values else 1
+
+    medal_colors = ["#FFD700", "#C0C0C0", "#CD7F32"]  # oro, plata, bronce
+    colors = []
+    for i, v in enumerate(values):
+        if i < 3:
+            colors.append(medal_colors[i])
+        else:
+            ratio = v / max_val if max_val else 0
+            colors.append((0.0, 0.45 + 0.55 * ratio, 0.55 + 0.45 * ratio, 0.9))
+
+    bars = ax.barh(y, values, height=0.62, color=colors)
+
+    # Valor al final de cada barra
+    for bar, v in zip(bars, values):
+        label = f"{v:,.2f}" if (isinstance(v, float) and abs(v) < 100) else f"{v:,.0f}"
+        ax.text(
+            bar.get_width() + max_val * 0.012,
+            bar.get_y() + bar.get_height() / 2,
+            label, va="center", ha="left", color="white", fontsize=9,
+        )
+
+    ax.set_yticks(y)
+    ax.set_yticklabels(names, color="white", fontsize=10)
+    ax.set_xlim(0, max_val * 1.14)
+    ax.set_xlabel(metric_label, color="#AAAAAA", fontsize=9)
+    ax.set_title(title, color="white", fontsize=13, pad=12)
+    ax.tick_params(axis="x", colors="#888888", labelsize=8)
+    ax.grid(axis="x", linestyle="--", color="gray", alpha=0.15)
+    for spine in ax.spines.values():
+        spine.set_visible(False)
+
+    return _save_to_buffer(fig)
+
+
 def render_bar_chart(
     labels: list[str],
     values: list[float],
