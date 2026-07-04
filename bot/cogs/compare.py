@@ -246,9 +246,21 @@ class Compare(commands.Cog):
             except Exception:
                 demo_data = None
             if isinstance(demo_data, list):
-                d1 = find_player(demo_data, entity1, key="ign")
-                d2 = find_player(demo_data, entity2, key="ign")
-                if d1 and d2 and d1.get("rounds_played", 0) >= 5 and d2.get("rounds_played", 0) >= 5:
+                # Match EXACTO (case-insensitive) contra el nombre canónico de prstats:
+                # el fallback parcial de find_player servía para resolver a quién te
+                # referís, pero acá ATRIBUYE stats — "W4RR10R" matcheaba por substring
+                # la entrada de "BSK.W4RR10R" y el bloque mostraba la misma data dos
+                # veces (todo empates). Los ign de player_details son nombres prstats.
+                def _demo_exact(name):
+                    nl = (name or "").lower()
+                    return next((e for e in demo_data if e.get("ign", "").lower() == nl), None)
+
+                d1 = _demo_exact(p1.get("Player"))
+                d2 = _demo_exact(p2.get("Player"))
+                if (
+                    d1 and d2 and d1 is not d2
+                    and d1.get("rounds_played", 0) >= 5 and d2.get("rounds_played", 0) >= 5
+                ):
                     def _rate(d, key):
                         return d.get(key, 0) / max(d.get("rounds_played", 1), 1)
 
