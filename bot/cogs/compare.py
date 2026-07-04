@@ -168,11 +168,16 @@ class Compare(commands.Cog):
                 return
 
             n = len(clan_members)
+            # Solo métricas de all_players (universales): las de demos NO van acá
+            # porque no todos los miembros tienen datos de demos y el promedio
+            # quedaría sesgado/incomparable.
             clan_avg = {
                 "K/D Ratio": sum(p.get("K/D Ratio", 0) for p in clan_members) / n,
                 "Kills per Round": sum(p.get("Kills per Round", 0) for p in clan_members) / n,
+                "Deaths per Round": sum(p.get("Deaths per Round", 0) for p in clan_members) / n,
                 "Score per Round": sum(p.get("Score per Round", 0) for p in clan_members) / n,
                 "Performance Score": sum(p.get("Performance Score", 0) for p in clan_members) / n,
+                "Activity Index": sum(p.get("Activity Index", 0) for p in clan_members) / n,
                 "Rounds": sum(p.get("Rounds", 0) for p in clan_members) / n,
                 "Total Kills": sum(p.get("Total Kills", 0) for p in clan_members) / n,
                 "Total Score": sum(p.get("Total Score", 0) for p in clan_members) / n,
@@ -181,8 +186,10 @@ class Compare(commands.Cog):
             metrics = [
                 ("K/D", the_player["K/D Ratio"], clan_avg["K/D Ratio"], True),
                 ("Kills/Ronda", the_player.get("Kills per Round", 0), clan_avg["Kills per Round"], True),
+                ("Deaths/Ronda", the_player.get("Deaths per Round", 0), clan_avg["Deaths per Round"], False),
                 ("Score/Ronda", the_player.get("Score per Round", 0), clan_avg["Score per Round"], True),
                 ("Performance", the_player.get("Performance Score", 0), clan_avg["Performance Score"], True),
+                ("Actividad", the_player.get("Activity Index", 0), clan_avg["Activity Index"], True),
                 ("Rondas", the_player.get("Rounds", 0), clan_avg["Rounds"], True),
             ]
             table, p_wins, c_wins, _ties = versus_table(player_name, f"x̄ {clan_name_resolved}", metrics)
@@ -220,13 +227,48 @@ class Compare(commands.Cog):
             metrics = [
                 ("K/D", p1["K/D Ratio"], p2["K/D Ratio"], True),
                 ("Kills/Ronda", p1.get("Kills per Round", 0), p2.get("Kills per Round", 0), True),
+                ("Deaths/Ronda", p1.get("Deaths per Round", 0), p2.get("Deaths per Round", 0), False),
                 ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
                 ("Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
+                ("Actividad", p1.get("Activity Index", 0), p2.get("Activity Index", 0), True),
                 ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
                 ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
                 ("Total Score", p1.get("Total Score", 0), p2.get("Total Score", 0), True),
             ]
             table, p1_wins, p2_wins, _ties = versus_table(entity1, entity2, metrics)
+
+            # Bloque extra de demos: SOLO jugador-vs-jugador y SOLO si ambos tienen
+            # >=5 rondas de demos (cobertura parcial: ~1 de cada 3 jugadores). No
+            # cuenta para el veredicto, así el resultado no depende de si hay demos.
+            demo_table = demo_note = None
+            try:
+                demo_data = await self.fetcher.fetch_player_details()
+            except Exception:
+                demo_data = None
+            if isinstance(demo_data, list):
+                d1 = find_player(demo_data, entity1, key="ign")
+                d2 = find_player(demo_data, entity2, key="ign")
+                if d1 and d2 and d1.get("rounds_played", 0) >= 5 and d2.get("rounds_played", 0) >= 5:
+                    def _rate(d, key):
+                        return d.get(key, 0) / max(d.get("rounds_played", 1), 1)
+
+                    def _wr(d):
+                        decided = d.get("wins", 0) + d.get("losses", 0)
+                        return d.get("wins", 0) / decided * 100 if decided else 0.0
+
+                    demo_metrics = [
+                        ("Winrate %", _wr(d1), _wr(d2), True),
+                        ("Revives/R", _rate(d1, "total_revives_given"), _rate(d2, "total_revives_given"), True),
+                        ("Vehic.dest/R", _rate(d1, "total_vehicles_destroyed"), _rate(d2, "total_vehicles_destroyed"), True),
+                        ("Banderas/R", _rate(d1, "total_flags_captured"), _rate(d2, "total_flags_captured"), True),
+                        ("TKs/R", _rate(d1, "total_teamkills"), _rate(d2, "total_teamkills"), False),
+                        ("Mejor racha", d1.get("best_killstreak", 0), d2.get("best_killstreak", 0), True),
+                    ]
+                    demo_table, dw1, dw2, _ = versus_table(entity1, entity2, demo_metrics)
+                    demo_note = (
+                        f"📼 Demos ({d1['rounds_played']}R vs {d2['rounds_played']}R): "
+                        f"{entity1} **{dw1}** · {entity2} **{dw2}** — no cuenta para el veredicto"
+                    )
 
             if p1_wins > p2_wins:
                 summary = f"🏆 **{entity1}** gana **{p1_wins}/{len(metrics)}** categorías"
@@ -264,6 +306,7 @@ class Compare(commands.Cog):
                 table=table, summary=summary, warning=warning,
                 footer=standard_footer(p1), demo_for=demo_for,
                 radar_filename="radar_vs.png" if radar_file else None,
+                demo_table=demo_table, demo_note=demo_note,
             )
             if radar_file:
                 card.message = await ctx.send(view=card, files=[radar_file])
@@ -277,6 +320,7 @@ class Compare(commands.Cog):
                 count = 0
                 total_ps = 0.0
                 total_kd = 0.0
+                total_act = 0.0
                 for player in data_players:
                     if player.get("Clan", "") == clan_name:
                         total_kills += player.get("Total Kills", 0)
@@ -285,15 +329,17 @@ class Compare(commands.Cog):
                         total_rounds += player.get("Rounds", 0)
                         total_ps += player.get("Performance Score", 0)
                         total_kd += player.get("K/D Ratio", 0)
+                        total_act += player.get("Activity Index", 0)
                         count += 1
                 avg_ps = total_ps / count if count else 0
                 avg_kd = total_kd / count if count else 0
+                avg_act = total_act / count if count else 0
                 team_kd = total_kills / total_deaths if total_deaths else 0
                 return {
                     "kills": total_kills, "deaths": total_deaths,
                     "score": total_score, "rounds": total_rounds,
                     "members": count, "avg_ps": avg_ps, "avg_kd": avg_kd,
-                    "team_kd": team_kd,
+                    "avg_act": avg_act, "team_kd": team_kd,
                 }
 
             s1 = sumar_estadisticas(entity1)
@@ -318,6 +364,7 @@ class Compare(commands.Cog):
                 ("K/D Equipo", s1["team_kd"], s2["team_kd"], True),
                 ("Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
                 ("Avg Perf.", s1["avg_ps"], s2["avg_ps"], True),
+                ("Avg Activ.", s1["avg_act"], s2["avg_act"], True),
             ]
             table, e1_wins, e2_wins, ties = versus_table(entity1, entity2, clan_metrics)
 

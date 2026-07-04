@@ -37,6 +37,8 @@ class ComparisonCard(discord.ui.LayoutView):
         footer: str = "",
         demo_for: list[str] | None = None,
         radar_filename: str | None = None,
+        demo_table: str | None = None,
+        demo_note: str | None = None,
     ):
         super().__init__(timeout=180)
         self.cog = cog
@@ -53,6 +55,12 @@ class ComparisonCard(discord.ui.LayoutView):
         ]
         if warning:
             children.append(discord.ui.TextDisplay(f"-# ⚠️ {warning}"))
+        if demo_table:
+            children.append(discord.ui.Separator())
+            children.append(discord.ui.TextDisplay("### 📼 Demos (por ronda)"))
+            children.append(discord.ui.TextDisplay(demo_table))
+            if demo_note:
+                children.append(discord.ui.TextDisplay(f"-# {demo_note}"))
         if radar_filename:
             children.append(
                 discord.ui.MediaGallery(discord.MediaGalleryItem(f"attachment://{radar_filename}"))

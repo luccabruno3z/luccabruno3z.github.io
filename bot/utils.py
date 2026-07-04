@@ -98,7 +98,10 @@ def advantage_pct(val1: float, val2: float) -> str:
 
 
 def _vt_num(v: float) -> str:
-    """Número compacto para la tabla de -compare (ancho fijo, sin decimales de más)."""
+    """Número compacto para la tabla de -compare (ancho fijo, sin decimales de más).
+    Millones abreviados (11.1M) para no desbordar la columna de 8 chars."""
+    if abs(v) >= 1_000_000:
+        return f"{v / 1_000_000:,.1f}M"
     if isinstance(v, float) and not float(v).is_integer():
         return f"{v:,.2f}" if abs(v) < 1000 else f"{v:,.0f}"
     return f"{int(v):,}"
