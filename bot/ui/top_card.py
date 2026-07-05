@@ -71,6 +71,7 @@ class TopCard(discord.ui.LayoutView):
         thresholds: dict | None = None,
         metric_labels: dict[str, str] | None = None,
         subtitle: str | None = None,
+        show_tier: bool = True,
     ):
         super().__init__(timeout=300)
         self.players = players  # ya filtrados por MIN_ROUNDS (y activos si aplica)
@@ -85,6 +86,9 @@ class TopCard(discord.ui.LayoutView):
         self.author_id = author_id
         self.thresholds = thresholds
         self.subtitle = subtitle  # None → default "Mínimo X rondas [· excluidos]"
+        # Tier emoji solo tiene sentido para rankings de JUGADORES por performance
+        # (los umbrales son de jugadores; en promedios de clan serían engañosos).
+        self.show_tier = show_tier
         self.message: discord.Message | None = None
         self._render()
 
@@ -125,9 +129,16 @@ class TopCard(discord.ui.LayoutView):
             medal = rank_medal(i) if i <= 3 else f"`{i:>2}.`"
             clan = p.get("Clan", "")
             emoji = get_clan_emoji(clan)
-            clan_bit = f" {emoji}" if emoji else (f" [{clan}]" if clan else "")
+            # Si la fila ES un clan (rankings de -promedios: Player == Clan), no
+            # repetir el tag entre corchetes; el emoji sí suma.
+            clan_bit = f" {emoji}" if emoji else (
+                f" [{clan}]" if clan and clan != p.get("Player") else ""
+            )
             value = _fmt_value(self.metrica, p.get(key, 0))
-            tier = f" {tier_emoji(p.get(key, 0), self.thresholds)}" if self.metrica == "performance" else ""
+            tier = (
+                f" {tier_emoji(p.get(key, 0), self.thresholds)}"
+                if self.show_tier and self.metrica == "performance" else ""
+            )
             lines.append(f"{medal} **{p.get('Player', '?')}**{clan_bit} — **{value}**{tier}")
 
         subtitle = self.subtitle if self.subtitle is not None else (

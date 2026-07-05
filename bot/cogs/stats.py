@@ -24,7 +24,7 @@ from bot.config import (
     clan_logo_url,
 )
 from bot.services.clan_registry import clan_choices
-from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_radar_chart, render_ranking_change_chart
+from bot.services.chart_renderer import render_horizontal_bars, render_radar_chart, render_ranking_change_chart
 from bot.ui.player_card import PlayerCard
 from bot.ui.player_card_actions import build_actions
 from bot.ui.player_hub import PlayerHubView
@@ -53,7 +53,6 @@ from bot.utils import (
     ratings_display,
 )
 from bot.assets.kit_mapping import get_kit_display
-from bot.views.pagination import PaginationView
 from bot.views.stats import StatsView
 from bot.views.demo_details import DemoDetailsView
 
@@ -506,43 +505,35 @@ class Stats(commands.Cog):
         # Sort results by Performance Score (best first)
         resultados.sort(key=lambda x: x.get("Performance Score", 0), reverse=True)
 
-        def _build_search_embed(players: list, page_num: int = 0, total_pages: int = 1) -> discord.Embed:
-            embed = discord.Embed(
-                title="🔍 Resultados de Búsqueda",
-                description=(
-                    f"**{len(resultados)}** jugadores encontrados con `{nombre_parcial}`"
-                ),
-                color=discord.Color.green(),
+        # Tarjeta Components V2 única (sin paginación vieja): una línea por match,
+        # cap a 20 resultados con nota para refinar la búsqueda.
+        cap = 20
+        shown = resultados[:cap]
+        lines = []
+        for j in shown:
+            clan = j.get("Clan", "")
+            emoji = get_clan_emoji(clan)
+            clan_bit = f" {emoji}" if emoji else (f" [{clan}]" if clan else "")
+            ps_val = j.get("Performance Score", 0)
+            lines.append(
+                f"**{j['Player']}**{clan_bit} — 🌟 {ps_val:.2f} {tier_emoji(ps_val)} · "
+                f"K/D {j.get('K/D Ratio', 0):.2f} · {format_number(j.get('Rounds', 0))} rondas"
             )
-            embed.set_thumbnail(url=BOT_THUMBNAIL)
-            for jugador_entry in players:
-                clan = jugador_entry.get("Clan", "N/A")
-                clan_emoji = get_clan_emoji(clan)
-                ps_val = jugador_entry.get("Performance Score", 0)
-                embed.add_field(
-                    name=f"{clan_emoji} {jugador_entry['Player']}",
-                    value=(
-                        f"🏷️ **Clan**: {clan}\n"
-                        f"💥 **K/D**: {jugador_entry['K/D Ratio']:.2f}\n"
-                        f"🌟 **Performance**: {ps_val:.2f} {tier_emoji(ps_val)}"
-                    ),
-                    inline=True,
-                )
-            embed.set_footer(text=standard_footer(data))
-            return embed
+        extra = len(resultados) - len(shown)
 
-        per_page = 10
-        if len(resultados) > per_page:
-            pages: list[discord.Embed] = []
-            total_pages = math.ceil(len(resultados) / per_page)
-            for i in range(0, len(resultados), per_page):
-                chunk = resultados[i : i + per_page]
-                pages.append(_build_search_embed(chunk, i // per_page, total_pages))
-            view = PaginationView(pages)
-            msg = await ctx.send(embed=pages[0], view=view)
-            view.message = msg
-        else:
-            await ctx.send(embed=_build_search_embed(resultados))
+        container = discord.ui.Container(
+            discord.ui.TextDisplay(f"# 🔍 Búsqueda: “{nombre_parcial}”"),
+            discord.ui.TextDisplay(
+                f"-# {len(resultados)} jugador{'es' if len(resultados) != 1 else ''} encontrados"
+                + (f" · mostrando {cap}, refiná la búsqueda para ver el resto" if extra > 0 else "")
+            ),
+            discord.ui.TextDisplay("\n".join(lines)),
+            discord.ui.TextDisplay(f"-# {standard_footer(data)}"),
+            accent_colour=0x00FF88,
+        )
+        view = discord.ui.LayoutView(timeout=None)
+        view.add_item(container)
+        await ctx.send(view=view)
 
     # ── -promedios ────────────────────────────────────────────────────────
 
@@ -560,54 +551,20 @@ class Stats(commands.Cog):
             await ctx.send("El formato de los datos no es válido.")
             return
 
-        embed = discord.Embed(
-            title="🏆 Promedios de Clanes",
-            description="Ranking de clanes ordenado por **Performance Score**.",
-            color=discord.Color.blue(),
+        # Misma TopCard que -top: los registros de clan_averages ya traen todas las
+        # claves prstats; solo falta "Player" (= tag del clan, para línea y chart).
+        rows = [{**c, "Player": c.get("Clan", "?")} for c in data]
+        card = TopCard(
+            rows,
+            categoria_label="CLANES (promedio)",
+            cantidad=len(rows),
+            metrica="performance",
+            footer=standard_footer(data),
+            author_id=ctx.author.id,
+            subtitle="Promedio de todos los miembros por clan · cambiá la métrica abajo",
+            show_tier=False,  # los umbrales de tier son de jugadores, no de promedios
         )
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-
-        clan_names = []
-        performance_scores = []
-
-        # Sort clans by Performance Score (best first)
-        sorted_data = sorted(data, key=lambda c: c.get("Performance Score", 0), reverse=True)
-        max_ps = sorted_data[0].get("Performance Score", 1) if sorted_data else 1
-
-        for rank_idx, clan_data in enumerate(sorted_data, start=1):
-            clan_name = clan_data.get("Clan", "Desconocido")
-            kd_ratio = clan_data.get("K/D Ratio", 0)
-            score_per_round = clan_data.get("Score per Round", 0)
-            kills_per_round = clan_data.get("Kills per Round", 0)
-            ps = clan_data.get("Performance Score", 0)
-
-            clan_names.append(clan_name)
-            performance_scores.append(ps)
-
-            clan_emoji = get_clan_emoji(clan_name)
-            medal = rank_medal(rank_idx)
-            bar = progress_bar(ps, max_ps, 8)
-
-            embed.add_field(
-                name=f"{medal} {clan_name} {clan_emoji}",
-                value=(
-                    f"💥 K/D: `{kd_ratio:.2f}` · 🎯 Score/R: `{score_per_round:.2f}`\n"
-                    f"🔫 Kills/R: `{kills_per_round:.2f}` · 🌟 Perf: `{bar}` **{ps:.2f}**"
-                ),
-                inline=False,
-            )
-
-        buf = render_bar_chart(
-            clan_names,
-            performance_scores,
-            "Performance Score de Clanes",
-            "Clanes",
-            "Performance Score",
-        )
-        file = discord.File(buf, filename="performance_scores_clanes.png")
-        embed.set_image(url="attachment://performance_scores_clanes.png")
-        embed.set_footer(text=standard_footer(data))
-        await ctx.send(embed=embed, file=file)
+        card.message = await ctx.send(view=card, files=[card.build_chart_file()])
 
     # ── -promedios_tops <cantidad> <metrica> ──────────────────────────────
 
@@ -645,66 +602,38 @@ class Stats(commands.Cog):
             logger.error("Error: %s", e)
             return
 
-        metric_key = METRIC_KEY_MAP.get(metrica, metrica)
-
         # Group players by clan
         clans: dict[str, list] = {}
         for player in data:
             cn = player.get("Clan", "Sin Clan")
             clans.setdefault(cn, []).append(player)
 
-        embed = discord.Embed(
-            title=f"🏆 Promedios Top {cantidad} por Clan ({metrica.capitalize()})",
-            description=f"Promedio de **{metrica}** usando los mejores **{cantidad}** jugadores de cada clan.",
-            color=discord.Color.green(),
-        )
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-
-        clan_names = []
-        avg_values = []
-
-        clan_averages = []
+        # Precomputar el promedio top-N por clan para TODAS las métricas: así el
+        # Select de la TopCard re-sortea sin recomputar (para cada métrica, el
+        # promedio es sobre los mejores N ordenados por ESA métrica).
+        rows = []
         for cn, players in clans.items():
-            top_players = sorted(
-                players, key=lambda x: x.get(metric_key, 0), reverse=True
-            )[:cantidad]
-            avg = (
-                sum(p.get(metric_key, 0) for p in top_players) / len(top_players)
-                if top_players
-                else 0
-            )
-            clan_averages.append((cn, avg, len(players)))
+            row = {"Player": cn, "Clan": cn}
+            for m in ("performance", "kd", "kills", "deaths", "rounds", "score"):
+                key = METRIC_KEY_MAP.get(m, m)
+                top_players = sorted(players, key=lambda x: x.get(key, 0), reverse=True)[:cantidad]
+                row[key] = (
+                    sum(p.get(key, 0) for p in top_players) / len(top_players)
+                    if top_players else 0
+                )
+            rows.append(row)
 
-        # Sort clans by average value (best first)
-        clan_averages.sort(key=lambda x: x[1], reverse=True)
-        max_avg = clan_averages[0][1] if clan_averages else 1
-
-        for rank_idx, (cn, avg, total) in enumerate(clan_averages, start=1):
-            clan_names.append(cn)
-            avg_values.append(avg)
-            clan_emoji = get_clan_emoji(cn)
-            medal = rank_medal(rank_idx)
-            bar = progress_bar(avg, max_avg, 8)
-            embed.add_field(
-                name=f"{medal} {cn} {clan_emoji}",
-                value=(
-                    f"`{bar}` **{avg:.2f}**\n"
-                    f"*{total} jugadores en el clan*"
-                ),
-                inline=False,
-            )
-
-        buf = render_bar_chart(
-            clan_names,
-            avg_values,
-            f"Promedio {metrica.capitalize()} de los Mejores {cantidad} Jugadores por Clan",
-            "Clanes",
-            f"Promedio {metrica.capitalize()}",
+        card = TopCard(
+            rows,
+            categoria_label=f"CLANES (top {cantidad})",
+            cantidad=len(rows),
+            metrica=metrica,
+            footer=standard_footer(data),
+            author_id=ctx.author.id,
+            subtitle=f"Promedio de los mejores {cantidad} jugadores de cada clan (por la métrica elegida)",
+            show_tier=False,
         )
-        file = discord.File(buf, filename="promedios_tops.png")
-        embed.set_image(url="attachment://promedios_tops.png")
-        embed.set_footer(text=standard_footer(data))
-        await ctx.send(embed=embed, file=file)
+        card.message = await ctx.send(view=card, files=[card.build_chart_file()])
 
 
     # ── -tendencia <jugador> ──────────────────────────────────────────────

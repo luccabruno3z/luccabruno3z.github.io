@@ -16,7 +16,7 @@ from bot.assets.kit_mapping import (
 from bot.assets.vehicle_mapping import get_vehicle_emoji, get_vehicle_emoji_by_name
 from bot.ui.player_hub import PlayerHubView
 from bot.config import BOT_THUMBNAIL, performance_color
-from bot.services.chart_renderer import render_bar_chart, render_horizontal_bars, render_multi_comparison
+from bot.services.chart_renderer import render_horizontal_bars, render_multi_comparison, render_top_chart
 from bot.ui.leaderboard_card import LeaderboardView
 from bot.utils import format_number, find_player, standard_footer, progress_bar
 from bot.views.explain import ExplainView
@@ -751,7 +751,11 @@ class DetailedStats(commands.Cog):
             wr_values.append(f_wr)
 
         if chart_labels:
-            buf = render_bar_chart(chart_labels, wr_values, f"Winrate de {player['ign']}", "Categoría", "Winrate %")
+            # Chart horizontal moderno (sin podio: no es un ranking, son categorías).
+            buf = render_top_chart(
+                [clean_gamemode(l) for l in chart_labels], wr_values,
+                "Winrate %", f"Winrate de {player['ign']}", podium=False,
+            )
             file = discord.File(buf, filename="winrate.png")
             embed.set_image(url="attachment://winrate.png")
         else:

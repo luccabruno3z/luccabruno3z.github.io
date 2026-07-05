@@ -37,10 +37,13 @@ def render_top_chart(
     values: list[float],
     metric_label: str,
     title: str,
+    podium: bool = True,
 ) -> io.BytesIO:
     """Ranking horizontal para -top: nombres legibles (sin rotación 45°), podio en
     oro/plata/bronce y el resto en degradé cian. Reemplaza al bar chart vertical
-    viejo (línea roja de promedio, bordes blancos)."""
+    viejo (línea roja de promedio, bordes blancos). `podium=False` desactiva los
+    colores de medalla (para charts que no son ranking, p.ej. winrate por
+    categoría)."""
     plt.style.use("dark_background")
     n = len(names)
     fig, ax = plt.subplots(figsize=(10, max(3.2, 0.5 * n + 1.4)))
@@ -53,7 +56,7 @@ def render_top_chart(
     medal_colors = ["#FFD700", "#C0C0C0", "#CD7F32"]  # oro, plata, bronce
     colors = []
     for i, v in enumerate(values):
-        if i < 3:
+        if podium and i < 3:
             colors.append(medal_colors[i])
         else:
             ratio = v / max_val if max_val else 0
