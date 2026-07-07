@@ -1,1 +1,1 @@
-{"player": "nekritoxs", "grid_size": 128, "maps": {"sbeneh_outskirts": {"kills": [], "deaths": [[125, 57, 1], [84, 36, 1]]}, "brecourt_assault": {"kills": [[55, 94, 2], [56, 98, 2], [44, 84, 1], [45, 25, 1], [47, 21, 1]], "deaths": [[56, 99, 1], [49, 92, 1], [47, 87, 1], [48, 22, 1]]}}}
+{"player": "nekritoxs", "grid_size": 128, "maps": {"brecourt_assault": {"kills": [[55, 94, 2], [56, 98, 2], [44, 84, 1], [45, 25, 1], [47, 21, 1]], "deaths": [[56, 99, 1], [49, 92, 1], [47, 87, 1], [48, 22, 1]]}, "sbeneh_outskirts": {"kills": [], "deaths": [[125, 57, 1], [84, 36, 1]]}}}
