@@ -1,1 +1,1 @@
-{"player": "pinguimbiroliro", "grid_size": 128, "maps": {"belyaevo": {"kills": [], "deaths": [[81, 52, 1], [75, 48, 1]]}, "yamalia": {"kills": [[82, 51, 1], [84, 50, 1]], "deaths": [[86, 76, 1]]}}}
+{"player": "pinguimbiroliro", "grid_size": 128, "maps": {"belyaevo": {"kills": [], "deaths": [[81, 52, 1], [75, 48, 1]]}, "yamalia": {"kills": [[82, 51, 1], [84, 50, 1]], "deaths": [[86, 76, 1]]}, "krivaja_valley": {"kills": [[6, 75, 1]], "deaths": [[47, 71, 1], [6, 75, 1], [22, 54, 2], [28, 50, 1]]}}}
