@@ -1,1 +1,1 @@
-{"player": "J.Bastos", "grid_size": 128, "maps": {"nuijamaa": {"kills": [[58, 40, 1], [39, 56, 3], [38, 56, 1]], "deaths": []}, "operation_falcon": {"kills": [[86, 60, 2]], "deaths": [[77, 59, 3]]}}}
+{"player": "J.Bastos", "grid_size": 128, "maps": {"nuijamaa": {"kills": [[58, 40, 1], [39, 56, 3], [38, 56, 1]], "deaths": []}, "operation_falcon": {"kills": [[86, 60, 2]], "deaths": [[77, 59, 3]]}, "kozelsk": {"kills": [[94, 31, 1]], "deaths": [[95, 33, 1], [96, 31, 1], [104, 14, 1], [77, 27, 1]]}, "krivaja_valley": {"kills": [], "deaths": [[50, 61, 1]]}}}
