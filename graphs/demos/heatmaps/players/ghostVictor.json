@@ -1,1 +1,1 @@
-{"player": "ghostVictor", "grid_size": 128, "maps": {"operation_thunder": {"kills": [[68, 60, 1], [84, 54, 1], [52, 52, 1]], "deaths": [[68, 60, 2], [85, 55, 1], [55, 54, 1], [54, 55, 1]]}}}
+{"player": "ghostVictor", "grid_size": 128, "maps": {"operation_thunder": {"kills": [[68, 60, 1], [84, 54, 1], [52, 52, 1]], "deaths": [[68, 60, 2], [85, 55, 1], [55, 54, 1], [54, 55, 1]]}, "khamisiyah": {"kills": [[88, 85, 4], [74, 89, 1]], "deaths": [[88, 84, 1], [83, 88, 1], [77, 86, 1]]}}}
