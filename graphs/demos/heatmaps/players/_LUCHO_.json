@@ -1,1 +1,1 @@
-{"player": "_LUCHO_", "grid_size": 128, "maps": {"talbisah": {"kills": [], "deaths": [[16, 82, 1], [16, 80, 1]]}, "donbas": {"kills": [[53, 50, 1], [51, 51, 1]], "deaths": [[55, 40, 1], [51, 49, 1], [52, 47, 1]]}}}
+{"player": "_LUCHO_", "grid_size": 128, "maps": {"donbas": {"kills": [[53, 50, 1], [51, 51, 1]], "deaths": [[55, 40, 1], [51, 49, 1], [52, 47, 1]]}, "talbisah": {"kills": [], "deaths": [[16, 82, 1], [16, 80, 1]]}, "fallujah_west": {"kills": [[106, 38, 1]], "deaths": []}}}
