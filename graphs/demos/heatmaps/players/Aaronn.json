@@ -1,1 +1,1 @@
-{"player": "Aaronn", "grid_size": 128, "maps": {"kokan": {"kills": [], "deaths": [[86, 33, 1], [85, 33, 1]]}, "talbisah": {"kills": [[10, 99, 1]], "deaths": [[13, 90, 1]]}}}
+{"player": "Aaronn", "grid_size": 128, "maps": {"kokan": {"kills": [[86, 33, 2], [85, 33, 2], [85, 37, 3], [86, 32, 1]], "deaths": [[86, 33, 4], [85, 33, 1], [85, 36, 1], [88, 28, 1], [85, 37, 1]]}, "talbisah": {"kills": [[10, 99, 1]], "deaths": [[13, 90, 1]]}}}
