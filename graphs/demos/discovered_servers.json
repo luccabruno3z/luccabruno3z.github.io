@@ -1,13 +1,9 @@
 {
   "servers": {
-    "[LATINO] REALITYBRASIL.org | Foxtrot": {
-      "prstats_url": "https://prstats.realitymod.org/server/188/latino-realitybrasilorg-foxtrot",
-      "demo_url": "https://files.realitybrasil.org/PRServer/BattleRecorder/Server01/demos/"
-    },
     "[BR/LATAM] ARES Brasil | aresbrasil.com": {
       "prstats_url": "https://prstats.realitymod.org/server/254/brlatam-ares-brasil-aresbrasilcom",
       "demo_url": "http://82.38.28.159/trackers/"
     }
   },
-  "last_updated": "2026-07-18 16:50:52"
+  "last_updated": "2026-07-18 17:35:46"
 }
