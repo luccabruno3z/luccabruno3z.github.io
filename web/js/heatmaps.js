@@ -12,6 +12,7 @@
 import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, loadPlayerHeatmap, state } from './data.js';
 import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
 import { MAP_IMG_URL } from './config.js';
+import { setupAutocomplete, playerSource } from './autocomplete.js';
 
 const VIEW = 1024;          // canvas backing size (logical map space at fit-scale)
 const DENSITY = 2048;       // density buffer resolution
@@ -165,24 +166,39 @@ function buildDensity(cells, grid, rgb) {
     return off;
 }
 
-/** Render firelines (atacante→víctima) a un canvas offscreen (segmentos coloreados). */
+/** Render firelines (tirador→víctima) a un canvas offscreen. Color por equipo del
+ *  ATACANTE (azul BLUFOR / rojo OPFOR); en "Todos" dibuja las dos contribuciones por
+ *  separado (nada de pintar por mayoría). Cada segmento es direccional: gradiente
+ *  brillante en el tirador → transparente en la víctima, para leer de dónde sale el fuego. */
 function buildLines(lines, team, grid) {
     if (!lines || !lines.length) return null;
-    const val = team === '1' ? (l) => l[4] : team === '2' ? (l) => l[5] : (l) => l[4] + l[5];
-    let maxV = 0; for (const l of lines) maxV = Math.max(maxV, val(l));
+    // Máximo por equipo para normalizar grosor/alpha (según el filtro de equipo activo).
+    let maxV = 0;
+    for (const l of lines) {
+        if (team !== '2') maxV = Math.max(maxV, l[4]);
+        if (team !== '1') maxV = Math.max(maxV, l[5]);
+    }
     if (!maxV) return null;
     const off = document.createElement('canvas'); off.width = DENSITY; off.height = DENSITY;
     const o = off.getContext('2d');
     o.globalCompositeOperation = 'lighter'; o.lineCap = 'round';
     const toXY = (gx, gy) => { if (FLIP_Y) gy = grid - 1 - gy; return [((gx + 0.5) / grid) * DENSITY, ((gy + 0.5) / grid) * DENSITY]; };
-    for (const l of lines) {
-        const v = val(l); if (!v) continue;
-        const a = Math.min(0.85, 0.12 + (v / maxV) * 0.7);
-        const [x1, y1] = toXY(l[0], l[1]), [x2, y2] = toXY(l[2], l[3]);
-        const t2dom = team === '2' || (team === 'all' && l[5] > l[4]);
-        o.strokeStyle = `rgba(${t2dom ? '255,90,90' : '90,160,255'},${a})`;
-        o.lineWidth = Math.max(1.5, (v / maxV) * 5);
+    const BLU = '90,160,255', OPF = '255,90,90';
+    const drawSeg = (x1, y1, x2, y2, v, rgb) => {
+        if (!v) return;
+        const f = v / maxV;
+        const a = Math.min(0.9, 0.3 + f * 0.6);
+        const w = Math.max(DENSITY / 170, f * (DENSITY / 60));   // ~12px … 34px sobre 2048
+        const grad = o.createLinearGradient(x1, y1, x2, y2);
+        grad.addColorStop(0, `rgba(${rgb},${a})`);   // tirador: sólido
+        grad.addColorStop(1, `rgba(${rgb},0)`);      // víctima: se desvanece
+        o.strokeStyle = grad; o.lineWidth = w;
         o.beginPath(); o.moveTo(x1, y1); o.lineTo(x2, y2); o.stroke();
+    };
+    for (const l of lines) {
+        const [x1, y1] = toXY(l[0], l[1]), [x2, y2] = toXY(l[2], l[3]);
+        if (team !== '2') drawSeg(x1, y1, x2, y2, l[4], BLU);   // BLUFOR dispara
+        if (team !== '1') drawSeg(x1, y1, x2, y2, l[5], OPF);   // OPFOR dispara
     }
     return off;
 }
@@ -361,6 +377,7 @@ export async function initHeatmaps() {
     const PHASE_NAMES = (n) => ['Apertura', 'Inicio', 'Desarrollo', 'Mitad', 'Avance', 'Cierre'][n] || `Fase ${n + 1}`;
 
     const playerInput = document.getElementById('heatmap-player');
+    const fireLegend = document.getElementById('heatmap-fire-legend');
     let playerCache = { q: null, data: null };
 
     // Re-render con el estado actual (gamemode/round/layer/team/etapa). round='all' → agregado.
@@ -370,6 +387,7 @@ export async function initHeatmaps() {
 
         // Modo "por jugador": kills (verde) vs muertes (rojo) en el mapa seleccionado.
         const pname = playerInput ? playerInput.value.trim() : '';
+        if (fireLegend) fireLegend.hidden = !!pname || layer !== 'fire';
         if (pname) {
             if (playerCache.q !== pname) playerCache = { q: pname, data: await loadPlayerHeatmap(pname) };
             const phm = playerCache.data;
@@ -446,8 +464,13 @@ export async function initHeatmaps() {
     const flagsToggle = document.getElementById('heatmap-flags');
     if (flagsToggle) flagsToggle.addEventListener('change', () => { vp.showFlags = flagsToggle.checked; render(); });
     if (playerInput) {
-        let t;
-        playerInput.addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 350); });
+        const playerSug = document.getElementById('heatmap-player-suggestions');
+        // Autocomplete sobre el roster (igual que el resto de la página); el heatmap por
+        // jugador se dibuja al ELEGIR una sugerencia.
+        setupAutocomplete(playerInput, playerSug, playerSource(() => state.playersData || []),
+            (value) => { playerInput.value = value; render(); });
+        // Al vaciar el campo, volver al modo normal.
+        playerInput.addEventListener('input', () => { if (!playerInput.value.trim()) render(); });
     }
 
     // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.

@@ -512,7 +512,10 @@
                     <button type="button" data-team="2">OPFOR</button>
                 </div>
                 <label class="heatmap-check"><input type="checkbox" id="heatmap-flags" checked> 🚩 Banderas</label>
-                <input type="text" id="heatmap-player" placeholder="👤 Jugador (opcional)" aria-label="Heatmap por jugador" autocomplete="off">
+                <span class="heatmap-player-wrap">
+                    <input type="text" id="heatmap-player" placeholder="👤 Jugador (opcional)" aria-label="Heatmap por jugador" autocomplete="off" aria-autocomplete="list" aria-controls="heatmap-player-suggestions">
+                    <div class="suggestions" id="heatmap-player-suggestions" role="listbox" aria-label="Sugerencias de jugadores"></div>
+                </span>
             </div>
             <div class="heatmap-layers" role="group" aria-label="Tipo de mapa de calor">
                 <button type="button" data-layer="deaths" class="active">🔥 Mapa de calor</button>
@@ -520,6 +523,11 @@
                 <button type="button" data-layer="spawns">📍 Spawns</button>
                 <button type="button" data-layer="sniper">🎯 Francotiradores</button>
                 <button type="button" data-layer="fire">🔫 Líneas de fuego</button>
+            </div>
+            <div id="heatmap-fire-legend" class="heatmap-fire-legend" hidden>
+                <span><i class="fl-swatch fl-blu"></i> BLUFOR dispara</span>
+                <span><i class="fl-swatch fl-opf"></i> OPFOR dispara</span>
+                <span class="muted">cada línea va del tirador (brillante) a la víctima (se desvanece)</span>
             </div>
             <div class="heatmap-phase-row" id="heatmap-phase-row" hidden>
                 <label for="heatmap-phase">Etapa de la partida:</label>
