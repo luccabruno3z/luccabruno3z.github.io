@@ -1,1 +1,1 @@
-{"player": "voroncov", "grid_size": 128, "maps": {"operation_falcon": {"kills": [], "deaths": [[106, 104, 1], [101, 95, 1]]}}}
+{"player": "voroncov", "grid_size": 128, "maps": {"operation_falcon": {"kills": [], "deaths": [[106, 104, 1], [101, 95, 1]]}, "assault_on_grozny": {"kills": [[75, 62, 1], [54, 94, 1], [54, 93, 2]], "deaths": [[56, 73, 2], [86, 40, 1], [76, 58, 1], [50, 84, 1], [52, 84, 1], [54, 93, 1]]}}}
