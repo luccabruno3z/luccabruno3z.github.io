@@ -1,1 +1,1 @@
-{"player": "Dougrado", "grid_size": 128, "maps": {"gaza_2": {"kills": [], "deaths": [[88, 51, 1], [83, 59, 1]]}, "kafar_halab": {"kills": [[45, 105, 1]], "deaths": [[43, 98, 1]]}}}
+{"player": "Dougrado", "grid_size": 128, "maps": {"gaza_2": {"kills": [], "deaths": [[88, 51, 1], [83, 59, 1]]}, "kafar_halab": {"kills": [[45, 105, 1]], "deaths": [[43, 98, 1]]}, "route": {"kills": [[101, 32, 1]], "deaths": [[84, 27, 2], [101, 29, 1]]}}}
