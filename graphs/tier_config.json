@@ -1,10 +1,10 @@
 {
   "version": "v3",
-  "generated_at": "2026-08-17 12:02:40",
+  "generated_at": "2026-08-17 12:35:08",
   "thresholds": {
     "elite": 0.8212799999999999,
     "veterano": 0.7056,
-    "experimentado": 0.57162,
+    "experimentado": 0.57158,
     "soldado": 0.43198000000000003
   },
   "target_distribution": [
