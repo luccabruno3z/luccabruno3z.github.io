@@ -1,6 +1,6 @@
 {
   "version": "v3",
-  "generated_at": "2026-08-18 03:20:33",
+  "generated_at": "2026-08-18 04:12:28",
   "thresholds": {
     "elite": 0.8214399999999998,
     "veterano": 0.7055,
@@ -29,7 +29,7 @@
   "min_rounds": 50,
   "ps_stats": {
     "mean": 0.4262,
-    "median": 0.4864,
+    "median": 0.4865,
     "p95": 0.7982,
     "max": 0.9276
   }
