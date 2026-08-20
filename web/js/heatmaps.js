@@ -187,13 +187,18 @@ function buildLines(lines, team, grid) {
     const drawSeg = (x1, y1, x2, y2, v, rgb) => {
         if (!v) return;
         const f = v / maxV;
-        const a = Math.min(0.9, 0.3 + f * 0.6);
-        const w = Math.max(DENSITY / 170, f * (DENSITY / 60));   // ~12px … 34px sobre 2048
+        const a = Math.min(0.95, 0.5 + f * 0.45);
+        const w = Math.max(DENSITY / 110, f * (DENSITY / 42));   // ~19px … 49px sobre 2048
+        // Direccional pero SIEMPRE visible: brillante en el tirador, tenue (no nulo) en
+        // la víctima. Antes iba a alpha 0 → media línea desaparecía con blending aditivo.
         const grad = o.createLinearGradient(x1, y1, x2, y2);
-        grad.addColorStop(0, `rgba(${rgb},${a})`);   // tirador: sólido
-        grad.addColorStop(1, `rgba(${rgb},0)`);      // víctima: se desvanece
+        grad.addColorStop(0, `rgba(${rgb},${a})`);           // tirador
+        grad.addColorStop(1, `rgba(${rgb},${a * 0.4})`);     // víctima (se atenúa, no desaparece)
         o.strokeStyle = grad; o.lineWidth = w;
         o.beginPath(); o.moveTo(x1, y1); o.lineTo(x2, y2); o.stroke();
+        // Punto en el tirador para marcar el origen del fuego.
+        o.fillStyle = `rgba(${rgb},${a})`;
+        o.beginPath(); o.arc(x1, y1, w * 0.55, 0, Math.PI * 2); o.fill();
     };
     for (const l of lines) {
         const [x1, y1] = toXY(l[0], l[1]), [x2, y2] = toXY(l[2], l[3]);
