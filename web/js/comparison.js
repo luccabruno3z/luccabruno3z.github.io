@@ -46,17 +46,20 @@ function metricRow(label, v1, v2, fmt, higherBetter = true) {
     </div>`;
 }
 
-/** Player vs player: 7 metrics + win count + verdict. */
+/** Player vs player: 9 metrics (mismas que el bot) + win count + verdict. */
 function renderPlayerComparison(p1, p2) {
     const num = formatNumber;
+    // Las mismas 9 categorías que el bot (-comparar), para que el marcador coincida.
     const metrics = [
         ['Performance Score', p1['Performance Score'] || 0, p2['Performance Score'] || 0, true],
         ['K/D Ratio', p1['K/D Ratio'] || 0, p2['K/D Ratio'] || 0, true],
         ['Kills por Ronda', p1['Kills per Round'] || 0, p2['Kills per Round'] || 0, true],
         ['Deaths por Ronda', p1['Deaths per Round'] || 0, p2['Deaths per Round'] || 0, false],
         ['Score por Ronda', p1['Score per Round'] || 0, p2['Score per Round'] || 0, true],
-        ['Total Kills', p1['Total Kills'] || 0, p2['Total Kills'] || 0, true],
+        ['Índice de Actividad', p1['Activity Index'] || 0, p2['Activity Index'] || 0, true],
         ['Rondas', p1['Rounds'] || 0, p2['Rounds'] || 0, true],
+        ['Total Kills', p1['Total Kills'] || 0, p2['Total Kills'] || 0, true],
+        ['Total Score', p1['Total Score'] || 0, p2['Total Score'] || 0, true],
     ];
 
     const rows = metrics.map(([label, v1, v2, hb]) => {
