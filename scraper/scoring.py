@@ -47,6 +47,21 @@ W_EXPERIENCE = 0.10
 # Neutral value for missing demo components
 NEUTRAL = 0.5
 
+# Winrate por muestra: pseudo-partidas al 50% que se suman antes de calcular el winrate
+# (regresión bayesiana hacia la media). Evita que una racha corta (p.ej. 35 partidas al
+# 66%) puntúe igual que un winrate sólido sobre cientos de partidas. Un jugador necesita
+# ~este número de partidas para que su winrate cuente a ~mitad de camino de su valor real.
+WINRATE_PRIOR_GAMES = 30
+
+
+def _shrunk_winrate(wins: int, losses: int) -> float:
+    """Winrate regularizado hacia 0.5 según el tamaño de muestra (empirical Bayes).
+
+    (wins + k/2) / (wins + losses + k) con k = WINRATE_PRIOR_GAMES. Muestras chicas
+    regresan hacia 0.5 (neutral); muestras grandes quedan cerca de su valor observado."""
+    k = WINRATE_PRIOR_GAMES
+    return (wins + k * 0.5) / (wins + losses + k)
+
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -159,7 +174,7 @@ def _compute_ps_v3(
     if demo and demo.get("rounds_played", 0) >= 5:
         demo = _sanitize_demo_data(demo)
         w, l = demo.get("wins", 0), demo.get("losses", 0)
-        wr = w / (w + l) if (w + l) >= 5 else 0.5
+        wr = _shrunk_winrate(w, l) if (w + l) > 0 else 0.5
         winrate = min(max(wr - 0.35, 0) / 0.30, 1.0) * W_WINRATE
 
         tw = demo.get("teamwork_ratio", 0)
@@ -215,7 +230,7 @@ def _compute_radar(
 
         # Impacto
         w, l = demo.get("wins", 0), demo.get("losses", 0)
-        wr = w / (w + l) if (w + l) >= 5 else 0.5
+        wr = _shrunk_winrate(w, l) if (w + l) > 0 else 0.5
         winrate_dev = min(max(wr - 0.5, 0) / 0.25, 1.0)
         ws = demo.get("win_stats", {})
         avg_k_w = ws.get("avg_kills_in_wins", 0)
@@ -276,7 +291,7 @@ def _compute_ratings(
         flags_pr = demo.get("total_flags_captured", 0) / max(rp, 1)
         vehicles_pr = demo.get("total_vehicles_destroyed", 0) / max(rp, 1)
         w, l = demo.get("wins", 0), demo.get("losses", 0)
-        wr = w / (w + l) if (w + l) >= 5 else 0.5
+        wr = _shrunk_winrate(w, l) if (w + l) > 0 else 0.5
         wr_norm = min(max(wr - 0.35, 0) / 0.30, 1.0)
 
         cons = demo.get("consistency_score", 50)
