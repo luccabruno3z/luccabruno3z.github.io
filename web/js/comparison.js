@@ -3,7 +3,7 @@
    See .rebuild/CONTRACT.md §2.4 and FEATURE_API.md (comparison notes).
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { state } from './data.js';
+import { state, getDemoInfo, loadDemoData } from './data.js';
 import {
     escapeHtml, formatNumber, findPlayer, highlightWinner, advantagePct, clanLogoHTML, teamAverage,
 } from './utils.js';
@@ -77,7 +77,41 @@ function renderPlayerComparison(p1, p2) {
             <span class="compare-entity">${p2.Clan ? clanLogoHTML(p2.Clan, 20) : ''} ${escapeHtml(p2.Player)}</span>
         </div>
         <div class="compare-table">${rows}</div>
+        ${demoMetricsBlock(p1, p2)}
         <div class="compare-verdict">${verdict}</div>
+    </div>`;
+}
+
+/** Bloque de componentes de demo que influyen en el Performance Score pero no se ven en
+ *  las stats de prstats: winrate (con nº de partidas, para que se lea la confiabilidad),
+ *  teamwork y consistencia. Informativo — no cuenta en el veredicto de arriba. */
+function demoMetricsBlock(p1, p2) {
+    const d1 = getDemoInfo(p1.Player), d2 = getDemoInfo(p2.Player);
+    if (!d1 || !d2) return '';   // ambos necesitan datos de demo
+    const wr = d => {
+        const g = (d.wins || 0) + (d.losses || 0);
+        return g > 0 ? (d.wins / g) * 100 : null;
+    };
+    const games = d => (d.wins || 0) + (d.losses || 0);
+    const rowsData = [
+        ['Winrate', wr(d1), wr(d2), true, v => v == null ? '—' : `${v.toFixed(1)}%`,
+            `${games(d1)} part.`, `${games(d2)} part.`],
+        ['Teamwork', (d1.teamwork_ratio || 0) * 100, (d2.teamwork_ratio || 0) * 100, true,
+            v => `${v.toFixed(0)}%`, '', ''],
+        ['Consistencia', d1.consistency_score ?? null, d2.consistency_score ?? null, true,
+            v => v == null ? '—' : `${Math.round(v)}`, '', ''],
+    ];
+    const rows = rowsData.map(([label, v1, v2, hb, fmt, sub1, sub2]) => {
+        const { class1, class2 } = (v1 == null || v2 == null) ? { class1: '', class2: '' } : highlightWinner(v1, v2, hb);
+        return `<div class="compare-row">
+            <span class="compare-cell ${class1}">${fmt(v1)}${sub1 ? ` <small class="compare-sub">${escapeHtml(sub1)}</small>` : ''}</span>
+            <span class="compare-metric">${escapeHtml(label)}</span>
+            <span class="compare-cell ${class2}">${fmt(v2)}${sub2 ? ` <small class="compare-sub">${escapeHtml(sub2)}</small>` : ''}</span>
+        </div>`;
+    }).join('');
+    return `<div class="compare-demo-section">
+        <div class="compare-demo-title">📼 Datos de partidas grabadas <small>(pesan en el Performance Score; el winrate se ajusta por nº de partidas)</small></div>
+        <div class="compare-table">${rows}</div>
     </div>`;
 }
 
@@ -179,12 +213,16 @@ export function initComparison() {
     if (input1 && sug1) setupAutocomplete(input1, sug1, entitySource);
     if (input2 && sug2) setupAutocomplete(input2, sug2, entitySource);
 
+    // Precargar los datos de demo (para los componentes que pesan en el PS).
+    loadDemoData().catch(() => {});
+
     if (form && input1 && input2) {
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const v1 = input1.value.trim();
             const v2 = input2.value.trim();
             if (!v1 || !v2) return;
+            await loadDemoData().catch(() => {});   // asegura demo cargado antes de comparar
             performComparison(v1, v2);
         });
     }

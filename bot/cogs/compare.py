@@ -268,18 +268,27 @@ class Compare(commands.Cog):
                         decided = d.get("wins", 0) + d.get("losses", 0)
                         return d.get("wins", 0) / decided * 100 if decided else 0.0
 
+                    def _decided(d):
+                        return d.get("wins", 0) + d.get("losses", 0)
+
+                    # Winrate + teamwork + consistencia: los componentes de demo que pesan
+                    # en el Performance Score y no se ven en las stats de prstats. El
+                    # winrate se muestra con el nº de partidas decididas al lado, porque el
+                    # PS lo ajusta por muestra (una racha corta pesa menos).
                     demo_metrics = [
                         ("Winrate %", _wr(d1), _wr(d2), True),
+                        ("Part. (WR)", _decided(d1), _decided(d2), True),
+                        ("Teamwork %", d1.get("teamwork_ratio", 0) * 100, d2.get("teamwork_ratio", 0) * 100, True),
+                        ("Consistencia", d1.get("consistency_score", 0), d2.get("consistency_score", 0), True),
                         ("Revives/R", _rate(d1, "total_revives_given"), _rate(d2, "total_revives_given"), True),
-                        ("Vehic.dest/R", _rate(d1, "total_vehicles_destroyed"), _rate(d2, "total_vehicles_destroyed"), True),
                         ("Banderas/R", _rate(d1, "total_flags_captured"), _rate(d2, "total_flags_captured"), True),
-                        ("TKs/R", _rate(d1, "total_teamkills"), _rate(d2, "total_teamkills"), False),
                         ("Mejor racha", d1.get("best_killstreak", 0), d2.get("best_killstreak", 0), True),
                     ]
                     demo_table, dw1, dw2, _ = versus_table(entity1, entity2, demo_metrics)
                     demo_note = (
                         f"📼 Demos ({d1['rounds_played']}R vs {d2['rounds_played']}R): "
-                        f"{entity1} **{dw1}** · {entity2} **{dw2}** — no cuenta para el veredicto"
+                        f"{entity1} **{dw1}** · {entity2} **{dw2}** — no cuenta para el veredicto. "
+                        f"El winrate se ajusta por nº de partidas en el Performance Score."
                     )
 
             if p1_wins > p2_wins:

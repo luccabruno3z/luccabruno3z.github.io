@@ -1394,6 +1394,25 @@ table.data-table { display: table; }
     border-color: rgba(0, 255, 136, 0.25);
 }
 
+/* Sección de componentes de demo (winrate/teamwork/consistencia) en la comparación */
+.compare-demo-section {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+}
+.compare-demo-title {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-align: center;
+}
+.compare-demo-title small { opacity: 0.75; }
+.compare-sub {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
 /* ----------------------------------------------------------------------------
    17. Top results / rankings / leaderboards
 ---------------------------------------------------------------------------- */
