@@ -1,1 +1,1 @@
-{"player": "henrique_sales", "grid_size": 128, "maps": {"ramiel": {"kills": [[53, 76, 1], [52, 81, 1], [55, 85, 1], [45, 91, 1]], "deaths": [[61, 81, 1], [62, 98, 1]]}}}
+{"player": "henrique_sales", "grid_size": 128, "maps": {"ramiel": {"kills": [[53, 76, 1], [52, 81, 1], [55, 85, 1], [45, 91, 1]], "deaths": [[61, 81, 1], [62, 98, 1]]}, "donbas": {"kills": [], "deaths": [[50, 25, 1], [52, 26, 1], [29, 65, 1]]}, "outpost": {"kills": [], "deaths": [[57, 84, 1]]}, "masirah": {"kills": [], "deaths": [[61, 30, 1]]}}}
