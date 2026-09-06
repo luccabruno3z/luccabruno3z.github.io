@@ -1,1 +1,1 @@
-{"player": "Sakamoto", "grid_size": 128, "maps": {"charlies_point": {"kills": [[42, 43, 1]], "deaths": [[39, 42, 1], [42, 43, 1], [37, 41, 1]]}}}
+{"player": "Sakamoto", "grid_size": 128, "maps": {"charlies_point": {"kills": [[42, 43, 1]], "deaths": [[39, 42, 1], [42, 43, 1], [37, 41, 1]]}, "masirah": {"kills": [[65, 35, 6], [62, 50, 1], [64, 54, 1], [52, 57, 1], [50, 57, 2]], "deaths": [[65, 35, 3], [50, 57, 1]]}}}
