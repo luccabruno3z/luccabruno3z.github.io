@@ -1,1 +1,1 @@
-{"player": "Holtz", "grid_size": 128, "maps": {"operation_falcon": {"kills": [[18, 17, 1], [14, 19, 2], [31, 29, 2]], "deaths": [[17, 17, 1]]}, "vung_ro": {"kills": [[114, 64, 1], [95, 54, 2]], "deaths": []}}}
+{"player": "Holtz", "grid_size": 128, "maps": {"operation_falcon": {"kills": [[18, 17, 1], [14, 19, 2], [31, 29, 2]], "deaths": [[17, 17, 1]]}, "vung_ro": {"kills": [[114, 64, 1], [95, 54, 2]], "deaths": []}, "khamisiyah": {"kills": [], "deaths": [[64, 71, 2], [38, 56, 4], [37, 56, 1]]}}}
