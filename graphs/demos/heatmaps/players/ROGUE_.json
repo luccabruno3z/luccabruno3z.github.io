@@ -1,1 +1,1 @@
-{"player": "ROGUE.", "grid_size": 128, "maps": {"dovre_winter": {"kills": [[106, 35, 1]], "deaths": [[93, 24, 1], [93, 27, 1], [93, 30, 1]]}, "khamisiyah": {"kills": [], "deaths": [[64, 71, 2]]}, "xiangshan": {"kills": [], "deaths": [[63, 35, 1], [66, 66, 1], [73, 50, 1]]}}}
+{"player": "ROGUE.", "grid_size": 128, "maps": {"dovre_winter": {"kills": [[106, 35, 1]], "deaths": [[93, 24, 1], [93, 27, 1], [93, 30, 1]]}, "xiangshan": {"kills": [], "deaths": [[63, 35, 1], [66, 66, 1], [73, 50, 1]]}, "khamisiyah": {"kills": [], "deaths": [[64, 71, 2]]}}}
