@@ -1,1 +1,1 @@
-{"player": "rafael_bicicleta", "grid_size": 128, "maps": {"silent_eagle": {"kills": [], "deaths": [[87, 96, 1]]}, "beirut": {"kills": [], "deaths": [[86, 43, 1], [86, 42, 2], [85, 36, 1], [92, 50, 1], [83, 33, 1]]}}}
+{"player": "rafael_bicicleta", "grid_size": 128, "maps": {"beirut": {"kills": [], "deaths": [[86, 43, 1], [86, 42, 2], [85, 36, 1], [92, 50, 1], [83, 33, 1]]}, "silent_eagle": {"kills": [], "deaths": [[87, 96, 1]]}}}
