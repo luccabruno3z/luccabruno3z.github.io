@@ -763,5 +763,11 @@
         "Performance Score": 0.7947,
         "K/D Ratio": 1.3781,
         "scoring_version": "v3"
+    },
+    {
+        "Date": "2026-10-03",
+        "Performance Score": 0.6724,
+        "K/D Ratio": 1.3774,
+        "scoring_version": "v3"
     }
 ]
