@@ -1,1 +1,1 @@
-{"player": "Pernanbucano", "grid_size": 128, "maps": {"grostok": {"kills": [[55, 65, 2]], "deaths": []}, "gaza_2": {"kills": [[104, 30, 1], [64, 22, 1]], "deaths": [[82, 31, 1], [66, 19, 1], [105, 30, 1]]}}}
+{"player": "Pernanbucano", "grid_size": 128, "maps": {"gaza_2": {"kills": [[104, 30, 1], [64, 22, 1]], "deaths": [[82, 31, 1], [66, 19, 1], [105, 30, 1]]}, "grostok": {"kills": [[55, 65, 2]], "deaths": []}}}
