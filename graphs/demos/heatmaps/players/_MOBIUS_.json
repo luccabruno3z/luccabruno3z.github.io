@@ -1,1 +1,1 @@
-{"player": "=MOBIUS=", "grid_size": 128, "maps": {"burning_sands": {"kills": [[53, 61, 1], [51, 60, 1]], "deaths": [[53, 61, 1]]}}}
+{"player": "=MOBIUS=", "grid_size": 128, "maps": {"burning_sands": {"kills": [[53, 61, 1], [51, 60, 1]], "deaths": [[53, 61, 1]]}, "ramiel": {"kills": [[87, 100, 3], [90, 110, 1], [82, 55, 1]], "deaths": [[87, 100, 1], [86, 99, 1], [93, 61, 1], [81, 56, 1]]}}}
