@@ -1,1 +1,1 @@
-{"player": "Pomberito", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [], "deaths": [[59, 81, 1]]}}}
+{"player": "Pomberito", "grid_size": 128, "maps": {"assault_on_grozny": {"kills": [], "deaths": [[59, 81, 1]]}, "wanda_shan": {"kills": [[101, 48, 1]], "deaths": [[101, 48, 1], [84, 59, 2]]}, "beirut": {"kills": [[74, 43, 1], [26, 66, 1], [25, 68, 1], [28, 81, 1], [28, 85, 1]], "deaths": [[74, 43, 1], [65, 60, 1], [28, 85, 1]]}}}
