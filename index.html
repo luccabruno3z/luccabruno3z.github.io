@@ -69,29 +69,53 @@
 
     <!-- ===== HEADER ===== -->
     <header class="glass-header">
-        <a class="logo" href="#hero" aria-label="Inicio — Legión de Hierro">
+        <a class="logo" href="#/inicio" aria-label="Inicio — Legión de Hierro">
             <img src="logos/Logo_LDH.png" alt="" width="48" height="48">
             <span>Legión de Hierro</span>
         </a>
 
-        <input type="checkbox" id="nav-toggle" aria-hidden="true">
-        <label for="nav-toggle" class="hamburger-label" aria-label="Abrir menú de navegación">&#9776;</label>
-
-        <nav role="navigation" aria-label="Navegación principal">
-            <a href="#dashboard">Dashboard</a>
-            <a href="#player-search-section">Jugadores</a>
-            <a href="#rankings">Rankings</a>
-            <a href="#leaderboards">Leaderboards</a>
-            <a href="#team-analysis">Equipos</a>
-            <a href="#demo-stats">Demos</a>
-            <a href="#heatmaps">Heatmaps</a>
-            <a href="#recent-matches">Partidas</a>
-            <a href="#charts">Gráficos</a>
-            <a href="#guides">Guías</a>
+        <!-- Una vista por pestaña (rutas #/vista). En celular pasa a barra inferior. -->
+        <nav class="main-nav" aria-label="Navegación principal">
+            <a href="#/inicio" data-view="inicio">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/></svg>
+                <span>Inicio</span>
+            </a>
+            <a href="#/jugadores" data-view="jugadores">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>
+                <span>Jugadores</span>
+            </a>
+            <a href="#/rankings" data-view="rankings">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V4M19 20v-6"/></svg>
+                <span>Rankings</span>
+            </a>
+            <a href="#/clanes" data-view="clanes">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+                <span>Clanes</span>
+            </a>
+            <a href="#/partidas" data-view="partidas">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></svg>
+                <span>Partidas</span>
+            </a>
+            <a href="#/equipos" data-view="equipos">
+                <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c.6-3 3-5 6-5s5.4 2 6 5M14 15.3c.6-.2 1.3-.3 2-.3 3 0 5.4 2 6 5"/></svg>
+                <span>Equipos</span>
+            </a>
         </nav>
+
+        <div class="header-tools">
+            <form class="header-search" id="header-search" role="search">
+                <label for="header-player" class="sr-only">Buscar jugador</label>
+                <input type="search" id="header-player" placeholder="Buscar jugador…" autocomplete="off" aria-autocomplete="list" aria-controls="header-suggestions">
+                <div class="suggestions" id="header-suggestions" role="listbox" aria-label="Sugerencias de jugadores"></div>
+            </form>
+            <a href="#/guias" class="header-link" data-view="guias">Guías</a>
+        </div>
     </header>
 
     <main role="main" id="main">
+
+        <!-- ===== VISTA: INICIO ===== -->
+        <div class="view is-active" id="view-inicio" data-view-panel="inicio">
 
         <!-- ===== HERO ===== -->
         <section class="hero" id="hero" aria-labelledby="hero-title">
@@ -117,8 +141,8 @@
                     </div>
 
                     <div class="hero-actions">
-                        <a href="#player-search-section" class="cta-button">Buscar jugador</a>
-                        <a href="#dashboard" class="cta-button ghost">Ver dashboard</a>
+                        <a href="#/jugadores" class="cta-button">Buscar jugador</a>
+                        <a href="#/inicio/dashboard" class="cta-button ghost">Ver dashboard</a>
                     </div>
                     <p class="last-updated"><small>Última actualización: <time id="last-updated-time" datetime="">cargando…</time></small></p>
                 </div>
@@ -135,23 +159,35 @@
             <p class="section-subtitle">Un vistazo en vivo a la comunidad — se actualiza solo.</p>
             <div class="bento">
                 <article class="bento-tile tile-lg" aria-labelledby="tile-top-title">
-                    <header class="tile-head"><h3 id="tile-top-title">🏆 Top jugadores</h3><a href="#rankings" class="tile-link">Ver ranking →</a></header>
+                    <header class="tile-head"><h3 id="tile-top-title">🏆 Top jugadores</h3><a href="#/rankings" class="tile-link">Ver ranking →</a></header>
                     <div class="tile-body" id="tile-top-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
                 </article>
                 <article class="bento-tile" aria-labelledby="tile-lb-title">
-                    <header class="tile-head"><h3 id="tile-lb-title">🎯 Líderes (demos)</h3><a href="#leaderboards" class="tile-link">Ver más →</a></header>
+                    <header class="tile-head"><h3 id="tile-lb-title">🎯 Líderes (demos)</h3><a href="#/rankings/leaderboards" class="tile-link">Ver más →</a></header>
                     <div class="tile-body" id="tile-lb-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
                 </article>
                 <article class="bento-tile" aria-labelledby="tile-clans-title">
-                    <header class="tile-head"><h3 id="tile-clans-title">⚔️ Top clanes</h3><a href="#clan-averages" class="tile-link">Ver más →</a></header>
+                    <header class="tile-head"><h3 id="tile-clans-title">⚔️ Top clanes</h3><a href="#/clanes" class="tile-link">Ver más →</a></header>
                     <div class="tile-body" id="tile-clans-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
                 </article>
                 <article class="bento-tile tile-wide" aria-labelledby="tile-matches-title">
-                    <header class="tile-head"><h3 id="tile-matches-title">📋 Partidas recientes</h3><a href="#recent-matches" class="tile-link">Ver todas →</a></header>
+                    <header class="tile-head"><h3 id="tile-matches-title">📋 Partidas recientes</h3><a href="#/partidas" class="tile-link">Ver todas →</a></header>
                     <div class="tile-body" id="tile-matches-body" aria-live="polite"><div class="skeleton skeleton-rows"></div></div>
                 </article>
             </div>
         </section>
+        </div>
+
+        <!-- ===== VISTA: JUGADORES ===== -->
+        <div class="view" id="view-jugadores" data-view-panel="jugadores">
+        <header class="view-head">
+            <h1 class="view-title">Jugadores</h1>
+            <p class="view-subtitle">Buscá un perfil o enfrentá dos jugadores o clanes.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Jugadores">
+                <a href="#/jugadores/player-search-section" class="view-chip">Buscar</a>
+                <a href="#/jugadores/comparison" class="view-chip">Comparar</a>
+            </div>
+        </header>
 
         <!-- ===== SECTION: PLAYER SEARCH ===== -->
         <section class="section" id="player-search-section" aria-labelledby="player-search-title">
@@ -198,6 +234,18 @@
 
             <div id="compare-results" class="compare-results" aria-live="polite"></div>
         </section>
+        </div>
+
+        <!-- ===== VISTA: RANKINGS ===== -->
+        <div class="view" id="view-rankings" data-view-panel="rankings">
+        <header class="view-head">
+            <h1 class="view-title">Rankings</h1>
+            <p class="view-subtitle">Los mejores jugadores por métrica y por período.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Rankings">
+                <a href="#/rankings/rankings" class="view-chip">Top</a>
+                <a href="#/rankings/leaderboards" class="view-chip">Por período</a>
+            </div>
+        </header>
 
         <!-- ===== SECTION: TOP RANKINGS ===== -->
         <section class="section" id="rankings" aria-labelledby="rankings-title">
@@ -292,6 +340,177 @@
             </form>
             <div id="leaderboard-results" class="top-results" aria-live="polite"></div>
         </section>
+        </div>
+
+        <!-- ===== VISTA: CLANES ===== -->
+        <div class="view" id="view-clanes" data-view-panel="clanes">
+        <header class="view-head">
+            <h1 class="view-title">Clanes</h1>
+            <p class="view-subtitle">Promedios y gráficos interactivos por clan.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Clanes">
+                <a href="#/clanes/clan-averages" class="view-chip">Promedios</a>
+                <a href="#/clanes/charts" class="view-chip">Gráficos</a>
+            </div>
+        </header>
+
+        <!-- ===== SECTION: CLAN AVERAGES ===== -->
+        <section class="section" id="clan-averages" aria-labelledby="clan-averages-title">
+            <h2 class="section-title" id="clan-averages-title">Promedios de Clanes</h2>
+            <p class="section-subtitle">Performance Score promedio por clan y estadísticas agregadas.</p>
+            <div class="clan-averages-container">
+                <div class="clan-averages-chart-wrapper">
+                    <canvas id="clanAveragesChart" aria-label="Gráfico de promedios de clanes"></canvas>
+                </div>
+                <div id="clan-averages-results" class="clan-averages-stats"></div>
+            </div>
+        </section>
+
+        <!-- ===== SECTION: INTERACTIVE CHARTS ===== -->
+        <section class="section" id="charts" aria-labelledby="charts-title">
+            <h2 class="section-title" id="charts-title">Gráficos Interactivos</h2>
+            <p class="section-subtitle">Visualizaciones interactivas por clan (se abren en una pestaña nueva).</p>
+            <div class="charts-grid">
+                <a href="graphs/LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>LDH</span></a>
+                <a href="graphs/FI_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FI</span></a>
+                <a href="graphs/FI-R_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FI-R</span></a>
+                <a href="graphs/R-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>R-LDH</span></a>
+                <a href="graphs/300_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>300</span></a>
+                <a href="graphs/E-LAM_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>E-LAM</span></a>
+                <a href="graphs/RIM:LA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>RIM:LA</span></a>
+                <a href="graphs/ADG_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>ADG</span></a>
+                <a href="graphs/WD_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>WD</span></a>
+                <a href="graphs/A-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>A-LDH</span></a>
+                <a href="graphs/FASO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FASO</span></a>
+                <a href="graphs/PORN_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>PORN</span></a>
+                <a href="graphs/E-102_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>E-102</span></a>
+                <a href="graphs/ARA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>ARA</span></a>
+                <a href="graphs/TANGO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>TANGO</span></a>
+                <a href="graphs/SF_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>SF</span></a>
+                <a href="graphs/KKCK_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>KKCK</span></a>
+                <a href="graphs/SPTS_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>SPTS</span></a>
+                <a href="graphs/DARE_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>DARE</span></a>
+                <a href="graphs/FEB_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FEB</span></a>
+                <a href="graphs/EASY_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>EASY</span></a>
+                <a href="graphs/U777_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>U777</span></a>
+                <a href="graphs/OSO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>OSO</span></a>
+                <a href="graphs/LA-9_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>LA-9</span></a>
+                <a href="graphs/WK_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>WK</span></a>
+                <a href="graphs/FAL_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FAL</span></a>
+                <a href="graphs/all_players_interactive_chart.html" target="_blank" rel="noopener" class="chart-card chart-card-all"><span>🌎 Todos</span></a>
+            </div>
+        </section>
+        </div>
+
+        <!-- ===== VISTA: PARTIDAS ===== -->
+        <div class="view" id="view-partidas" data-view-panel="partidas">
+        <header class="view-head">
+            <h1 class="view-title">Partidas</h1>
+            <p class="view-subtitle">Rondas recientes, heatmaps y estadísticas de demos.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Partidas">
+                <a href="#/partidas/recent-matches" class="view-chip">Recientes</a>
+                <a href="#/partidas/heatmaps" class="view-chip">Heatmaps</a>
+                <a href="#/partidas/demo-stats" class="view-chip">Demos</a>
+            </div>
+        </header>
+
+        <!-- ===== SECTION: RECENT MATCHES ===== -->
+        <section class="section" id="recent-matches" aria-labelledby="recent-matches-title">
+            <h2 class="section-title" id="recent-matches-title">Partidas Recientes</h2>
+            <p class="section-subtitle">Últimas rondas registradas en los demos procesados.</p>
+            <div id="recent-matches-results" class="recent-matches-results" aria-live="polite"></div>
+        </section>
+
+        <!-- ===== SECTION: HEATMAPS ===== -->
+        <section class="section" id="heatmaps" aria-labelledby="heatmaps-title">
+            <h2 class="section-title" id="heatmaps-title">🗺️ Heatmaps por Mapa</h2>
+            <p class="section-subtitle">Dónde ocurren los combates: densidad de muertes por mapa, acumulada de todas las rondas.</p>
+            <div class="heatmap-controls">
+                <label for="heatmap-map" class="sr-only">Seleccionar mapa</label>
+                <select id="heatmap-map" aria-label="Seleccionar mapa"></select>
+                <label for="heatmap-gamemode" class="sr-only">Modo de juego</label>
+                <select id="heatmap-gamemode" aria-label="Modo de juego"></select>
+                <label for="heatmap-round" class="sr-only">Ronda</label>
+                <select id="heatmap-round" aria-label="Ronda"></select>
+                <div class="heatmap-teams" role="group" aria-label="Filtrar por equipo">
+                    <button type="button" data-team="all" class="active">Todos</button>
+                    <button type="button" data-team="1">BLUFOR</button>
+                    <button type="button" data-team="2">OPFOR</button>
+                </div>
+                <label class="heatmap-check"><input type="checkbox" id="heatmap-flags" checked> 🚩 Banderas</label>
+                <span class="heatmap-player-wrap">
+                    <input type="text" id="heatmap-player" placeholder="👤 Jugador (opcional)" aria-label="Heatmap por jugador" autocomplete="off" aria-autocomplete="list" aria-controls="heatmap-player-suggestions">
+                    <div class="suggestions" id="heatmap-player-suggestions" role="listbox" aria-label="Sugerencias de jugadores"></div>
+                </span>
+            </div>
+            <div class="heatmap-layers" role="group" aria-label="Tipo de mapa de calor">
+                <button type="button" data-layer="deaths" class="active">🔥 Mapa de calor</button>
+                <button type="button" data-layer="movement">🧭 Recorridos</button>
+                <button type="button" data-layer="spawns">📍 Spawns</button>
+                <button type="button" data-layer="sniper">🎯 Francotiradores</button>
+                <button type="button" data-layer="fire">🔫 Líneas de fuego</button>
+            </div>
+            <div id="heatmap-fire-legend" class="heatmap-fire-legend" hidden>
+                <span><i class="fl-swatch fl-blu"></i> BLUFOR dispara</span>
+                <span><i class="fl-swatch fl-opf"></i> OPFOR dispara</span>
+                <span class="muted">cada línea va del tirador (punto + brillante) hacia la víctima</span>
+            </div>
+            <div class="heatmap-phase-row" id="heatmap-phase-row" hidden>
+                <label for="heatmap-phase">Etapa de la partida:</label>
+                <input type="range" id="heatmap-phase" min="0" max="6" value="0" step="1" aria-label="Etapa de la partida">
+                <span id="heatmap-phase-label" class="heatmap-phase-label">Todas</span>
+            </div>
+            <div class="heatmap-stage">
+                <canvas id="heatmap-canvas" width="1024" height="1024" aria-label="Heatmap de muertes del mapa (rueda para zoom, arrastrá para mover)"></canvas>
+                <div class="heatmap-legend" aria-hidden="true"><span>menos</span><span class="heatmap-ramp"></span><span>más</span></div>
+            </div>
+            <div id="heatmap-meta" class="heatmap-meta" aria-live="polite"></div>
+        </section>
+
+        <!-- ===== SECTION: DEMO STATS ===== -->
+        <section class="section" id="demo-stats" aria-labelledby="demo-stats-title">
+            <h2 class="section-title" id="demo-stats-title">Estadísticas de Demos</h2>
+            <p class="section-subtitle">Datos derivados de los archivos .PRdemo de servidores LATAM.</p>
+
+            <div class="demo-stats-container">
+                <div class="demo-player-search">
+                    <h3>Buscar stats de demos por jugador</h3>
+                    <form id="demo-player-form" class="search-form">
+                        <div class="search-input-wrapper">
+                            <label for="demo-player-name" class="sr-only">Nombre del jugador</label>
+                            <input type="text" id="demo-player-name" name="demo-player-name" placeholder="Escribí un nombre de jugador…" autocomplete="off" aria-label="Buscar estadísticas de demos por jugador" aria-autocomplete="list" aria-controls="demo-suggestions">
+                            <div class="suggestions" id="demo-suggestions" role="listbox" aria-label="Sugerencias de jugadores para demos"></div>
+                            <button type="submit">Buscar</button>
+                        </div>
+                    </form>
+                    <div id="demo-player-results" class="demo-player-results" aria-live="polite"></div>
+                </div>
+
+                <div class="demo-map-stats">
+                    <h3>Estadísticas por mapa</h3>
+                    <form id="demo-map-form" class="search-form">
+                        <div class="search-input-wrapper">
+                            <label for="demo-map-name" class="sr-only">Nombre del mapa</label>
+                            <input type="text" id="demo-map-name" name="demo-map-name" placeholder="Escribí un nombre de mapa…" autocomplete="off" aria-label="Buscar estadísticas por mapa" aria-autocomplete="list" aria-controls="demo-map-suggestions">
+                            <div class="suggestions" id="demo-map-suggestions" role="listbox" aria-label="Sugerencias de mapas"></div>
+                            <button type="submit">Buscar</button>
+                        </div>
+                    </form>
+                    <div id="demo-map-results" class="demo-map-results" aria-live="polite"></div>
+                </div>
+            </div>
+        </section>
+        </div>
+
+        <!-- ===== VISTA: EQUIPOS ===== -->
+        <div class="view" id="view-equipos" data-view-panel="equipos">
+        <header class="view-head">
+            <h1 class="view-title">Equipos</h1>
+            <p class="view-subtitle">Predecí una partida o analizá la composición de un equipo.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Equipos">
+                <a href="#/equipos/match-predictor" class="view-chip">Predictor</a>
+                <a href="#/equipos/team-analysis" class="view-chip">Composición</a>
+            </div>
+        </header>
 
         <!-- ===== SECTION: MATCH PREDICTOR ===== -->
         <section class="section" id="match-predictor" aria-labelledby="predictor-title">
@@ -448,140 +667,18 @@
 
             <div id="team-results" class="team-results"></div>
         </section>
+        </div>
 
-        <!-- ===== SECTION: CLAN AVERAGES ===== -->
-        <section class="section" id="clan-averages" aria-labelledby="clan-averages-title">
-            <h2 class="section-title" id="clan-averages-title">Promedios de Clanes</h2>
-            <p class="section-subtitle">Performance Score promedio por clan y estadísticas agregadas.</p>
-            <div class="clan-averages-container">
-                <div class="clan-averages-chart-wrapper">
-                    <canvas id="clanAveragesChart" aria-label="Gráfico de promedios de clanes"></canvas>
-                </div>
-                <div id="clan-averages-results" class="clan-averages-stats"></div>
+        <!-- ===== VISTA: GUÍAS ===== -->
+        <div class="view" id="view-guias" data-view-panel="guias">
+        <header class="view-head">
+            <h1 class="view-title">Guías</h1>
+            <p class="view-subtitle">Guías de Project Reality y redes de la Legión.</p>
+            <div class="view-subnav" role="group" aria-label="Secciones de Guías">
+                <a href="#/guias/guides" class="view-chip">Guías</a>
+                <a href="#/guias/social" class="view-chip">Redes</a>
             </div>
-        </section>
-
-        <!-- ===== SECTION: DEMO STATS ===== -->
-        <section class="section" id="demo-stats" aria-labelledby="demo-stats-title">
-            <h2 class="section-title" id="demo-stats-title">Estadísticas de Demos</h2>
-            <p class="section-subtitle">Datos derivados de los archivos .PRdemo de servidores LATAM.</p>
-
-            <div class="demo-stats-container">
-                <div class="demo-player-search">
-                    <h3>Buscar stats de demos por jugador</h3>
-                    <form id="demo-player-form" class="search-form">
-                        <div class="search-input-wrapper">
-                            <label for="demo-player-name" class="sr-only">Nombre del jugador</label>
-                            <input type="text" id="demo-player-name" name="demo-player-name" placeholder="Escribí un nombre de jugador…" autocomplete="off" aria-label="Buscar estadísticas de demos por jugador" aria-autocomplete="list" aria-controls="demo-suggestions">
-                            <div class="suggestions" id="demo-suggestions" role="listbox" aria-label="Sugerencias de jugadores para demos"></div>
-                            <button type="submit">Buscar</button>
-                        </div>
-                    </form>
-                    <div id="demo-player-results" class="demo-player-results" aria-live="polite"></div>
-                </div>
-
-                <div class="demo-map-stats">
-                    <h3>Estadísticas por mapa</h3>
-                    <form id="demo-map-form" class="search-form">
-                        <div class="search-input-wrapper">
-                            <label for="demo-map-name" class="sr-only">Nombre del mapa</label>
-                            <input type="text" id="demo-map-name" name="demo-map-name" placeholder="Escribí un nombre de mapa…" autocomplete="off" aria-label="Buscar estadísticas por mapa" aria-autocomplete="list" aria-controls="demo-map-suggestions">
-                            <div class="suggestions" id="demo-map-suggestions" role="listbox" aria-label="Sugerencias de mapas"></div>
-                            <button type="submit">Buscar</button>
-                        </div>
-                    </form>
-                    <div id="demo-map-results" class="demo-map-results" aria-live="polite"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===== SECTION: HEATMAPS ===== -->
-        <section class="section" id="heatmaps" aria-labelledby="heatmaps-title">
-            <h2 class="section-title" id="heatmaps-title">🗺️ Heatmaps por Mapa</h2>
-            <p class="section-subtitle">Dónde ocurren los combates: densidad de muertes por mapa, acumulada de todas las rondas.</p>
-            <div class="heatmap-controls">
-                <label for="heatmap-map" class="sr-only">Seleccionar mapa</label>
-                <select id="heatmap-map" aria-label="Seleccionar mapa"></select>
-                <label for="heatmap-gamemode" class="sr-only">Modo de juego</label>
-                <select id="heatmap-gamemode" aria-label="Modo de juego"></select>
-                <label for="heatmap-round" class="sr-only">Ronda</label>
-                <select id="heatmap-round" aria-label="Ronda"></select>
-                <div class="heatmap-teams" role="group" aria-label="Filtrar por equipo">
-                    <button type="button" data-team="all" class="active">Todos</button>
-                    <button type="button" data-team="1">BLUFOR</button>
-                    <button type="button" data-team="2">OPFOR</button>
-                </div>
-                <label class="heatmap-check"><input type="checkbox" id="heatmap-flags" checked> 🚩 Banderas</label>
-                <span class="heatmap-player-wrap">
-                    <input type="text" id="heatmap-player" placeholder="👤 Jugador (opcional)" aria-label="Heatmap por jugador" autocomplete="off" aria-autocomplete="list" aria-controls="heatmap-player-suggestions">
-                    <div class="suggestions" id="heatmap-player-suggestions" role="listbox" aria-label="Sugerencias de jugadores"></div>
-                </span>
-            </div>
-            <div class="heatmap-layers" role="group" aria-label="Tipo de mapa de calor">
-                <button type="button" data-layer="deaths" class="active">🔥 Mapa de calor</button>
-                <button type="button" data-layer="movement">🧭 Recorridos</button>
-                <button type="button" data-layer="spawns">📍 Spawns</button>
-                <button type="button" data-layer="sniper">🎯 Francotiradores</button>
-                <button type="button" data-layer="fire">🔫 Líneas de fuego</button>
-            </div>
-            <div id="heatmap-fire-legend" class="heatmap-fire-legend" hidden>
-                <span><i class="fl-swatch fl-blu"></i> BLUFOR dispara</span>
-                <span><i class="fl-swatch fl-opf"></i> OPFOR dispara</span>
-                <span class="muted">cada línea va del tirador (punto + brillante) hacia la víctima</span>
-            </div>
-            <div class="heatmap-phase-row" id="heatmap-phase-row" hidden>
-                <label for="heatmap-phase">Etapa de la partida:</label>
-                <input type="range" id="heatmap-phase" min="0" max="6" value="0" step="1" aria-label="Etapa de la partida">
-                <span id="heatmap-phase-label" class="heatmap-phase-label">Todas</span>
-            </div>
-            <div class="heatmap-stage">
-                <canvas id="heatmap-canvas" width="1024" height="1024" aria-label="Heatmap de muertes del mapa (rueda para zoom, arrastrá para mover)"></canvas>
-                <div class="heatmap-legend" aria-hidden="true"><span>menos</span><span class="heatmap-ramp"></span><span>más</span></div>
-            </div>
-            <div id="heatmap-meta" class="heatmap-meta" aria-live="polite"></div>
-        </section>
-
-        <!-- ===== SECTION: RECENT MATCHES ===== -->
-        <section class="section" id="recent-matches" aria-labelledby="recent-matches-title">
-            <h2 class="section-title" id="recent-matches-title">Partidas Recientes</h2>
-            <p class="section-subtitle">Últimas rondas registradas en los demos procesados.</p>
-            <div id="recent-matches-results" class="recent-matches-results" aria-live="polite"></div>
-        </section>
-
-        <!-- ===== SECTION: INTERACTIVE CHARTS ===== -->
-        <section class="section" id="charts" aria-labelledby="charts-title">
-            <h2 class="section-title" id="charts-title">Gráficos Interactivos</h2>
-            <p class="section-subtitle">Visualizaciones interactivas por clan (se abren en una pestaña nueva).</p>
-            <div class="charts-grid">
-                <a href="graphs/LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>LDH</span></a>
-                <a href="graphs/FI_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FI</span></a>
-                <a href="graphs/FI-R_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FI-R</span></a>
-                <a href="graphs/R-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>R-LDH</span></a>
-                <a href="graphs/300_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>300</span></a>
-                <a href="graphs/E-LAM_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>E-LAM</span></a>
-                <a href="graphs/RIM:LA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>RIM:LA</span></a>
-                <a href="graphs/ADG_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>ADG</span></a>
-                <a href="graphs/WD_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>WD</span></a>
-                <a href="graphs/A-LDH_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>A-LDH</span></a>
-                <a href="graphs/FASO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FASO</span></a>
-                <a href="graphs/PORN_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>PORN</span></a>
-                <a href="graphs/E-102_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>E-102</span></a>
-                <a href="graphs/ARA_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>ARA</span></a>
-                <a href="graphs/TANGO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>TANGO</span></a>
-                <a href="graphs/SF_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>SF</span></a>
-                <a href="graphs/KKCK_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>KKCK</span></a>
-                <a href="graphs/SPTS_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>SPTS</span></a>
-                <a href="graphs/DARE_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>DARE</span></a>
-                <a href="graphs/FEB_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FEB</span></a>
-                <a href="graphs/EASY_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>EASY</span></a>
-                <a href="graphs/U777_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>U777</span></a>
-                <a href="graphs/OSO_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>OSO</span></a>
-                <a href="graphs/LA-9_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>LA-9</span></a>
-                <a href="graphs/WK_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>WK</span></a>
-                <a href="graphs/FAL_interactive_chart.html" target="_blank" rel="noopener" class="chart-card"><span>FAL</span></a>
-                <a href="graphs/all_players_interactive_chart.html" target="_blank" rel="noopener" class="chart-card chart-card-all"><span>🌎 Todos</span></a>
-            </div>
-        </section>
+        </header>
 
         <!-- ===== SECTION: GUIDES ===== -->
         <section class="section" id="guides" aria-labelledby="guides-title">
@@ -627,6 +724,7 @@
                 </a>
             </div>
         </section>
+        </div>
 
     </main>
 

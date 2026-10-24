@@ -4,6 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadData, loadTierConfig, loadLogoManifest, loadAliases, loadAtlas } from './data.js';
+import { initRouter } from './router.js';
 
 import { initHero } from './hero.js';
 import { initDashboard } from './dashboard.js';
@@ -53,6 +54,8 @@ function showCoreError() {
 }
 
 async function boot() {
+    // Primero la vista: un deep link (#/clanes) no muestra Inicio mientras cargan los datos.
+    safe('router', initRouter);
     setupReveal();
 
     try {
