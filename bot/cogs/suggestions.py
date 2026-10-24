@@ -1,11 +1,11 @@
 """Suggestions cog — buzón de observaciones/sugerencias de usuarios.
 
 `-sugerencia <texto>` (alias sug): cualquiera deja una observación → se guarda en
-`bot/data/suggestions.json` (lista JSON, escritura atómica). `-expsug` (owner): exporta
-todo como adjunto .json + un resumen.
+`suggestions.json` dentro de SUGGESTIONS_DIR o DATA_DIR (lista JSON, escritura atómica).
+`-expsug` (owner): exporta todo como adjunto .json + un resumen.
 
-Persistencia: por ahora solo el archivo. ⚠️ El disco de Railway es efímero (se borra en
-cada redeploy), así que conviene correr `-expsug` cada tanto. El espejo a un canal privado
+Persistencia: el archivo vive en el volumen de Railway (/data), que sobrevive a los
+redeploys. Igual conviene correr `-expsug` cada tanto como backup. El espejo a un canal privado
 de Discord (almacenamiento permanente) está preparado como hook futuro: definí la env var
 `SUGGESTIONS_LOG_CHANNEL` con el id del canal y `_mirror` empieza a re-postear cada
 sugerencia ahí (pendiente del OK del dueño del server).

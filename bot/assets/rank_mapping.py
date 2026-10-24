@@ -8,6 +8,8 @@ import json
 import logging
 import os
 
+from bot.services.storage import data_path, save_json
+
 logger = logging.getLogger(__name__)
 
 # (tier_name, emoji_name, asset_file, unicode_fallback)
@@ -20,7 +22,7 @@ RANK_TIERS = [
 ]
 
 _emoji_cache: dict[str, str] = {}
-_EMOJI_FILE = "bot/data/rank_emojis.json"
+_EMOJI_FILE = data_path("rank_emojis.json")
 
 
 def load_rank_emoji_cache() -> None:
@@ -32,9 +34,7 @@ def load_rank_emoji_cache() -> None:
 
 
 def save_rank_emoji_cache() -> None:
-    os.makedirs(os.path.dirname(_EMOJI_FILE), exist_ok=True)
-    with open(_EMOJI_FILE, "w") as f:
-        json.dump(_emoji_cache, f, indent=2)
+    save_json(_EMOJI_FILE, _emoji_cache)
 
 
 def update_rank_emoji_cache(emoji_name: str, emoji_str: str) -> None:

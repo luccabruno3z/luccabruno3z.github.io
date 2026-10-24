@@ -1,12 +1,15 @@
 """JSON-backed per-guild settings store for data mode selection."""
 
-import json
 import logging
-import os
+
+from bot.services.storage import data_path, load_json, save_json
 
 logger = logging.getLogger(__name__)
 
-DATA_FILE = "bot/data/guild_settings.json"
+# Solo modos de datos ({guild_id: modo}). La config de automation (canal del
+# leaderboard) vive aparte en automation.json: antes ambos compartían este archivo
+# con formatos distintos y se pisaban.
+DATA_FILE = data_path("guild_settings.json")
 VALID_MODES = ("prstats", "demos", "combined")
 DEFAULT_MODE = "combined"
 
@@ -25,29 +28,18 @@ class GuildSettings:
         self.load()
 
     def load(self) -> None:
-        """Load settings from disk, creating the file if missing."""
-        if not os.path.exists(DATA_FILE):
-            os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-            self._data = {}
-            self.save()
-            return
-
-        try:
-            with open(DATA_FILE, "r", encoding="utf-8") as f:
-                self._data = json.load(f)
-            logger.info("Guild settings loaded (%d guilds)", len(self._data))
-        except (json.JSONDecodeError, OSError) as e:
-            logger.warning("Failed to load guild settings: %s — starting fresh", e)
-            self._data = {}
+        """Load settings from disk (empty if missing or corrupt)."""
+        data = load_json(DATA_FILE, {})
+        # Descarta entradas que no sean un modo válido (p.ej. dicts que dejó la
+        # versión anterior de automation al compartir el archivo).
+        self._data = {
+            k: v for k, v in data.items() if v in VALID_MODES
+        } if isinstance(data, dict) else {}
+        logger.info("Guild settings loaded (%d guilds)", len(self._data))
 
     def save(self) -> None:
         """Persist current settings to disk."""
-        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-        try:
-            with open(DATA_FILE, "w", encoding="utf-8") as f:
-                json.dump(self._data, f, indent=2, ensure_ascii=False)
-        except OSError as e:
-            logger.error("Failed to save guild settings: %s", e)
+        save_json(DATA_FILE, self._data)
 
     def get_mode(self, guild_id: int) -> str:
         """Return the data mode for a guild, defaulting to ``combined``."""

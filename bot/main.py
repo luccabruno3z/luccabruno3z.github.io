@@ -13,6 +13,7 @@ from bot.config import COMMAND_PREFIX
 from bot.services.clan_registry import ClanRegistry
 from bot.services.data_fetcher import DataFetcher
 from bot.services.guild_settings import GuildSettings
+from bot.services.storage import DATA_DIR
 
 # Logging a stdout para que se vea en `railway logs` (sin esto, Python solo emite
 # WARNING+). Nivel configurable con LOG_LEVEL (default INFO); discord en WARNING para
@@ -51,6 +52,7 @@ async def main():
     if not token:
         raise ValueError("El token del bot no está definido en las variables de entorno")
     logger.info("Token detectado correctamente")
+    logger.info("Datos persistentes en: %s", DATA_DIR)
 
     # Configure intents (NOT all() -- only what we need)
     intents = discord.Intents.default()

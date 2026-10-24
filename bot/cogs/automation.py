@@ -1,5 +1,6 @@
 """Background tasks: leaderboard automático, cache refresh, player of the week."""
 
+import datetime
 import logging
 
 import discord
@@ -11,6 +12,11 @@ from bot.services.storage import JSONStorage
 
 logger = logging.getLogger(__name__)
 
+# Hora del leaderboard semanal (lunes). Con un loop por intervalo (hours=168) se
+# disparaba en cada arranque, o sea en cada redeploy.
+LEADERBOARD_TIME = datetime.time(hour=10, minute=0, tzinfo=datetime.timezone.utc)
+LEADERBOARD_WEEKDAY = 0  # lunes
+
 
 class Automation(commands.Cog):
     """Automated background tasks for the LDH stats bot."""
@@ -18,7 +24,8 @@ class Automation(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.fetcher = bot.data_fetcher
-        self.settings = JSONStorage("guild_settings.json")
+        # Archivo propio: guild_settings.json es de GuildSettings (modos de datos).
+        self.settings = JSONStorage("automation.json")
 
     async def cog_load(self):
         self.cache_refresh.start()
@@ -45,9 +52,11 @@ class Automation(commands.Cog):
 
     # ── Weekly leaderboard (every Monday at 10:00 UTC) ─────────────────────
 
-    @tasks.loop(hours=168)  # weekly
+    @tasks.loop(time=LEADERBOARD_TIME)  # corre a diario; solo publica los lunes
     async def weekly_leaderboard(self):
         """Post top 10 players in configured channels."""
+        if datetime.datetime.now(datetime.timezone.utc).weekday() != LEADERBOARD_WEEKDAY:
+            return
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
@@ -76,7 +85,7 @@ class Automation(commands.Cog):
 
         # Post to all configured channels
         for guild_id, config in self.settings.all().items():
-            channel_id = config.get("leaderboard_channel")
+            channel_id = config.get("leaderboard_channel") if isinstance(config, dict) else None
             if not channel_id:
                 continue
             channel = self.bot.get_channel(int(channel_id))

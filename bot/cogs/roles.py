@@ -4,38 +4,32 @@ button-based persistent role assignment.
 Stores role configs per guild (not global bot attributes) to fix the
 duplicate-handler / single-config bug from the original bot.
 
-Button role configs are persisted in bot/data/roles.json so they survive
-restarts.
+Button role configs are persisted in DATA_DIR/roles.json (volumen persistente
+en Railway) so they survive restarts and redeploys.
 """
 
-import json
 import logging
-import os
-from pathlib import Path
 
 import discord
 from discord.ext import commands
 
+from bot.services.storage import data_path, load_json, save_json
 from bot.views.roles import RoleButtonView
 
 logger = logging.getLogger(__name__)
 
-_ROLES_JSON = Path(__file__).resolve().parent.parent / "data" / "roles.json"
+_ROLES_JSON = data_path("roles.json")
 
 
 def _load_button_configs() -> list[dict]:
     """Load persisted button-role configs from disk."""
-    if _ROLES_JSON.exists():
-        with open(_ROLES_JSON, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
+    data = load_json(_ROLES_JSON, [])
+    return data if isinstance(data, list) else []
 
 
 def _save_button_configs(configs: list[dict]) -> None:
     """Persist button-role configs to disk."""
-    _ROLES_JSON.parent.mkdir(parents=True, exist_ok=True)
-    with open(_ROLES_JSON, "w", encoding="utf-8") as f:
-        json.dump(configs, f, indent=2)
+    save_json(_ROLES_JSON, configs)
 
 
 class Roles(commands.Cog):

@@ -14,10 +14,12 @@ import logging
 import os
 import re
 
+from bot.services.storage import data_path, save_json
+
 logger = logging.getLogger(__name__)
 
 _emoji_cache: dict[str, str] = {}
-_EMOJI_FILE = "bot/data/clan_emojis.json"
+_EMOJI_FILE = data_path("clan_emojis.json")
 _LOGOS_DIR = "logos"
 
 
@@ -34,9 +36,7 @@ def load_clan_emoji_cache() -> None:
 
 
 def save_clan_emoji_cache() -> None:
-    os.makedirs(os.path.dirname(_EMOJI_FILE), exist_ok=True)
-    with open(_EMOJI_FILE, "w") as f:
-        json.dump(_emoji_cache, f, indent=2)
+    save_json(_EMOJI_FILE, _emoji_cache)
 
 
 def update_clan_emoji_cache(emoji_name: str, emoji_str: str) -> None:
