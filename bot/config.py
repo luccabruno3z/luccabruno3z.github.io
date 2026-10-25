@@ -30,6 +30,11 @@ def clan_averages_url() -> str:
     return f"{BASE_URL}/graphs/clan_averages.json"
 
 
+def clan_averages_active_url() -> str:
+    """Promedios de clanes con sus 50 mejores jugadores activos (scraper/activity.py)."""
+    return f"{BASE_URL}/graphs/clan_averages_active.json"
+
+
 def history_url(player_name: str) -> str:
     """Return the URL for a player's history JSON (local path pattern)."""
     return f"graphs/history/{player_name}_history.json"

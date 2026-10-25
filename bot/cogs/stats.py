@@ -143,7 +143,7 @@ class Stats(commands.Cog):
         cantidad="Cantidad de jugadores a mostrar",
         categoria="Categoría (clan o general)",
         metrica="Métrica para ordenar",
-        activos="Filtrar solo jugadores activos",
+        activos="Solo jugadores que jugaron en los últimos 30 días",
     )
     @app_commands.choices(metrica=METRICA_CHOICES)
     @app_commands.autocomplete(categoria=categoria_autocomplete)
@@ -240,7 +240,12 @@ class Stats(commands.Cog):
         excluded_count = len(data) - len(reliable_data)
 
         if activos:
-            reliable_data = [p for p in reliable_data if p.get("Activity Index", 0) >= 40]
+            # "Active 30d" = jugó en los últimos 30 días (rondas de PRStats o demos).
+            # Fallback al Activity Index solo si el JSON todavía no trae la columna.
+            if any("Active 30d" in p for p in reliable_data):
+                reliable_data = [p for p in reliable_data if p.get("Active 30d")]
+            else:
+                reliable_data = [p for p in reliable_data if p.get("Activity Index", 0) >= 40]
 
         cantidad = min(cantidad, len(reliable_data))
 
@@ -363,19 +368,62 @@ class Stats(commands.Cog):
 
     # ── -promedios_tops <cantidad> <metrica> ──────────────────────────────
 
+    async def _promedios_activos(self, ctx: commands.Context, metrica: str):
+        """Top de clanes con el promedio de sus 50 mejores jugadores activos (30 días)."""
+        await ctx.defer()
+        try:
+            payload = await self.fetcher.fetch_clan_averages_active()
+        except Exception:
+            payload = None
+        clans = payload.get("clans") if isinstance(payload, dict) else None
+        if not clans:
+            await ctx.send("Todavía no hay datos de clanes activos: se generan en la próxima "
+                           "actualización del scraper.")
+            return
+        rows = [{**c, "Player": c["Clan"]} for c in clans]
+        card = TopCard(
+            rows,
+            categoria_label="CLANES ACTIVOS",
+            cantidad=len(rows),
+            metrica=metrica,
+            footer=f"Activos: jugaron en los últimos {payload.get('window_days', 30)} días "
+                   f"(rondas de PRStats o demos) · clanes con al menos {payload.get('min_active', 5)} activos",
+            author_id=ctx.author.id,
+            subtitle=f"Promedio de los {payload.get('top_n', 50)} mejores jugadores activos de cada clan "
+                     f"(por Performance) · histórico: `-promedios_tops`",
+            show_tier=False,
+        )
+        card.message = await ctx.send(view=card, files=[card.build_chart_file()])
+
+    @commands.hybrid_command(name="promedios_activos", aliases=["clanes_activos", "avgactivos"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @app_commands.describe(metrica="Métrica para ordenar los clanes")
+    @app_commands.choices(metrica=METRICA_PROMEDIOS_CHOICES)
+    async def promedios_activos(self, ctx: commands.Context, metrica: str = "performance"):
+        """Top de clanes con el promedio de sus 50 mejores jugadores activos (últimos 30 días)."""
+        await self._promedios_activos(ctx, metrica)
+
     @commands.hybrid_command(aliases=["avgtop", "topavg"])
     @commands.cooldown(1, 10, commands.BucketType.user)
     @app_commands.describe(
-        cantidad="Cantidad de mejores jugadores por clan",
+        cantidad="Cantidad de mejores jugadores por clan (solo histórico)",
         metrica="Métrica para calcular promedios",
+        alcance="historico: todos los jugadores · activos: los 50 mejores activos (30 días)",
     )
-    @app_commands.choices(metrica=METRICA_PROMEDIOS_CHOICES)
+    @app_commands.choices(metrica=METRICA_PROMEDIOS_CHOICES, alcance=[
+        app_commands.Choice(name="Histórico (todos)", value="historico"),
+        app_commands.Choice(name="Activos (top 50, 30 días)", value="activos"),
+    ])
     async def promedios_tops(
         self,
         ctx: commands.Context,
         cantidad: int = 15,
         metrica: str = "performance",
+        alcance: str = "historico",
     ):
+        if str(alcance).lower().startswith("act"):
+            await self._promedios_activos(ctx, metrica)
+            return
         if cantidad <= 0:
             await ctx.send("❗ **La cantidad debe ser mayor a 0.**")
             return

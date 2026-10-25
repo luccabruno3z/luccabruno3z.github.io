@@ -10,6 +10,7 @@ from bot.config import (
     all_players_url,
     json_url,
     clan_averages_url,
+    clan_averages_active_url,
     demo_player_details_url,
     demo_round_history_url,
     demo_leaderboard_url,
@@ -120,6 +121,10 @@ class DataFetcher:
     async def fetch_clan_averages(self):
         """Fetch the clan averages JSON."""
         return await self.fetch_json(clan_averages_url())
+
+    async def fetch_clan_averages_active(self):
+        """{generated_at, window_days, top_n, min_active, clans: [...]} o error si no existe aún."""
+        return await self.fetch_json(clan_averages_active_url())
 
     # ── Demo-based detailed stats ────────────────────────────────────────
 

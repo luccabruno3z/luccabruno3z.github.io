@@ -7,7 +7,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import {
-    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
+    ALL_PLAYERS_URL, CLAN_AVERAGES_URL, CLAN_AVERAGES_ACTIVE_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
     DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
     SYNERGY_URL, HEATMAPS_URL, PLAYER_HEATMAP_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
     CACHE_TTL, NORM_CAPS,
@@ -159,6 +159,11 @@ export function getDemoInfo(name) {
 // ── Leaderboards ─────────────────────────────────────────────────────────────
 
 /** Load a period leaderboard (memoized). Falls back to empty. */
+/** Promedios de clanes activos: {window_days, top_n, min_active, clans: [...]} o null. */
+export async function loadClanAveragesActive() {
+    return cachedFetch(CLAN_AVERAGES_ACTIVE_URL, { silent: true });
+}
+
 export async function loadLeaderboard(period) {
     if (state.leaderboardCache[period]) return state.leaderboardCache[period];
     const data = await cachedFetch(`${LEADERBOARDS_URL}/${period}.json`, { silent: true })

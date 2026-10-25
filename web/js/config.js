@@ -9,6 +9,8 @@ export const BASE_URL          = 'https://luccabruno3z.github.io';
 export const GRAPHS_URL        = `${BASE_URL}/graphs`;
 export const ALL_PLAYERS_URL   = `${GRAPHS_URL}/all_players_clusters.json`;
 export const CLAN_AVERAGES_URL = `${GRAPHS_URL}/clan_averages.json`;
+// Promedio de los 50 mejores jugadores ACTIVOS (30 días) de cada clan — scraper/activity.py
+export const CLAN_AVERAGES_ACTIVE_URL = `${GRAPHS_URL}/clan_averages_active.json`;
 export const DEMOS_URL         = `${GRAPHS_URL}/demos`;
 export const HISTORY_URL       = `${GRAPHS_URL}/history`;
 export const LEADERBOARDS_URL  = `${DEMOS_URL}/leaderboards`;

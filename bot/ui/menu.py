@@ -21,7 +21,7 @@ from bot.utils import find_player, format_number, rank_medal, tier_emoji, _tier_
 
 logger = logging.getLogger(__name__)
 
-SCREENS = ("home", "perfil", "rankings", "clanes", "partidas", "equipos")
+SCREENS = ("home", "perfil", "rankings", "clanes", "clanesact", "partidas", "equipos")
 _WEB = "https://luccabruno3z.github.io/#/"
 
 
@@ -198,19 +198,40 @@ async def _rankings(bot, owner: int):
         discord.ui.Button(label="Ver en la web", style=discord.ButtonStyle.link, url=_WEB + "rankings"))]
 
 
-async def _clanes(bot, owner: int):
-    data = await bot.data_fetcher.fetch_clan_averages()
+async def _clanes(bot, owner: int, *, activos: bool = False):
+    if activos:
+        try:
+            payload = await bot.data_fetcher.fetch_clan_averages_active()
+        except Exception:
+            payload = None
+        data = (payload or {}).get("clans") if isinstance(payload, dict) else None
+        title = "## Clanes · activos (top 50, 30 días)"
+        note = ("-# Promedio de los 50 mejores jugadores que jugaron en los últimos 30 días · "
+                "completo: `-promedios_activos`")
+    else:
+        data = await bot.data_fetcher.fetch_clan_averages()
+        title = "## Clanes · histórico (todos los jugadores)"
+        note = "-# Detalle por clan: `-promedios <clan>` · comparar: `-compare <clan1> <clan2>`"
     ranked = sorted(data or [], key=lambda c: c.get("Performance Score", 0), reverse=True)[:10]
     top = (ranked[0].get("Performance Score", 0) or 0) if ranked else 0
-    lines = ["-# Menú › Clanes", "## Clanes · promedio de Performance"]
+    lines = ["-# Menú › Clanes", title]
     for i, c in enumerate(ranked, 1):
         ps = c.get("Performance Score", 0) or 0
         lead = rank_medal(i) if i <= 3 else accent_meter(ps / top if top else 0, LIST_SEGMENTS)
-        lines.append(f"{lead} `{i:>2}.` **{c.get('Clan')}** · K/D `{_f2(c.get('K/D Ratio'))}` · `{_f2(ps)}`")
-    lines.append("-# Detalle por clan: `-promedios <clan>` · comparar: `-compare <clan1> <clan2>`")
+        extra = f" · {c['Active Players']} activos" if activos and c.get("Active Players") else ""
+        lines.append(f"{lead} `{i:>2}.` **{c.get('Clan')}** · K/D `{_f2(c.get('K/D Ratio'))}`{extra} · `{_f2(ps)}`")
+    if not ranked:
+        lines.append("Todavía no hay datos de clanes activos: se generan en la próxima actualización.")
+    lines.append(note)
+    switch = (MenuButton("clanes", owner, "Ver histórico") if activos
+              else MenuButton("clanesact", owner, "Ver activos (top 50)"))
     return 0xFFA500, [discord.ui.TextDisplay("\n".join(lines)), discord.ui.ActionRow(
-        _back(owner),
+        _back(owner), switch,
         discord.ui.Button(label="Ver en la web", style=discord.ButtonStyle.link, url=_WEB + "clanes"))]
+
+
+async def _clanes_activos(bot, owner: int):
+    return await _clanes(bot, owner, activos=True)
 
 
 async def _partidas(bot, owner: int):
@@ -250,6 +271,7 @@ async def _equipos(bot, owner: int):
 
 
 _BUILDERS = {"home": _home, "perfil": _perfil, "rankings": _rankings, "clanes": _clanes,
+             "clanesact": _clanes_activos,
              "partidas": _partidas, "equipos": _equipos}
 
 

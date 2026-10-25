@@ -3,7 +3,7 @@
    ordenable (o tarjetas, a elección). See .rebuild/CONTRACT.md §2.9 / §1.2.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { state } from './data.js';
+import { state, loadClanAveragesActive } from './data.js';
 import { renderClanAveragesChart } from './charts.js';
 import { escapeHtml, clanLogoHTML, formatNumber } from './utils.js';
 import { tierBarHTML, barHTML, tierChipHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
@@ -15,7 +15,8 @@ const SORTS = {
     spr: { key: 'Score per Round', label: 'SPR' },
 };
 
-const ui = { sort: 'performance', view: 'table' };
+const ui = { sort: 'performance', view: 'table', scope: 'historico' };
+let activeData = null;   // clan_averages_active.json, se baja la primera vez que se elige
 
 const f2 = (v) => formatNumber(Number((v || 0).toFixed(2)));
 const int = (v) => formatNumber(Math.round(v || 0));
@@ -40,15 +41,36 @@ function clanCard(c) {
 }
 
 function toolbarHTML() {
-    const seg = (group, entries, current) => `<div class="segmented" role="group" aria-label="${group}">${
-        entries.map(([v, l]) => `<button type="button" data-${group === 'Ordenar por' ? 'sort' : 'view'}="${v}" aria-pressed="${v === current}">${escapeHtml(l)}</button>`).join('')}</div>`;
+    const seg = (label, attr, entries, current) => `<div class="segmented" role="group" aria-label="${label}">${
+        entries.map(([v, l]) => `<button type="button" data-${attr}="${v}" aria-pressed="${v === current}">${escapeHtml(l)}</button>`).join('')}</div>`;
     return `<div class="clan-toolbar">
-        ${seg('Ordenar por', Object.entries(SORTS).map(([k, s]) => [k, s.label]), ui.sort)}
-        ${seg('Vista', [['table', 'Tabla'], ['cards', 'Tarjetas']], ui.view)}
+        ${seg('Alcance', 'scope', [['historico', 'Histórico'], ['activos', 'Activos (top 50)']], ui.scope)}
+        ${seg('Ordenar por', 'sort', Object.entries(SORTS).map(([k, s]) => [k, s.label]), ui.sort)}
+        ${seg('Vista', 'view', [['table', 'Tabla'], ['cards', 'Tarjetas']], ui.view)}
     </div>`;
 }
 
+function scopeNoteHTML() {
+    if (ui.scope !== 'activos') {
+        return '<p class="clan-scope-note">Promedio de <b>todos</b> los jugadores de cada clan, activos o no.</p>';
+    }
+    const p = activeData || {};
+    return `<p class="clan-scope-note">Promedio de los <b>${p.top_n || 50} mejores jugadores activos</b> de cada clan
+        (por Performance). Activo = jugó en los últimos ${p.window_days || 30} días según PRStats o las demos.
+        Clanes con menos de ${p.min_active || 5} activos no aparecen.</p>`;
+}
+
 function render(results, clans) {
+    if (ui.scope === 'activos') {
+        clans = (activeData && activeData.clans) || [];
+        if (!clans.length) {
+            results.innerHTML = toolbarHTML() + scopeNoteHTML()
+                + '<div class="empty-state">Todavía no hay datos de clanes activos: se generan en la próxima actualización.</div>';
+            return;
+        }
+    }
+    const canvas = document.getElementById('clanAveragesChart');
+    if (canvas) renderClanAveragesChart(clans, canvas);
     const sort = SORTS[ui.sort] || SORTS.performance;
     const sorted = [...clans].sort((a, b) => (b[sort.key] || 0) - (a[sort.key] || 0));
     const fmt = (c) => (ui.sort === 'spr' ? int(c[sort.key]) : f2(c[sort.key]));
@@ -74,6 +96,7 @@ function render(results, clans) {
                 { label: 'KPR', width: '80px', align: 'end' },
                 { label: 'SPR', width: '80px', align: 'end' },
                 { label: 'Rondas prom.', width: '120px', align: 'end' },
+                ...(ui.scope === 'activos' ? [{ label: 'Activos', width: '90px', align: 'end' }] : []),
             ],
             sorted.map((c, i) => {
                 const v = c[sort.key] || 0;
@@ -88,21 +111,19 @@ function render(results, clans) {
                     f2(c['Kills per Round']),
                     `<span class="dtable-muted">${int(c['Score per Round'])}</span>`,
                     `<span class="dtable-muted">${int(c['Rounds'])}</span>`,
+                    ...(ui.scope === 'activos' ? [`<span class="dtable-muted">${int(c['Active Players'])}</span>`] : []),
                 ];
             }),
-            { minWidth: 880, caption: `Clanes ordenados por ${sort.label}` },
+            { minWidth: ui.scope === 'activos' ? 970 : 880, caption: `Clanes ordenados por ${sort.label}` },
         );
         body = podium + table;
     }
-    results.innerHTML = toolbarHTML() + body;
+    results.innerHTML = toolbarHTML() + scopeNoteHTML() + body;
 }
 
 /** Clan averages init: gráfico + podio/tabla (o tarjetas), con orden y vista elegibles. */
 export function initClanAverages() {
     const clans = state.clanAveragesData || [];
-
-    const canvas = document.getElementById('clanAveragesChart');
-    if (canvas) renderClanAveragesChart(clans, canvas);
 
     const results = document.getElementById('clan-averages-results');
     if (!results) return;
@@ -112,11 +133,15 @@ export function initClanAverages() {
         return;
     }
 
-    results.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-sort], button[data-view]');
+    results.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-sort], button[data-view], button[data-scope]');
         if (!btn) return;
         if (btn.dataset.sort) ui.sort = btn.dataset.sort;
         if (btn.dataset.view) ui.view = btn.dataset.view;
+        if (btn.dataset.scope) {
+            ui.scope = btn.dataset.scope;
+            if (ui.scope === 'activos' && !activeData) activeData = await loadClanAveragesActive();
+        }
         render(results, clans);
     });
     render(results, clans);

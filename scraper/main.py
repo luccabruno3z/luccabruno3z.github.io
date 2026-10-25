@@ -29,6 +29,7 @@ from .charts import generate_all_players_chart, generate_clan_charts
 from .config import CLAN_URLS, OUTPUT_DIR, DEMOS_DIR, MAX_DEMOS_PER_RUN, DEMO_TIME_BUDGET, EXCLUDED_GAMEMODES, NORM_CAPS, LOW_ROUNDS_THRESHOLD
 from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, BATCH_SIZE
 from .fetcher import fetch_all_clans
+from .activity import mark_active, write_active_averages
 from .history import update_history
 from .parser import parse_clan_html
 from .prdemo import parse_demo, RoundStats
@@ -167,6 +168,13 @@ def run() -> None:
     # Add Last Updated to all players
     df["Last Updated"] = timestamp
 
+    # Actividad real (rondas de PRStats que suben + última ronda con demo) → columnas
+    # "Active 30d"/"Active Source". No es fatal: sin esto solo falta el top de activos.
+    try:
+        df = mark_active(df)
+    except Exception as exc:
+        logger.warning("No se pudo calcular la actividad: %s", exc)
+
     # All players JSON
     all_players_path = os.path.join(OUTPUT_DIR, "all_players_clusters.json")
     df.to_json(all_players_path, orient="records", lines=False)
@@ -187,6 +195,13 @@ def run() -> None:
     averages_path = os.path.join(OUTPUT_DIR, "clan_averages.json")
     clan_averages.to_json(averages_path, orient="records", lines=False)
     logger.info("Saved %s", averages_path)
+
+    # Promedios de clanes con sus 50 mejores jugadores ACTIVOS (el de arriba es histórico)
+    if "Active 30d" in df.columns:
+        try:
+            write_active_averages(df, timestamp)
+        except Exception as exc:
+            logger.warning("No se pudo generar clan_averages_active.json: %s", exc)
 
     # Per-clan JSONs
 
