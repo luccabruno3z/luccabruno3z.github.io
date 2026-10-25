@@ -117,7 +117,8 @@ class PlayerCardActionButton(
         lines = []
         for r in recent:
             win = "✅" if r.get("won") else "▫️"
-            mapa = str(r.get("map", "?")).replace("_", " ")
+            from bot.assets.kit_mapping import clean_map_name
+            mapa = clean_map_name(str(r.get("map", "?")))
             lines.append(
                 f"{win} `{r.get('date','?')}` **{mapa}** — "
                 f"{r.get('kills',0)}/{r.get('deaths',0)} · {r.get('score',0)} pts"

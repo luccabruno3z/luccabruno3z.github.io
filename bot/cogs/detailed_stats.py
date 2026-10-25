@@ -864,13 +864,15 @@ class DetailedStats(commands.Cog):
         # Best and worst round
         best_round = player.get("best_round", {})
         worst_round = player.get("worst_round", {})
+        from bot.ui.theme import round_label
         if best_round:
-            br_map = best_round.get("map", "N/A")
+            br_map = round_label(best_round)
             br_kills = best_round.get("kills", 0)
             br_deaths = best_round.get("deaths", 0)
             lines.append(f"\n🏆 **Mejor ronda:** {br_map} — {br_kills}K / {br_deaths}D")
-        if worst_round:
-            wr_map = worst_round.get("map", "N/A")
+        # Una "peor ronda" 0/0/0 es una ronda sin datos, no un récord: no se muestra.
+        if worst_round and (worst_round.get("kills", 0) or worst_round.get("deaths", 0)):
+            wr_map = round_label(worst_round)
             wr_kills = worst_round.get("kills", 0)
             wr_deaths = worst_round.get("deaths", 0)
             lines.append(f"💀 **Peor ronda:** {wr_map} — {wr_kills}K / {wr_deaths}D")
