@@ -74,7 +74,9 @@ function render(results, controls, clans) {
         }
     }
     if (chartBox) chartBox.style.display = '';
-    if (canvas) renderClanAveragesChart(clans, canvas);
+    // El gráfico sigue a la métrica elegida (y al alcance Histórico/Activos).
+    const chartSort = SORTS[ui.sort] || SORTS.performance;
+    if (canvas) renderClanAveragesChart(clans, canvas, chartSort.key, chartSort.label);
     const sort = SORTS[ui.sort] || SORTS.performance;
     const sorted = [...clans].sort((a, b) => (b[sort.key] || 0) - (a[sort.key] || 0));
     const fmt = (c) => (ui.sort === 'spr' ? int(c[sort.key]) : f2(c[sort.key]));

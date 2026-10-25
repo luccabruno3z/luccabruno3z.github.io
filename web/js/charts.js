@@ -253,14 +253,15 @@ export function renderTeamRadar(team, container) {
 // ── Clan averages (horizontal bars) ──────────────────────────────────────────
 
 /** Horizontal bar chart of clan Performance Score (cyan → orange gradient). */
-export function renderClanAveragesChart(clanAveragesData, canvas) {
+/** Barras horizontales de clanes por `metricKey` (por defecto Performance Score). */
+export function renderClanAveragesChart(clanAveragesData, canvas, metricKey = 'Performance Score', metricLabel = 'Performance Score') {
     if (!canvas || typeof Chart === 'undefined' || !Array.isArray(clanAveragesData)) return;
     if (clanAveragesChartInstance) clanAveragesChartInstance.destroy();
 
-    const sorted = [...clanAveragesData].sort((a, b) => (b['Performance Score'] || 0) - (a['Performance Score'] || 0));
+    const sorted = [...clanAveragesData].sort((a, b) => (b[metricKey] || 0) - (a[metricKey] || 0));
     const n = sorted.length;
     const labels = sorted.map(c => c.Clan);
-    const data = sorted.map(c => c['Performance Score'] || 0);
+    const data = sorted.map(c => c[metricKey] || 0);
 
     const bg = [], border = [];
     sorted.forEach((_, i) => {
@@ -279,7 +280,7 @@ export function renderClanAveragesChart(clanAveragesData, canvas) {
         type: 'bar',
         data: {
             labels,
-            datasets: [{ label: 'Performance Score', data, backgroundColor: bg, borderColor: border, borderWidth: 1, borderRadius: 5, barThickness: 30 }],
+            datasets: [{ label: metricLabel, data, backgroundColor: bg, borderColor: border, borderWidth: 1, borderRadius: 5, barThickness: 30 }],
         },
         options: {
             indexAxis: 'y',
