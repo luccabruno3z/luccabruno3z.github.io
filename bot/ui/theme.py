@@ -30,6 +30,9 @@ TIERS: list[tuple[str, int, str, str]] = [
 EMPTY_EMOJI = ("tb_empty", "⬛")
 ACCENT = 0x00FFFF  # cian de la web, para tarjetas que no dependen de un tier
 SEGMENTS = 8       # 8 segmentos: entra en mobile y no se come el límite de texto
+# En listas largas (rankings) la barra es más corta: cada segmento es un emoji de
+# ~36 caracteres y un mensaje V2 admite ~4000 en total.
+LIST_SEGMENTS = 5
 
 _BARS_DIR = os.path.join("bot", "assets", "bars")
 _FALLBACK_THRESHOLDS = {

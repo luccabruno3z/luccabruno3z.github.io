@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import discord
 
+from bot.ui.theme import accent_meter, LIST_SEGMENTS
 from bot.utils import format_number
 
 PERIODS = [("dia", "Hoy"), ("semana", "Semana"), ("mes", "Mes"), ("todo", "Todo")]
@@ -67,7 +68,7 @@ class LeaderboardView(discord.ui.LayoutView):
         self.fetcher = fetcher
         self.period = period
         self.metric = metric
-        self.count = max(1, min(count, 50))
+        self.count = max(1, min(count, 25))  # más filas no entran en el límite de texto de V2
         self.author_id = author_id
         self.data = None
         self.message: discord.Message | None = None
@@ -121,15 +122,22 @@ class LeaderboardView(discord.ui.LayoutView):
             children.append(discord.ui.TextDisplay("-# No hay rondas en este período todavía."))
         else:
             ranked = sorted(players, key=key_fn, reverse=True)[: self.count]
+            top_value = key_fn(ranked[0]) or 0
             medals = ["🥇", "🥈", "🥉"]
-            lines = []
+            podium, lines = [], []
             for i, p in enumerate(ranked):
-                medal = medals[i] if i < 3 else f"`{i + 1:>2}.`"
-                lines.append(
-                    f"{medal} **{p['ign']}** — {fmt(p)}  "
-                    f"-# {p.get('rounds', 0)}R · {p.get('kills', 0)}K/{p.get('deaths', 0)}D"
-                )
-            children.append(discord.ui.TextDisplay("\n".join(lines)))
+                detail = f"{p.get('rounds', 0)} rondas · {p.get('kills', 0)}/{p.get('deaths', 0)} K/D"
+                if i < 3:
+                    # "-#" solo funciona al inicio de línea: el detalle va en su propio renglón.
+                    podium.append(f"### {medals[i]} {p['ign']} · `{fmt(p)}`\n-# {detail}")
+                else:
+                    # Barra solo hasta el puesto 15: más emojis no entran en el límite de texto.
+                    bar = (accent_meter(key_fn(p) / top_value if top_value else 0, LIST_SEGMENTS) + " ") if i < 15 else ""
+                    lines.append(f"{bar}`{i + 1:>2}.` **{p['ign']}** · `{fmt(p)}` · {detail}")
+            children.append(discord.ui.TextDisplay("\n".join(podium)))
+            if lines:
+                children.append(discord.ui.Separator())
+                children.append(discord.ui.TextDisplay("\n".join(lines)))
             children.append(discord.ui.Separator())
             children.append(discord.ui.TextDisplay(
                 f"-# 📊 {format_number(total)} rondas · {len(players)} jugadores de clanes"
