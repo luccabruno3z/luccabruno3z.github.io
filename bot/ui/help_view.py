@@ -11,6 +11,7 @@ import discord
 
 # cog class name -> (emoji + friendly label). Unmapped cogs fall in "Otros".
 _COG_LABELS = {
+    "Menu": "🧭 Menú y vínculo",
     "Stats": "📊 Estadísticas",
     "DetailedStats": "🎮 Demos / detalle",
     "Compare": "⚔️ Comparar / equipos",

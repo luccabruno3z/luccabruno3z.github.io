@@ -40,6 +40,7 @@ EXTENSIONS = [
     "bot.cogs.detailed_stats",
     "bot.cogs.polls",
     "bot.cogs.suggestions",
+    "bot.cogs.menu",
 ]
 
 
@@ -111,8 +112,9 @@ async def main():
     # working across restarts/redeploys instead of going dead.
     from bot.ui.player_card_actions import PlayerCardActionButton
     from bot.ui.player_profile import ProfileTabButton, ProfileDemoSelect
-    bot.add_dynamic_items(PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect)
-    logger.info("  DynamicItems registrados: PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect")
+    from bot.ui.menu import MenuButton
+    bot.add_dynamic_items(PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect, MenuButton)
+    logger.info("  DynamicItems registrados: PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect, MenuButton")
 
     # Run the bot; ensure clean shutdown of aiohttp session
     try:
