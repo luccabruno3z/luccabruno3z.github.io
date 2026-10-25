@@ -95,10 +95,8 @@ class PlayerCardActionButton(
                 f"No hay datos de demos para **{self.player_name}**.", ephemeral=True
             )
             return
-        # Reuse the proven demo-details embed builder.
-        from bot.views.demo_details import DemoDetailsView
-        embed = DemoDetailsView(self.player_name, interaction.client)._build_embed(player_data)
-        await interaction.followup.send(embed=embed, ephemeral=True)
+        from bot.ui.demo_card import DemoCard
+        await interaction.followup.send(view=DemoCard(player_data), ephemeral=True)
 
     async def _do_rounds(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True, ephemeral=True)

@@ -244,7 +244,10 @@ async def build_tab(ctx: dict, tab: str, bot):
     if tab == "historial":
         return await _tab_from_embed(hub.build_historial, name, bot)
     if tab == "demos":
-        return await _tab_from_embed(hub.build_resumen, name, bot)
+        from bot.ui.demo_card import demo_items
+        if not ctx["dp"]:
+            return [discord.ui.TextDisplay("Todavía no hay rondas con demo para este jugador.")], []
+        return [discord.ui.TextDisplay("### Resumen de demos"), *demo_items(ctx["dp"])], []
     if tab in ("kits", "vehiculos", "assets"):
         return await _tab_from_embed(getattr(hub, f"build_{tab}"), name, bot)
     return _tab_resumen(ctx)

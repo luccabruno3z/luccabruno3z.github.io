@@ -2,8 +2,7 @@
 
 import discord
 
-from bot.config import BOT_THUMBNAIL
-from bot.utils import find_player, format_number, highlight_winner, advantage_pct, standard_footer
+from bot.utils import find_player, standard_footer
 
 
 class CompareModal(discord.ui.Modal, title="Comparar jugador"):
@@ -47,52 +46,26 @@ class CompareModal(discord.ui.Modal, title="Comparar jugador"):
             )
             return
 
-        name1 = p1["Player"]
-        name2 = p2["Player"]
-
+        # Misma tarjeta "versus" que -compare (sin botón Invertir: no hay ctx de comando).
+        from bot.ui.comparison_card import ComparisonCard
         metrics = [
-            ("💥 K/D", "K/D Ratio", True),
-            ("🔫 Kills/Ronda", "Kills per Round", True),
-            ("🎯 Score/Ronda", "Score per Round", True),
-            ("🌟 Performance", "Performance Score", True),
-            ("🎮 Rounds", "Rounds", True),
-            ("☠️ Total Kills", "Total Kills", True),
+            ("Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
+            ("K/D", p1.get("K/D Ratio", 0), p2.get("K/D Ratio", 0), True),
+            ("Kills/Ronda", p1.get("Kills per Round", 0), p2.get("Kills per Round", 0), True),
+            ("Deaths/Ronda", p1.get("Deaths per Round", 0), p2.get("Deaths per Round", 0), False),
+            ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
+            ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
+            ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
         ]
-
-        lines = []
-        p1_wins = 0
-        for label, key, higher_better in metrics:
-            v1 = p1.get(key, 0)
-            v2 = p2.get(key, 0)
-            e1, e2 = highlight_winner(v1, v2, higher_better)
-            if e1 == "✅":
-                p1_wins += 1
-            if e1 == "✅":
-                lines.append(f"{label}: {e1} **{format_number(v1)}** ({advantage_pct(v1, v2)}) vs {e2} {format_number(v2)}")
-            elif e2 == "✅":
-                lines.append(f"{label}: {e1} {format_number(v1)} vs {e2} **{format_number(v2)}** ({advantage_pct(v2, v1)})")
-            else:
-                lines.append(f"{label}: 🟰 {format_number(v1)} vs 🟰 {format_number(v2)}")
-
-        p2_wins = len(metrics) - p1_wins - sum(1 for _, k, _ in metrics if p1.get(k, 0) == p2.get(k, 0))
-
-        if p1_wins > p2_wins:
-            verdict = f"**{name1}** gana {p1_wins}/{len(metrics)} categorías"
-        elif p2_wins > p1_wins:
-            verdict = f"**{name2}** gana {p2_wins}/{len(metrics)} categorías"
-        else:
-            verdict = f"Empate {p1_wins}/{len(metrics)} categorías cada uno"
-
-        embed = discord.Embed(
-            title=f"⚔️ {name1} vs {name2}",
-            description="\n".join(lines),
-            color=discord.Color.purple(),
+        warning = None
+        few = [p["Player"] for p in (p1, p2) if p.get("Rounds", 0) < 50]
+        if few:
+            warning = f"Pocas rondas ({', '.join(few)}): los stats pueden no ser representativos."
+        card = ComparisonCard(
+            None, None, p1["Player"], p2["Player"], metrics=metrics, warning=warning,
+            footer="Datos actualizados " + standard_footer(p1).replace("📅 ", ""),
         )
-        embed.add_field(name="🏆 Veredicto", value=verdict, inline=False)
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-        embed.set_footer(text=standard_footer(p1))
-
-        await interaction.followup.send(embed=embed)
+        await interaction.followup.send(view=card)
 
 
 class StatsView(discord.ui.View):

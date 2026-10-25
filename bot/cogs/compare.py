@@ -230,7 +230,7 @@ class Compare(commands.Cog):
                 ("Deaths/Ronda", p1.get("Deaths per Round", 0), p2.get("Deaths per Round", 0), False),
                 ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
                 ("Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
-                ("Actividad", p1.get("Activity Index", 0), p2.get("Activity Index", 0), True),
+                ("Participación", p1.get("Activity Index", 0), p2.get("Activity Index", 0), True),
                 ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
                 ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
                 ("Total Score", p1.get("Total Score", 0), p2.get("Total Score", 0), True),
@@ -240,7 +240,7 @@ class Compare(commands.Cog):
             # Bloque extra de demos: SOLO jugador-vs-jugador y SOLO si ambos tienen
             # >=5 rondas de demos (cobertura parcial: ~1 de cada 3 jugadores). No
             # cuenta para el veredicto, así el resultado no depende de si hay demos.
-            demo_table = demo_note = None
+            demo_table = demo_note = demo_metrics = None
             try:
                 demo_data = await self.fetcher.fetch_player_details()
             except Exception:
@@ -286,9 +286,8 @@ class Compare(commands.Cog):
                     ]
                     demo_table, dw1, dw2, _ = versus_table(entity1, entity2, demo_metrics)
                     demo_note = (
-                        f"📼 Demos ({d1['rounds_played']}R vs {d2['rounds_played']}R): "
-                        f"{entity1} **{dw1}** · {entity2} **{dw2}** — no cuenta para el veredicto. "
-                        f"El winrate se ajusta por nº de partidas en el Performance Score."
+                        f"Rondas con demo: {d1['rounds_played']} vs {d2['rounds_played']} · no cuenta "
+                        f"para el veredicto; el winrate se ajusta por nº de partidas en el Performance Score."
                     )
 
             if p1_wins > p2_wins:
@@ -324,10 +323,10 @@ class Compare(commands.Cog):
 
             card = ComparisonCard(
                 self, ctx, entity1, entity2,
-                table=table, summary=summary, warning=warning,
-                footer=standard_footer(p1), demo_for=demo_for,
+                metrics=metrics, warning=warning,
+                footer="Datos actualizados " + standard_footer(p1).replace("📅 ", ""), demo_for=demo_for,
                 radar_filename="radar_vs.png" if radar_file else None,
-                demo_table=demo_table, demo_note=demo_note,
+                demo_metrics=demo_metrics if demo_table else None, demo_note=demo_note,
             )
             if radar_file:
                 card.message = await ctx.send(view=card, files=[radar_file])
