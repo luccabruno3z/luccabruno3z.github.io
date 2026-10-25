@@ -170,6 +170,8 @@ async def _perfil(bot, owner: int):
         f"{meter(ps, thr)} **Performance** `{_f2(ps)}`",
         f"K/D `{_f2(p.get('K/D Ratio'))}` · KPR `{_f2(p.get('Kills per Round'))}` · Rondas `{format_number(p.get('Rounds', 0))}`",
     ]
+    from bot.ui.theme import last_seen
+    lines.append(last_seen(ctx["dp"]))
     best = (player_records(ctx["dp"]) or {}).get("best")
     if best:
         lines.append(f"Mejor ronda: **{best['kills']} kills** en **{best['where'].split(' · ')[0]}**")

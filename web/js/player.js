@@ -9,7 +9,7 @@ import {
 import {
     escapeHtml, formatNumber, findPlayer, tierBadge, getPlayerArchetype,
     experienceBadge, sampleReliability,
-    activityIndex, activityTier, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
+    activityIndex, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
 } from './utils.js';
 import { barHTML, tierBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
@@ -76,9 +76,9 @@ async function renderPlayerProfile(player) {
     const rSPR = rankOf(spr, players.map(p => p['Score per Round'] || 0));
     const rKills = rankOf(player['Total Kills'] || 0, players.map(p => p['Total Kills'] || 0));
 
-    // Actividad.
+    // "Participación" = índice de volumen/rendimiento (no mira fechas). La actividad
+    // real (última partida) la completa enrichWithDemo con last_round_date.
     const actIdx = activityIndex(rounds, spr, kpr);
-    const actTier = activityTier(actIdx);
 
     // Penalización por muestra chica (sigmoide).
     const penalty = sigmoidPenalty(rounds);
@@ -128,8 +128,9 @@ async function renderPlayerProfile(player) {
                     <h4 class="profile-subtitle">Desglose del puntaje</h4>
                     ${breakdownHTML(player)}
                     <h4 class="profile-subtitle">Actividad</h4>
+                    <p class="profile-last-seen" id="profile-last-seen">Buscando la última partida…</p>
                     <div class="meter-row">
-                        <span class="meter-label">${actTier.emoji} ${escapeHtml(actTier.name)}</span>
+                        <span class="meter-label" title="Índice de volumen y rendimiento; no mide si juega hace poco">Participación</span>
                         ${barHTML(actIdx)}
                         <span class="meter-value">${actIdx}</span>
                     </div>
@@ -170,6 +171,18 @@ function roundWhere(rnd) {
     return parts.filter(Boolean).join(' · ');
 }
 
+/** Actividad real a partir de la fecha de la última ronda con demo (como en el bot). */
+function lastSeenText(last) {
+    if (!last) return 'Sin partidas registradas en demos';
+    const [y, m, dd] = String(last).slice(0, 10).split('-').map(Number);
+    const days = Math.floor((Date.now() - new Date(y, m - 1, dd).getTime()) / 86400000);
+    if (Number.isNaN(days)) return `Última partida: ${last}`;
+    const ago = days <= 0 ? 'hoy' : days === 1 ? 'ayer' : days < 60 ? `hace ${days} días` : `hace ${Math.floor(days / 30)} meses`;
+    const status = days <= 14 ? '🟢 Activo' : days <= 60 ? '🟡 Poco activo' : '❄️ Inactivo';
+    const date = `${String(dd).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    return `${status} · última partida ${date} (${ago})`;
+}
+
 /** Bloque de récords (mismo contenido que la pestaña Récords del bot). */
 async function enrichWithDemo(player) {
     const block = document.getElementById('profile-demo-block');
@@ -178,6 +191,8 @@ async function enrichWithDemo(player) {
         await loadDemoData();
     } catch (_) { /* non-fatal */ }
     const d = getDemoInfo(player.Player);
+    const seen = document.getElementById('profile-last-seen');
+    if (seen) seen.textContent = lastSeenText(d && d.last_round_date);
     if (!d || !d.rounds_played) {
         block.innerHTML = '<h4 class="profile-subtitle">Récords</h4><p class="profile-muted">Todavía no hay rondas con demo para este jugador.</p>';
         return;

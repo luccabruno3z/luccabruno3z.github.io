@@ -20,11 +20,11 @@ import re
 import discord
 
 from bot.config import BASE_URL, clan_logo_url
-from bot.ui.theme import meter, legend, tier_color, player_records, ACCENT
+from bot.ui.theme import meter, legend, tier_color, player_records, last_seen, ACCENT
 from bot.utils import (
     find_player, standard_footer, format_number, get_player_archetype,
     get_player_archetype_desc, get_player_radar, get_player_ratings, tier_emoji, _tier_name,
-    stat_confidence_warning, sigmoid_penalty_display, activity_index_display,
+    stat_confidence_warning, sigmoid_penalty_display,
 )
 
 logger = logging.getLogger(__name__)
@@ -325,13 +325,17 @@ class PlayerProfileView(discord.ui.LayoutView):
         children.append(discord.ui.Separator())
         children += items
         children.append(discord.ui.Separator())
-        footer = standard_footer(p)
+        # Actividad real = fecha de la última ronda con demo. El "Activity Index" del
+        # scraper mide volumen/rendimiento (no mira fechas): se muestra como
+        # "Participación" para no confundirlo con estar activo.
+        info = [last_seen(ctx["dp"])]
         ai = p.get("Activity Index")
         if ai is not None:
-            ai_txt = activity_index_display(ai)
-            if ai_txt:
-                footer += f" · {ai_txt}"
-        children.append(discord.ui.TextDisplay(f"-# {legend(thr)}\n-# {footer}"))
+            info.append(f"Participación {ai:.0f}/100")
+        # standard_footer da la hora de la última actualización de los DATOS, no del jugador.
+        updated = standard_footer(p).replace("📅 ", "")
+        children.append(discord.ui.TextDisplay(
+            " · ".join(info) + f"\n-# {legend(thr)}\n-# Datos actualizados {updated}"))
         acts = ("cmp", "rounds", "glos") if (allow_demos and ctx["dp"]) else ("cmp", "glos")
         children.append(discord.ui.ActionRow(*[PlayerCardActionButton(a, name) for a in acts]))
         self.add_item(discord.ui.Container(*children, accent_colour=tier_color(ps, thr) or ACCENT))

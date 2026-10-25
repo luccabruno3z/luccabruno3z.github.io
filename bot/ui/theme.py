@@ -122,6 +122,30 @@ def round_label(rnd: dict) -> str:
     return " · ".join(parts)
 
 
+def last_seen(dp: dict | None) -> str:
+    """Actividad REAL: cuándo jugó por última vez (última ronda con demo).
+
+    El "Activity Index" del scraper mide volumen/rendimiento y no mira fechas, así
+    que no sirve para decir si alguien está activo. Esto sí."""
+    from datetime import date
+    last = (dp or {}).get("last_round_date")
+    if not last:
+        return "Sin partidas registradas en demos"
+    try:
+        y, m, d = (int(x) for x in str(last)[:10].split("-"))
+        days = (date.today() - date(y, m, d)).days
+    except (ValueError, TypeError):
+        return f"Última partida: {last}"
+    if days <= 1:
+        ago = "hoy" if days <= 0 else "ayer"
+    elif days < 60:
+        ago = f"hace {days} días"
+    else:
+        ago = f"hace {days // 30} meses"
+    status = "🟢 Activo" if days <= 14 else ("🟡 Poco activo" if days <= 60 else "❄️ Inactivo")
+    return f"{status} · última partida {d:02d}/{m:02d}/{y} ({ago})"
+
+
 def _pct(a: float, b: float) -> float:
     return a / b if b else 0.0
 

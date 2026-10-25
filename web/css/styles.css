@@ -2651,3 +2651,4 @@ footer a:hover {
     .record-grid { grid-template-columns: 1fr 1fr; }
     .kpi-value { font-size: 1.5rem; }
 }
+.profile-last-seen { margin: 0; color: var(--text); font-size: 0.95rem; }
