@@ -5,7 +5,7 @@
 
 import { state } from './data.js';
 import { renderClanAveragesChart } from './charts.js';
-import { escapeHtml, clanLogoHTML, tierBadge, formatNumber } from './utils.js';
+import { escapeHtml, clanLogoHTML, formatNumber } from './utils.js';
 import { tierBarHTML, barHTML, tierChipHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 const SORTS = {
@@ -22,11 +22,15 @@ const int = (v) => formatNumber(Math.round(v || 0));
 
 /** Tarjeta de un clan (vista "Tarjetas"). */
 function clanCard(c) {
-    const tier = tierBadge(c['Performance Score'] || 0);
     return `
         <div class="card clan-card">
-            <div class="clan-card-header">${clanLogoHTML(c.Clan, 28)} <span class="clan-card-name">${escapeHtml(c.Clan)}</span></div>
-            <div class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</div>
+            <div class="clan-card-header">
+                ${clanLogoHTML(c.Clan, 36)}
+                <div class="clan-card-id">
+                    <span class="clan-card-name">${escapeHtml(c.Clan)}</span>
+                    ${tierChipHTML(c['Performance Score'])}
+                </div>
+            </div>
             <div class="stat-row"><span class="stat-label">Performance Score</span><span class="stat-value">${f2(c['Performance Score'])}</span></div>
             <div class="stat-row"><span class="stat-label">K/D Ratio</span><span class="stat-value">${f2(c['K/D Ratio'])}</span></div>
             <div class="stat-row"><span class="stat-label">Kills por Ronda</span><span class="stat-value">${f2(c['Kills per Round'])}</span></div>
