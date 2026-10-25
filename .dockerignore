@@ -1,0 +1,30 @@
+# Railway arma la imagen del bot con `COPY . /app`. Sin esto copiaba el repo entero
+# (~2,7 GB, casi todo graphs/) y el paso "exporting to docker image" se pasaba de
+# tiempo: algunos deploys fallaban con "context deadline exceeded".
+# El bot lee sus datos de GitHub Pages por HTTP; en la imagen solo necesita bot/,
+# los requirements, la config de arranque y logos/ (para -setup_emojis).
+
+# Datos generados por el scraper (los sirve GitHub Pages)
+graphs/**
+# Copia local de respaldo de los alias (solo si falla la descarga)
+!graphs/demos/aliases.json
+
+# Web, scraper y otros que no usa el bot
+web/
+scraper/
+guides/
+realitytracker/
+.rebuild/
+.github/
+index.html
+sw.js
+manifest.json
+sitemap.xml
+robots.txt
+LDH_BOY2.png
+
+# Basura local
+.git/
+**/__pycache__/
+*.pyc
+.env
