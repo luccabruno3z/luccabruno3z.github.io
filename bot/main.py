@@ -110,8 +110,9 @@ async def main():
     # Register persistent (DynamicItem) components so player-card buttons keep
     # working across restarts/redeploys instead of going dead.
     from bot.ui.player_card_actions import PlayerCardActionButton
-    bot.add_dynamic_items(PlayerCardActionButton)
-    logger.info("  DynamicItems registrados: PlayerCardActionButton")
+    from bot.ui.player_profile import ProfileTabButton, ProfileDemoSelect
+    bot.add_dynamic_items(PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect)
+    logger.info("  DynamicItems registrados: PlayerCardActionButton, ProfileTabButton, ProfileDemoSelect")
 
     # Run the bot; ensure clean shutdown of aiohttp session
     try:

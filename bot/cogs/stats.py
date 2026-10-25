@@ -25,9 +25,7 @@ from bot.config import (
 )
 from bot.services.clan_registry import clan_choices
 from bot.services.chart_renderer import render_horizontal_bars, render_radar_chart, render_ranking_change_chart
-from bot.ui.player_card import PlayerCard
-from bot.ui.player_card_actions import build_actions
-from bot.ui.player_hub import PlayerHubView
+from bot.ui.player_profile import send_profile
 from bot.ui.top_card import TopCard, DEMO_METRIC_LABELS
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
@@ -123,222 +121,19 @@ class Stats(commands.Cog):
     @app_commands.describe(jugador="Nombre del jugador")
     @app_commands.autocomplete(jugador=player_name_autocomplete)
     async def estadisticas(self, ctx: commands.Context, jugador: str = None):
+        """Estadísticas completas de un jugador (tarjeta con pestañas)."""
         if not jugador:
             await ctx.send(
                 "❗ Por favor, proporciona un nombre de jugador. "
                 "Ejemplo: `-estadisticas W4RR10R`."
             )
             return
-
         await ctx.defer()
-
         try:
-            data = await self.fetcher.fetch_all_players()
+            await send_profile(ctx, jugador, "resumen")
         except Exception as e:
             await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
-            logger.error("Error fetching all players: %s", e)
-            return
-
-        # Sort by Performance Score for global ranking
-        jugadores_ordenados = sorted(
-            data, key=lambda x: x.get("Performance Score", 0), reverse=True
-        )
-
-        jugador_encontrado = find_player(jugadores_ordenados, jugador)
-
-        if not jugador_encontrado:
-            await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-            return
-
-        jugador_lower = jugador_encontrado["Player"].lower()
-        ranking_global = next(
-            (i + 1 for i, entry in enumerate(jugadores_ordenados) if entry["Player"].lower() == jugador_lower),
-            "N/A",
-        )
-
-        # Clan ranking
-        jugadores_clan = [
-            e for e in jugadores_ordenados
-            if e.get("Clan") == jugador_encontrado.get("Clan")
-        ]
-        ranking_clan = next(
-            (i + 1 for i, e in enumerate(jugadores_clan) if e["Player"].lower() == jugador_lower),
-            "N/A",
-        )
-
-        ps = jugador_encontrado.get("Performance Score", 0)
-
-        tier_config = None
-        try:
-            tier_config = await self.fetcher.fetch_tier_config()
-        except Exception:
-            pass
-        thresholds = tier_config.get("thresholds") if isinstance(tier_config, dict) else None
-
-        color = performance_color(ps, thresholds)
-
-        clan = jugador_encontrado.get("Clan", "N/A")
-        clan_image_url = clan_logo_url(clan)
-
-        total_deaths = jugador_encontrado.get("Total Deaths", 0)
-        rounds_played = jugador_encontrado.get("Rounds", 1)
-        deaths_per_round = total_deaths / rounds_played if rounds_played > 0 else 0
-
-        # Fetch history for trend indicator
-        trend = ""
-        try:
-            safe_name = re.sub(r'[^a-zA-Z0-9_\-]', '_', jugador)
-            history_url = f"{BASE_URL}/graphs/history/{safe_name}_history.json"
-            history_data = await self.fetcher.fetch_json(history_url, use_stale_on_error=False)
-            if isinstance(history_data, list) and len(history_data) >= 2:
-                prev_ps = history_data[-2].get("Performance Score", 0)
-                curr_ps = history_data[-1].get("Performance Score", 0)
-                if curr_ps > prev_ps:
-                    trend = " 📈"
-                elif curr_ps < prev_ps:
-                    trend = " 📉"
-                else:
-                    trend = " ➡️"
-        except Exception:
-            logger.debug("Could not fetch history for trend indicator for %s", jugador)
-
-        # Compute playstyle and tier
-        kd = jugador_encontrado["K/D Ratio"]
-        kpr = jugador_encontrado.get("Kills per Round", 0)
-        spr = jugador_encontrado.get("Score per Round", 0)
-        total_kills = jugador_encontrado.get("Total Kills", 0)
-        total_score = jugador_encontrado.get("Total Score", 0)
-
-        style_emoji, style_name = get_player_archetype(jugador_encontrado)
-        badge = tier_badge(ps, thresholds)
-        exp_badge = experience_badge(rounds_played)
-        reliability = sample_reliability(rounds_played)
-
-        # Collect all KPR values for percentile
-        all_kpr = [p.get("Kills per Round", 0) for p in data]
-
-        arch_desc = get_player_archetype_desc(jugador_encontrado)
-        desc_lines = [
-            f"{badge} · {style_emoji} {style_name}",
-            f"{exp_badge} · {reliability}",
-            f"Ranking Global: **#{ranking_global}** · Ranking Clan: **#{ranking_clan}**",
-        ]
-        if arch_desc:
-            desc_lines.insert(1, f"*{arch_desc}*")
-
-        # ── Build the Components V2 player card ────────────────────────────
-        tname = _tier_name(ps, thresholds)
-        temoji = tier_emoji(ps, thresholds)
-        archetype = f"{style_emoji} {style_name}"
-
-        # Breakdown bars: normalized components + rating indices (0-100).
-        norm_kd = jugador_encontrado.get("Normalized_KD", 0)
-        norm_score = jugador_encontrado.get("Normalized_Score", 0)
-        norm_kpr = jugador_encontrado.get("Normalized_Kills_Per_Round", 0)
-        norm_rounds = jugador_encontrado.get("Normalized_Rounds", 0)
-        breakdown = [
-            ("Combate (K/D)", norm_kd * 100),
-            ("Puntuación (SPR)", norm_score * 100),
-            ("Agresividad (KPR)", norm_kpr * 100),
-            ("Experiencia", norm_rounds * 100),
-        ]
-        ratings = get_player_ratings(jugador_encontrado)
-        if ratings:
-            breakdown += [
-                ("Índice Combate", ratings.get("combat", 0)),
-                ("Índice Táctico", ratings.get("tactical", 0)),
-                ("Índice Fiabilidad", ratings.get("reliability", 0)),
-                ("Índice Impacto", ratings.get("impact", 0)),
-            ]
-
-        # Next-tier progress.
-        next_tier = None
-        if thresholds and ps < thresholds.get("elite", 0.70):
-            for _key, _name in (("soldado", "Soldado"), ("experimentado", "Experimentado"),
-                                ("veterano", "Veterano"), ("elite", "Elite")):
-                _val = thresholds.get(_key, 0)
-                if ps < _val:
-                    next_tier = (_name, _val - ps)
-                    break
-
-        # Cautions (low sample / confidence / penalty).
-        warn_lines = []
-        if rounds_played < 50:
-            warn_lines.append(
-                f"Con {rounds_played} rondas tus stats aún no son representativos — "
-                f"necesitás {50 - rounds_played} más para aparecer en `-top`."
-            )
-        else:
-            _cw = stat_confidence_warning(rounds_played)
-            if _cw:
-                warn_lines.append(_cw.strip())
-        _penalty = sigmoid_penalty_display(rounds_played)
-        if _penalty:
-            warn_lines.append(_penalty)
-        warning = "\n".join(warn_lines) or None
-
-        # Highlights + actividad (última vez / tiempo jugado) desde la data de demos.
-        highlights = None
-        activity_line = None
-        try:
-            demo_data = await self.fetcher.fetch_player_details()
-            demo_player = find_player(demo_data, jugador_encontrado["Player"], key="ign") if demo_data else None
-            if demo_player:
-                _hl = []
-                _best = demo_player.get("best_round")
-                _worst = demo_player.get("worst_round")
-                if isinstance(_best, dict) and _best.get("kills", 0) > 0:
-                    _hl.append(f"🏆 Mejor: {_best.get('kills', 0)} kills en {_best.get('map', '?')}")
-                if isinstance(_worst, dict):
-                    _hl.append(f"💀 Peor: {_worst.get('kills', 0)} kills en {_worst.get('map', '?')}")
-                if _hl:
-                    highlights = "🎯 **Rondas destacadas**\n" + "\n".join(_hl)
-                # Última vez visto (último demo capturado) + tiempo jugado (registrado).
-                _last = demo_player.get("last_round_date")
-                _played = demo_player.get("played_seconds", 0) or 0
-                _parts = []
-                if _last:
-                    _parts.append(f"📅 Última vez: **{_last}**")
-                if _played >= 60:
-                    _hours = _played / 3600
-                    _t = f"{_hours:.1f} h" if _hours >= 1 else f"{int(_played // 60)} min"
-                    _parts.append(f"⏱️ Tiempo jugado: **{_t}** *(registrado)*")
-                if _parts:
-                    activity_line = " · ".join(_parts)
-        except Exception:
-            pass  # demo data optional
-
-        footer = standard_footer(jugador_encontrado)
-        _ai = jugador_encontrado.get("Activity Index")
-        _ai_text = activity_index_display(_ai) if _ai is not None else ""
-        if _ai_text:
-            footer = f"{footer} · {_ai_text}"
-
-        # Action buttons — demo-based actions only in demos/combined modes.
-        mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-        actions = build_actions(jugador_encontrado["Player"])
-        if mode not in ("combined", "demos"):
-            actions = [a for a in actions if a.action in ("hist", "cmp", "glos")]
-
-        card = PlayerCard(
-            jugador_encontrado,
-            tier_name=tname,
-            tier_emoji=temoji,
-            archetype=archetype,
-            ranking_global=ranking_global,
-            ranking_clan=ranking_clan,
-            clan_logo_url=clan_image_url,
-            breakdown=breakdown,
-            footer=footer,
-            trend=trend,
-            next_tier=next_tier,
-            warning=warning,
-            highlights=highlights,
-            activity=activity_line,
-            accent=color.value,
-            actions=actions,
-        )
-        await ctx.send(view=card)
+            logger.error("Error armando el perfil de %s: %s", jugador, e)
 
     # ── -top <cantidad> <categoria> <metrica> ─────────────────────────────
 
@@ -824,201 +619,19 @@ class Stats(commands.Cog):
     @app_commands.describe(jugador="Nombre del jugador")
     @app_commands.autocomplete(jugador=player_name_autocomplete)
     async def perfil_cmd(self, ctx: commands.Context, jugador: str = None):
-        """Muestra el perfil radar de un jugador comparado con el promedio del clan."""
+        """Perfil radar de un jugador comparado con su clan (tarjeta con pestañas)."""
         if not jugador:
             await ctx.send(
                 "❗ Por favor, proporciona un nombre de jugador. "
                 "Ejemplo: `-perfil W4RR10R`."
             )
             return
-
         await ctx.defer()
-
         try:
-            data = await self.fetcher.fetch_all_players()
+            await send_profile(ctx, jugador, "perfil")
         except Exception as e:
             await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
-            logger.error("Error fetching all players: %s", e)
-            return
-
-        # Sort by Performance Score for ranking
-        jugadores_ordenados = sorted(
-            data, key=lambda x: x.get("Performance Score", 0), reverse=True
-        )
-
-        jugador_encontrado = find_player(jugadores_ordenados, jugador)
-
-        if not jugador_encontrado:
-            await ctx.send(f"⚠️ Jugador '{jugador}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-            return
-
-        jugador_lower = jugador_encontrado["Player"].lower()
-        ranking_global = next(
-            (i + 1 for i, entry in enumerate(jugadores_ordenados) if entry["Player"].lower() == jugador_lower),
-            None,
-        )
-
-        clan = jugador_encontrado.get("Clan", "N/A")
-        rounds_played = jugador_encontrado.get("Rounds", 1)
-        total_deaths = jugador_encontrado.get("Total Deaths", 0)
-        deaths_per_round = total_deaths / rounds_played if rounds_played > 0 else 0
-        kd = jugador_encontrado.get("K/D Ratio", 0)
-        kills_per_round = jugador_encontrado.get("Kills per Round", 0)
-        score_per_round = jugador_encontrado.get("Score per Round", 0)
-
-        ps = jugador_encontrado.get("Performance Score", 0)
-
-        # Read pre-computed radar from JSON
-        player_radar = get_player_radar(jugador_encontrado)
-
-        if player_radar:
-            player_values = {
-                "Letalidad": player_radar.get("letalidad", 0),
-                "Supervivencia": player_radar.get("supervivencia", 0),
-                "Teamwork": player_radar.get("teamwork", 0),
-                "Impacto": player_radar.get("impacto", 0),
-                "Consistencia": player_radar.get("consistencia", 0),
-                "Versatilidad": player_radar.get("versatilidad", 0),
-            }
-        else:
-            # Fallback: compute basic radar from raw stats
-            reliable = [p for p in data if p.get("Rounds", 0) >= 10]
-            if not reliable:
-                reliable = data
-            def p95(values):
-                if not values:
-                    return 1
-                s = sorted(values)
-                idx = int(len(s) * 0.95)
-                return s[min(idx, len(s) - 1)] or 1
-            ref_kd = p95([p.get("K/D Ratio", 0) for p in reliable])
-            ref_kpr = p95([p.get("Kills per Round", 0) for p in reliable])
-            player_values = {
-                "Letalidad": min(kills_per_round / ref_kpr, 1.0),
-                "Supervivencia": max(0.0, 1.0 - (deaths_per_round / 6.0)),
-                "Teamwork": 0.3,
-                "Impacto": min(ps / 0.7, 1.0) * 0.5,
-                "Consistencia": 0.3,
-                "Versatilidad": 0.3,
-            }
-
-        # Clan average from pre-computed radars
-        clan_players = [p for p in data if p.get("Clan") == clan]
-        clan_players_with_radar = [p for p in clan_players if p.get("radar")]
-        if clan_players_with_radar:
-            radar_keys = ["letalidad", "supervivencia", "teamwork", "impacto", "consistencia", "versatilidad"]
-            label_map = {"letalidad": "Letalidad", "supervivencia": "Supervivencia", "teamwork": "Teamwork",
-                         "impacto": "Impacto", "consistencia": "Consistencia", "versatilidad": "Versatilidad"}
-            clan_avg_values = {}
-            for rk in radar_keys:
-                avg = sum(p["radar"].get(rk, 0) for p in clan_players_with_radar) / len(clan_players_with_radar)
-                clan_avg_values[label_map[rk]] = avg
-        else:
-            clan_avg_values = {k: 0 for k in player_values}
-
-        # Render radar chart
-        buf = render_radar_chart(player_values, clan_avg_values, jugador, clan)
-
-        # Classify playstyle
-        playstyle_emoji, playstyle_name = get_player_archetype(jugador_encontrado)
-
-        # Performance tier
-        tier_config = None
-        try:
-            tier_config = await self.fetcher.fetch_tier_config()
-        except Exception:
-            pass
-        thresholds = tier_config.get("thresholds") if isinstance(tier_config, dict) else None
-
-        badge = tier_badge(ps, thresholds)
-        color = performance_color(ps, thresholds)
-
-        # Strengths and weaknesses
-        stat_labels = {
-            "Letalidad": "Letalidad",
-            "Supervivencia": "Supervivencia",
-            "Teamwork": "Teamwork",
-            "Impacto": "Impacto",
-            "Consistencia": "Consistencia",
-            "Versatilidad": "Versatilidad",
-        }
-        fortalezas = []
-        debilidades = []
-        for key in player_values:
-            pv = player_values[key]
-            cv = clan_avg_values[key]
-            if cv > 0:
-                ratio = pv / cv
-                pct = abs(ratio - 1.0) * 100
-                if ratio > 1.1:
-                    fortalezas.append(f"✅ {stat_labels[key]} {pct:.0f}% por encima del promedio del clan")
-                elif ratio < 0.9:
-                    debilidades.append(f"❌ {stat_labels[key]} {pct:.0f}% por debajo del promedio del clan")
-
-        # Build embed
-        exp_badge = experience_badge(rounds_played)
-        reliability = sample_reliability(rounds_played)
-
-        clan_emoji = get_clan_emoji(clan)
-        embed = discord.Embed(
-            title=f"📋 Perfil de {jugador}",
-            description=(
-                f"{badge} · {playstyle_emoji} {playstyle_name}\n"
-                f"{exp_badge} · {reliability}\n"
-                f"{clan_emoji} **{clan}** · Ranking Global: **#{ranking_global}**"
-            ),
-            color=color,
-        )
-        embed.set_thumbnail(url=clan_logo_url(clan))
-
-        if fortalezas:
-            embed.add_field(
-                name="💪 Fortalezas",
-                value="\n".join(fortalezas),
-                inline=False,
-            )
-
-        if debilidades:
-            embed.add_field(
-                name="⚠️ Áreas de Mejora",
-                value="\n".join(debilidades),
-                inline=False,
-            )
-
-        if not fortalezas and not debilidades:
-            embed.add_field(
-                name="📊 Análisis",
-                value="El jugador está dentro del promedio del clan en todas las categorías.",
-                inline=False,
-            )
-
-        ratings = get_player_ratings(jugador_encontrado)
-        if ratings:
-            embed.add_field(
-                name="📊 Índices",
-                value=ratings_display(ratings),
-                inline=True,
-            )
-
-        confidence_warn = stat_confidence_warning(rounds_played)
-        if confidence_warn:
-            embed.add_field(
-                name="\u200b",
-                value=confidence_warn.strip(),
-                inline=False,
-            )
-
-        file = discord.File(buf, filename="radar_perfil.png")
-        embed.set_image(url="attachment://radar_perfil.png")
-
-        embed.set_footer(text=standard_footer(jugador_encontrado))
-
-        # Hub unificado: dropdown de tabs (perfil/estadísticas/historial/demos…) +
-        # botones de acción (comparar/rondas/📖 glosario). Las tabs de demos solo si el modo lo permite.
-        mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
-        allow_demos = mode in ("combined", "demos")
-        view = PlayerHubView(jugador_encontrado["Player"], "perfil", allow_demos)
-        await ctx.send(embed=embed, file=file, view=view)
+            logger.error("Error armando el perfil de %s: %s", jugador, e)
 
     # ── -ranking_semanal ────────────────────────────────────────────────
 

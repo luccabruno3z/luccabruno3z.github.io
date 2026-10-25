@@ -125,13 +125,14 @@ class Misc(commands.Cog):
         from bot.assets.rank_mapping import get_all_rank_assets, update_rank_emoji_cache
         from bot.assets.clan_mapping import get_all_clan_assets, update_clan_emoji_cache
         from bot.assets.vehicle_mapping import get_all_vehicle_assets
+        from bot.ui.theme import get_all_bar_assets
 
-        # Combine kit + rank + clan + vehicle assets
+        # Combine kit + rank + clan + vehicle assets + segmentos de barra (van al cache de kits)
         kit_assets = get_all_assets()
         rank_assets = get_all_rank_assets()
         clan_assets = get_all_clan_assets()
         vehicle_assets = get_all_vehicle_assets()
-        assets = kit_assets + rank_assets + clan_assets + vehicle_assets
+        assets = kit_assets + rank_assets + clan_assets + vehicle_assets + get_all_bar_assets()
         # Track which names belong to which cache (vehículos van al cache de kits).
         rank_names = {name for name, _ in rank_assets}
         clan_names = {name for name, _ in clan_assets}

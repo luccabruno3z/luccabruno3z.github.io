@@ -8,6 +8,10 @@ matplotlib.use("Agg")  # Non-interactive backend; must be set before importing p
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Fondo de los gráficos = superficie de las tarjetas de la web (#10101b), así las
+# imágenes no quedan como una caja negra dentro de las tarjetas de Discord.
+CHART_BG = "#10101b"
+
 
 @contextmanager
 def _chart_context(figsize=(10, 6)):
@@ -47,8 +51,8 @@ def render_top_chart(
     plt.style.use("dark_background")
     n = len(names)
     fig, ax = plt.subplots(figsize=(10, max(3.2, 0.5 * n + 1.4)))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     y = np.arange(n)[::-1]  # el #1 arriba
     max_val = max(values) if values else 1
@@ -97,8 +101,8 @@ def render_bar_chart(
     average line. Returns BytesIO ready for discord.File."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     index = range(len(labels))
 
@@ -151,8 +155,8 @@ def render_kd_chart(
     """Bar chart of K/D ratios with tier-based coloring and break-even line."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     index = range(len(player_names))
 
@@ -206,8 +210,8 @@ def render_comparison_chart(
     """Grouped bar chart comparing K/D ratios of two teams side by side."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(14, 7))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     # Build aligned player lists by position index
     max_players = max(len(team1_data), len(team2_data))
@@ -286,8 +290,8 @@ def render_radar_chart(
     clan_vals = [clan_avg_values.get(c, 0) for c in categories] + [clan_avg_values.get(categories[0], 0)]
 
     fig, ax = plt.subplots(figsize=(7, 7), subplot_kw=dict(polar=True))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     # Draw player polygon
     ax.plot(angles, player_vals, color="#00FFFF", linewidth=2, label=player_name)
@@ -329,8 +333,8 @@ def render_history_chart(
     `bench_ps`/`bench_kd` dibujan lineas horizontales de referencia (benchmark)."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     # Format dates as dd/mm
     from datetime import datetime
@@ -436,8 +440,8 @@ def render_distribution_chart(
     the given player's position highlighted. Returns BytesIO."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     # Histogram
     n_bins = min(20, max(5, len(all_values) // 3))
@@ -491,8 +495,8 @@ def render_multi_comparison(
     """
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(10, 6))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     # Normalize per-metric for bar heights, keep raw for labels
     norm1, norm2 = [], []
@@ -557,8 +561,8 @@ def render_ranking_change_chart(
     sorted_changes = [p[1] for p in paired]
 
     fig, ax = plt.subplots(figsize=(10, max(4, len(sorted_names) * 0.45)))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     colors = ["#00FF00" if c >= 0 else "#FF4444" for c in sorted_changes]
     y = np.arange(len(sorted_names))
@@ -611,8 +615,8 @@ def render_horizontal_bars(
     plt.style.use("dark_background")
     fig_h = max(2, len(items) * 0.55 + 0.8)
     fig, ax = plt.subplots(figsize=(6, fig_h))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     labels = [it[0] for it in items]
     values = [it[1] for it in items]
@@ -661,8 +665,8 @@ def render_comparison_bars(
     plt.style.use("dark_background")
     fig_h = max(2.5, len(metrics) * 0.7 + 1.2)
     fig, ax = plt.subplots(figsize=(7, fig_h))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     labels = [m[0] for m in metrics]
     vals1 = [m[1] for m in metrics]
@@ -715,8 +719,8 @@ def render_probability_bar(
     """Stacked horizontal bar showing win probability. Returns BytesIO PNG."""
     plt.style.use("dark_background")
     fig, ax = plt.subplots(figsize=(7, 1.5))
-    fig.patch.set_facecolor("#121212")
-    ax.set_facecolor("#121212")
+    fig.patch.set_facecolor(CHART_BG)
+    ax.set_facecolor(CHART_BG)
 
     ax.barh(0, prob_a, height=0.5, color="#00FFFF", edgecolor="none")
     ax.barh(0, prob_b, height=0.5, left=prob_a, color="orange", edgecolor="none")
