@@ -11,7 +11,7 @@ import {
     experienceBadge, sampleReliability,
     activityIndex, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
 } from './utils.js';
-import { barHTML, tierBarHTML, tierChipHTML } from './ui.js';
+import { barHTML, tierBarHTML, rankBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
@@ -34,21 +34,21 @@ function kpiHTML(label, value, bar, note) {
 }
 
 /** Desglose del puntaje con barras coloreadas por tier (como en el bot). */
-function breakdownHTML(player) {
+function breakdownHTML(player, pop) {
     const comps = [
-        ['Normalized_KD', 'Combate (K/D)'], ['Normalized_Score', 'Puntuación (SPR)'],
-        ['Normalized_Kills_Per_Round', 'Agresividad (KPR)'], ['Normalized_Rounds', 'Experiencia'],
-    ].map(([k, name]) => ({ name, value: player[k] || 0 }));
-    const max = Math.max(...comps.map(c => c.value));
-    const min = Math.min(...comps.map(c => c.value));
-    return comps.map(c => {
-        const mark = c.value === max ? ' ⭐' : (c.value === min && c.value < 0.7 ? ' ⚠️' : '');
-        return `<div class="meter-row">
-            <span class="meter-label">${escapeHtml(c.name)}${mark}</span>
-            ${tierBarHTML(c.value)}
-            <span class="meter-value">${Math.round(c.value * 100)}</span>
-        </div>`;
-    }).join('');
+        ['K/D Ratio', 'Combate · K/D', v => formatNumber(Number(v.toFixed(2)))],
+        ['Score per Round', 'Puntuación · score/ronda', v => formatNumber(Math.round(v))],
+        ['Kills per Round', 'Agresividad · kills/ronda', v => formatNumber(Number(v.toFixed(2)))],
+        ['Rounds', 'Experiencia · rondas', v => formatNumber(v)],
+    ].map(([k, name, fmt]) => {
+        const value = player[k] || 0;
+        return { name, shown: fmt(value), r: rankOf(value, pop.map(p => p[k] || 0)) };
+    });
+    return comps.map(c => `<div class="meter-row">
+            <span class="meter-label">${escapeHtml(c.name)} <span class="meter-shown">${c.shown}</span></span>
+            ${rankBarHTML(c.r.below)}
+            <span class="meter-value">${escapeHtml(c.r.label)}</span>
+        </div>`).join('');
 }
 
 /** Build and render the full profile card for a player. */
@@ -70,11 +70,14 @@ async function renderPlayerProfile(player) {
     const rel = sampleReliability(rounds);
 
     // Percentiles sobre la población.
-    const rPS = rankOf(ps, players.map(p => p['Performance Score'] || 0));
-    const rKD = rankOf(kd, players.map(p => p['K/D Ratio'] || 0));
-    const rKPR = rankOf(kpr, players.map(p => p['Kills per Round'] || 0));
-    const rSPR = rankOf(spr, players.map(p => p['Score per Round'] || 0));
-    const rKills = rankOf(player['Total Kills'] || 0, players.map(p => p['Total Kills'] || 0));
+    // Población de comparación: jugadores con 50+ rondas (los que entran en rankings).
+    const pop = players.filter(p => (p.Rounds || 0) >= 50);
+    const cmp = pop.length ? pop : players;
+    const rPS = rankOf(ps, cmp.map(p => p['Performance Score'] || 0));
+    const rKD = rankOf(kd, cmp.map(p => p['K/D Ratio'] || 0));
+    const rKPR = rankOf(kpr, cmp.map(p => p['Kills per Round'] || 0));
+    const rSPR = rankOf(spr, cmp.map(p => p['Score per Round'] || 0));
+    const rKills = rankOf(player['Total Kills'] || 0, cmp.map(p => p['Total Kills'] || 0));
 
     // "Participación" = índice de volumen/rendimiento (no mira fechas). La actividad
     // real (última partida) la completa enrichWithDemo con last_round_date.
@@ -114,9 +117,9 @@ async function renderPlayerProfile(player) {
 
             <div class="kpi-grid">
                 ${kpiHTML('Performance', f2(ps), tierBarHTML(ps), rPS.label)}
-                ${kpiHTML('K/D', f2(kd), tierBarHTML(rKD.below), rKD.label)}
-                ${kpiHTML('Kills por ronda', f2(kpr), tierBarHTML(rKPR.below), rKPR.label)}
-                ${kpiHTML('Score por ronda', formatNumber(Math.round(spr)), tierBarHTML(rSPR.below), rSPR.label)}
+                ${kpiHTML('K/D', f2(kd), rankBarHTML(rKD.below), rKD.label)}
+                ${kpiHTML('Kills por ronda', f2(kpr), rankBarHTML(rKPR.below), rKPR.label)}
+                ${kpiHTML('Score por ronda', formatNumber(Math.round(spr)), rankBarHTML(rSPR.below), rSPR.label)}
             </div>
 
             <div class="profile-grid">
@@ -125,8 +128,9 @@ async function renderPlayerProfile(player) {
                     <p class="profile-muted">Cargando datos de demos…</p>
                 </section>
                 <section class="card profile-side">
-                    <h4 class="profile-subtitle">Desglose del puntaje</h4>
-                    ${breakdownHTML(player)}
+                    <h4 class="profile-subtitle">De qué sale tu Performance</h4>
+                    ${breakdownHTML(player, cmp)}
+                    <p class="profile-muted">Barras = posición entre ${formatNumber(cmp.length)} jugadores con 50+ rondas: más larga y verde/dorada = mejor que la mayoría.</p>
                     <h4 class="profile-subtitle">Actividad</h4>
                     <p class="profile-last-seen" id="profile-last-seen">Buscando la última partida…</p>
                     <div class="meter-row">
@@ -169,6 +173,13 @@ function roundWhere(rnd) {
     const m = DEMO_RE.exec(String(rnd.filename || ''));
     if (m) parts.push(gamemodeLabel(m[5]), `${m[3]}/${m[2]}/${m[1]}`);
     return parts.filter(Boolean).join(' · ');
+}
+
+/** Winrates de los jugadores con 10+ partidas decididas en demos (para comparar). */
+function demoWinrates() {
+    return (state.demoPlayerDetails || [])
+        .filter(d => ((d.wins || 0) + (d.losses || 0)) >= 10)
+        .map(d => d.wins / (d.wins + d.losses));
 }
 
 /** Actividad real a partir de la fecha de la última ronda con demo (como en el bot). */
@@ -239,7 +250,7 @@ async function enrichWithDemo(player) {
             ${items.map(([k, v]) => `<div class="record-item"><b>${escapeHtml(String(v))}</b><span>${escapeHtml(k)}</span></div>`).join('')}
         </div>
         ${bars.map(([label, frac]) => `<div class="meter-row">
-            <span class="meter-label">${escapeHtml(label)}</span>${tierBarHTML(frac)}
+            <span class="meter-label">${escapeHtml(label)}</span>${rankBarHTML(rankOf(frac, demoWinrates()).below)}
             <span class="meter-value">${Math.round(frac * 100)}%</span></div>`).join('')}`;
 }
 

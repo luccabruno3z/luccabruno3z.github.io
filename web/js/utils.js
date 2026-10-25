@@ -187,17 +187,17 @@ export function classifyPlaystyle(kd, kpr, dpr, rounds) {
     if (kd >= 2.0 && kpr < 3.0)          return { emoji: '\u{1F3AF}', name: 'Francotirador' };
     if (kpr >= 5.0 && dpr >= 4.0)        return { emoji: '\u{1F5E1}️', name: 'Asesino' };
     if (dpr < 2.5 && kd >= 1.2)          return { emoji: '\u{1F6E1}️', name: 'Superviviente' };
-    if (rounds >= 500 && kd >= 0.8 && kd <= 1.8) return { emoji: '⭐', name: 'Veterano' };
+    if (rounds >= 500 && kd >= 0.8 && kd <= 1.8) return { emoji: '🧭', name: 'Todoterreno' };
     if (kpr >= 4.0 && rounds >= 200)     return { emoji: '\u{1F3CB}️', name: 'Tanque' };
     if (rounds < 50)                     return { emoji: '\u{1F331}', name: 'Novato' };
-    return { emoji: '⚔️', name: 'Soldado' };
+    return { emoji: '🪖', name: 'Infante' };
 }
 
 /** Prefer stored archetype, else derive from stats. */
 export function getPlayerArchetype(player) {
     const arch = player.archetype;
     if (arch && typeof arch === 'object') {
-        return { emoji: arch.emoji || '⚔️', name: arch.name || 'Soldado', desc: arch.desc || '' };
+        return { emoji: arch.emoji || '⚔️', name: arch.name || 'Infante', desc: arch.desc || '' };
     }
     const kd = player['K/D Ratio'] || 0;
     const kpr = player['Kills per Round'] || 0;
@@ -208,8 +208,8 @@ export function getPlayerArchetype(player) {
 
 export function experienceBadge(rounds) {
     if (rounds >= 1000) return { emoji: '\u{1F396}️', name: 'Leyenda' };
-    if (rounds >= 500)  return { emoji: '⭐', name: 'Veterano' };
-    if (rounds >= 200)  return { emoji: '⚔️', name: 'Experimentado' };
+    if (rounds >= 500)  return { emoji: '🔥', name: 'Asiduo' };
+    if (rounds >= 200)  return { emoji: '📈', name: 'Constante' };
     if (rounds >= 50)   return { emoji: '\u{1F6E1}️', name: 'Regular' };
     if (rounds >= 10)   return { emoji: '\u{1F331}', name: 'Novato' };
     return { emoji: '❓', name: 'Sin datos suficientes' };

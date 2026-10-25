@@ -203,13 +203,13 @@ def classify_playstyle(kd: float, kills_per_round: float, deaths_per_round: floa
     elif deaths_per_round < 2.5 and kd >= 1.2:
         return ("🛡️", "Superviviente")
     elif rounds >= 500 and 0.8 <= kd <= 1.8:
-        return ("⭐", "Veterano")
+        return ("🧭", "Todoterreno")
     elif kills_per_round >= 4.0 and rounds >= 200:
         return ("🏋️", "Tanque")
     elif rounds < 50:
         return ("🌱", "Novato")
     else:
-        return ("⚔️", "Soldado")
+        return ("🪖", "Infante")
 
 
 def score_breakdown(player: dict) -> str:
@@ -251,9 +251,9 @@ def experience_badge(rounds: int) -> str:
     if rounds >= 1000:
         return "🎖️ Leyenda"
     elif rounds >= 500:
-        return "⭐ Veterano"
+        return "🔥 Asiduo"
     elif rounds >= 200:
-        return "⚔️ Experimentado"
+        return "📈 Constante"
     elif rounds >= 50:
         return "🛡️ Regular"
     elif rounds >= 10:
@@ -341,7 +341,7 @@ def get_player_archetype(player: dict) -> tuple[str, str]:
     """Read pre-computed archetype from player JSON. Falls back to classify_playstyle."""
     arch = player.get("archetype")
     if arch and isinstance(arch, dict):
-        return (arch.get("emoji", "⚔️"), arch.get("name", "Soldado"))
+        return (arch.get("emoji", "🪖"), arch.get("name", "Infante"))
     kd = player.get("K/D Ratio", 0)
     kpr = player.get("Kills per Round", 0)
     rounds = player.get("Rounds", 0)

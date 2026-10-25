@@ -20,7 +20,10 @@ import re
 import discord
 
 from bot.config import BASE_URL, clan_logo_url
-from bot.ui.theme import meter, legend, tier_color, player_records, last_seen, ACCENT
+from bot.ui.theme import (
+    meter, tier_color, player_records, last_seen, ACCENT,
+    below_fraction, top_label, rank_meter, rank_legend,
+)
 from bot.utils import (
     find_player, standard_footer, format_number, get_player_archetype,
     get_player_archetype_desc, get_player_radar, get_player_ratings, tier_emoji, _tier_name,
@@ -115,7 +118,7 @@ async def load_context(bot, name: str) -> dict | None:
         demo = await fetcher.fetch_player_details()
         dp = find_player(demo, pl, key="ign") if demo else None
     except Exception:
-        dp = None
+        demo, dp = None, None
     trend = ""
     try:
         safe = re.sub(r"[^a-zA-Z0-9_\-]", "_", pl)
@@ -125,38 +128,44 @@ async def load_context(bot, name: str) -> dict | None:
             trend = " 📈" if b > a else (" 📉" if b < a else "")
     except Exception:
         pass
-    return {"p": p, "all": data, "clan_list": clan_list, "rk_global": rk_global, "rk_clan": rk_clan,
-            "thr": thr, "dp": dp, "trend": trend}
+    # Población contra la que se compara cada barra: jugadores con 50+ rondas (los mismos
+    # que entran en los rankings); si no hubiera suficientes, todos.
+    pop = [q for q in data if (q.get("Rounds", 0) or 0) >= 50] or data
+    return {"p": p, "all": data, "pop": pop, "clan_list": clan_list, "rk_global": rk_global,
+            "rk_clan": rk_clan, "thr": thr, "dp": dp, "demo_all": demo or [], "trend": trend}
 
 
 # ── Contenido de cada pestaña: (items, files) ────────────────────────────────
-def _tab_resumen(ctx: dict):
-    p, thr, data = ctx["p"], ctx["thr"], ctx["all"]
-    ps = p.get("Performance Score", 0) or 0
-    kd = p.get("K/D Ratio", 0) or 0
-    kpr = p.get("Kills per Round", 0) or 0
-    kd_f, kd_top = _top_pct(kd, [q.get("K/D Ratio", 0) or 0 for q in data])
-    kpr_f, kpr_top = _top_pct(kpr, [q.get("Kills per Round", 0) or 0 for q in data])
-    _ps_f, ps_top = _top_pct(ps, [q.get("Performance Score", 0) or 0 for q in data])
-    rounds = p.get("Rounds", 0) or 0
+def _rank_line(label: str, value_txt: str, value: float, values: list, extra: str = "") -> str:
+    """Barra + valor real + "top N%": largo y color salen de la posición, no del valor crudo."""
+    below = below_fraction(value, values)
+    tail = top_label(below) + (f" · {extra}" if extra else "")
+    return _metric_line(rank_meter(below), label, value_txt, tail)
 
+
+def _tab_resumen(ctx: dict):
+    p, thr, pop = ctx["p"], ctx["thr"], ctx["pop"]
+    ps = p.get("Performance Score", 0) or 0
+    rounds = p.get("Rounds", 0) or 0
+    col = lambda k: [q.get(k, 0) or 0 for q in pop]  # noqa: E731
+
+    # Performance: color del rango (mismos umbrales que el tier del encabezado).
+    ps_below = below_fraction(ps, col("Performance Score"))
     lines = [
         "### Resumen",
-        _metric_line(meter(ps, thr), "Performance", _f2(ps) + ctx["trend"], ps_top),
-        _metric_line(meter(kd_f, thr), "K/D", _f2(kd), kd_top),
-        _metric_line(meter(kpr_f, thr), "KPR", _f2(kpr), kpr_top),
-        f"-# Kills {format_number(p.get('Total Kills', 0))} · Muertes {format_number(p.get('Total Deaths', 0))}"
-        f" · Score/ronda {p.get('Score per Round', 0):.0f} · Rondas {format_number(rounds)}",
+        _metric_line(meter(ps, thr), "Performance", _f2(ps) + ctx["trend"], top_label(ps_below)),
+        f"-# Kills {format_number(p.get('Total Kills', 0))} · Muertes {format_number(p.get('Total Deaths', 0))}",
+        "### De qué sale tu Performance",
+        _rank_line("Combate · K/D", _f2(p.get("K/D Ratio", 0)), p.get("K/D Ratio", 0) or 0, col("K/D Ratio")),
+        _rank_line("Puntuación · score/ronda", f"{p.get('Score per Round', 0) or 0:.0f}",
+                   p.get("Score per Round", 0) or 0, col("Score per Round")),
+        _rank_line("Agresividad · kills/ronda", _f2(p.get("Kills per Round", 0)),
+                   p.get("Kills per Round", 0) or 0, col("Kills per Round")),
+        _rank_line("Experiencia · rondas", format_number(rounds), rounds, col("Rounds")),
     ]
-    bd = [
-        ("Combate (K/D)", p.get("Normalized_KD", 0)), ("Puntuación (SPR)", p.get("Normalized_Score", 0)),
-        ("Agresividad (KPR)", p.get("Normalized_Kills_Per_Round", 0)), ("Experiencia", p.get("Normalized_Rounds", 0)),
-    ]
-    blines = ["### Desglose del puntaje"]
-    blines += [_metric_line(meter(v or 0, thr), lbl, f"{(v or 0) * 100:.0f}") for lbl, v in bd]
     ratings = get_player_ratings(p)
     if ratings:
-        blines.append("-# Índices: " + " · ".join(
+        lines.append("-# Índices: " + " · ".join(
             f"{lbl} {ratings.get(k, 0):.0f}" for k, lbl in
             (("combat", "Combate"), ("tactical", "Táctico"), ("reliability", "Fiabilidad"), ("impact", "Impacto"))))
 
@@ -176,11 +185,15 @@ def _tab_resumen(ctx: dict):
     if best:
         extra.append(f"Mejor ronda: **{best['kills']} kills** en **{best['where'].split(' · ')[0]}** — más en **Récords**")
 
-    items = [discord.ui.TextDisplay("\n".join(lines)), discord.ui.Separator(),
-             discord.ui.TextDisplay("\n".join(blines))]
+    items = [discord.ui.TextDisplay("\n".join(lines))]
     if extra:
         items += [discord.ui.Separator(), discord.ui.TextDisplay("\n".join(extra))]
     return items, []
+
+
+def _winrate(d: dict) -> float | None:
+    w, lo = d.get("wins", 0) or 0, d.get("losses", 0) or 0
+    return w / (w + lo) if (w + lo) >= 10 else None
 
 
 def _tab_records(ctx: dict):
@@ -198,15 +211,17 @@ def _tab_records(ctx: dict):
         items.append(discord.ui.TextDisplay("\n".join(
             " · ".join(f"{lbl} **{val}**" for lbl, val in pair) for pair in pairs)))
     if rec["bars"]:
+        # Winrates comparados contra los jugadores con 10+ partidas decididas en demos.
+        wrs = [w for w in (_winrate(d) for d in ctx["demo_all"] if isinstance(d, dict)) if w is not None]
         items.append(discord.ui.TextDisplay("\n".join(
-            _metric_line(meter(frac, ctx["thr"]), lbl, shown) for lbl, frac, shown in rec["bars"])))
+            _rank_line(lbl, shown, frac, wrs) for lbl, frac, shown in rec["bars"])))
     items.append(discord.ui.TextDisplay(f"-# De {rec['rounds']} rondas con demo"))
     return items, []
 
 
 def _tab_perfil(ctx: dict):
     from bot.services.chart_renderer import render_radar_chart
-    p, thr, data = ctx["p"], ctx["thr"], ctx["all"]
+    p, data, pop = ctx["p"], ctx["all"], ctx["pop"]
     radar = get_player_radar(p)
     if not radar:
         return [discord.ui.TextDisplay("### Perfil de habilidades\nRadar no disponible todavía (faltan datos).")], []
@@ -216,9 +231,10 @@ def _tab_perfil(ctx: dict):
     lines = ["### Perfil de habilidades"]
     for k, lbl in _RADAR_LABELS:
         v = radar.get(k, 0) or 0
+        values = [q["radar"].get(k, 0) for q in pop if q.get("radar")]
         diff = v - avg[k]
         cmp = f"{'+' if diff >= 0 else '−'}{abs(diff) * 100:.0f} vs {clan}" if mates else ""
-        lines.append(_metric_line(meter(v, thr), lbl, f"{v * 100:.0f}", cmp))
+        lines.append(_rank_line(lbl, f"{v * 100:.0f}", v, values, cmp))
     desc = get_player_archetype_desc(p)
     if desc:
         lines.append(f"-# {desc}")
@@ -338,7 +354,7 @@ class PlayerProfileView(discord.ui.LayoutView):
         # standard_footer da la hora de la última actualización de los DATOS, no del jugador.
         updated = standard_footer(p).replace("📅 ", "")
         children.append(discord.ui.TextDisplay(
-            " · ".join(info) + f"\n-# {legend(thr)}\n-# Datos actualizados {updated}"))
+            " · ".join(info) + f"\n-# {rank_legend(len(ctx['pop']))}\n-# Datos actualizados {updated}"))
         acts = ("cmp", "rounds", "glos") if (allow_demos and ctx["dp"]) else ("cmp", "glos")
         children.append(discord.ui.ActionRow(*[PlayerCardActionButton(a, name) for a in acts]))
         self.add_item(discord.ui.Container(*children, accent_colour=tier_color(ps, thr) or ACCENT))

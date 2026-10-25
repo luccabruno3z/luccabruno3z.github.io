@@ -83,6 +83,44 @@ def accent_meter(fraction: float, length: int = SEGMENTS) -> str:
     return _emoji("tb_accent", "🟦") * filled + _emoji(*EMPTY_EMOJI) * (length - filled)
 
 
+# ── Barras por POSICIÓN (percentil) ───────────────────────────────────────────
+# Cada métrica tiene su propia escala (K/D normalizado contra 5, radar 0-1, etc.),
+# así que pintarlas con los cortes del Performance Score confundía: un K/D mejor que
+# el 87% salía "Recluta". Estas barras usan la posición del jugador frente a los demás,
+# con los mismos cortes que la distribución de tiers del scraper (10/30/35/20/5 %):
+# top 10% = color Élite, top 40% = Veterano, top 75% = Experimentado, top 95% = Soldado.
+RANK_CUTS = (0.10, 0.40, 0.75, 0.95)
+
+
+def below_fraction(value: float, values: list[float]) -> float:
+    """Fracción de la población con un valor MENOR (0 = el peor, ~1 = el mejor)."""
+    vals = [v for v in values if v is not None]
+    if not vals:
+        return 0.0
+    return sum(1 for v in vals if v < (value or 0)) / len(vals)
+
+
+def top_label(below: float) -> str:
+    return f"top {max(1, round((1 - below) * 100))}%"
+
+
+def rank_meter(below: float, length: int = SEGMENTS) -> str:
+    """Barra cuyo largo y color dependen de la posición (no del valor crudo)."""
+    below = max(0.0, min(1.0, below or 0.0))
+    top = 1 - below
+    idx = next((i for i, cut in enumerate(RANK_CUTS) if top <= cut), 4)
+    _, _, name, fb = TIERS[idx]
+    filled = round(below * length)
+    return _emoji(name, fb) * filled + _emoji(*EMPTY_EMOJI) * (length - filled)
+
+
+def rank_legend(population: int | None = None) -> str:
+    who = f"los {population} jugadores con 50+ rondas" if population else "los demás jugadores"
+    marks = [f"{_emoji(TIERS[i][2], TIERS[i][3])} {lbl}" for i, lbl in
+             enumerate(("top 10%", "top 40%", "top 75%", "top 95%", "resto"))]
+    return f"Barras = tu posición entre {who}: " + " · ".join(marks)
+
+
 def legend(thresholds: dict | None = None) -> str:
     """Leyenda corta de colores: '🟨 Élite ≥0,81 · 🟩 Veterano ≥0,70 · …'."""
     thr = thresholds_or_default(thresholds)

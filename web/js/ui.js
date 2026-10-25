@@ -19,6 +19,20 @@ export function tierBarHTML(fraction) {
     return barHTML(v * 100, tierBadge(v).cssClass);
 }
 
+/**
+ * Barra por POSICIÓN: largo y color salen del percentil (fracción de jugadores por
+ * debajo), no del valor crudo — cada métrica tiene su escala y pintarlas con los
+ * cortes del Performance confundía (un K/D top 13% salía "Recluta"). Mismos cortes
+ * que la distribución de tiers: top 10% / 40% / 75% / 95% / resto. Igual que el bot.
+ */
+export function rankBarHTML(below) {
+    const b = Math.max(0, Math.min(1, Number(below) || 0));
+    const top = 1 - b;
+    const cls = top <= 0.10 ? 'tier-elite' : top <= 0.40 ? 'tier-veterano'
+        : top <= 0.75 ? 'tier-experimentado' : top <= 0.95 ? 'tier-soldado' : 'tier-recluta';
+    return barHTML(b * 100, cls);
+}
+
 /** Chip de tier (texto, sin emoji). */
 export function tierChipHTML(score) {
     const t = tierBadge(score || 0);

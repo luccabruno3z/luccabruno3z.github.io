@@ -388,10 +388,10 @@ def _classify_archetype(radar: dict, demo: dict | None, rounds: int) -> dict:
     if let_ > 0.7 and imp > 0.7 and con > 0.5:
         return {"name": "Tanque", "emoji": "\U0001f3cb\ufe0f", "desc": "Domina el combate con consistencia"}
     if con > 0.7 and all(radar.get(a, 0) >= 0.4 for a in ("letalidad", "supervivencia", "teamwork", "impacto")) and ver > 0.5:
-        return {"name": "Veterano", "emoji": "\u2b50", "desc": "Rendimiento sólido y versátil"}
+        return {"name": "Todoterreno", "emoji": "\U0001f9ed", "desc": "Rendimiento sólido y versátil"}
 
     # Priority 3 — Default
-    return {"name": "Soldado", "emoji": "\u2694\ufe0f", "desc": "Combatiente de infantería estándar"}
+    return {"name": "Infante", "emoji": "\U0001fa96", "desc": "Combatiente de infantería estándar"}
 
 
 # ── Tier Thresholds ──────────────────────────────────────────────────────────
