@@ -4,7 +4,8 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadLeaderboard } from './data.js';
-import { escapeHtml, rankMedal, formatNumber } from './utils.js';
+import { escapeHtml, formatNumber } from './utils.js';
+import { barHTML, tableHTML, posHTML } from './ui.js';
 
 const LB_METRIC_LABELS = {
     kills: 'Kills',
@@ -51,25 +52,40 @@ async function renderLeaderboard() {
     const sorted = [...players].sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
     const shown = sorted.slice(0, count);
 
+    const top = metricValue(shown[0], metric) || 1;
+    const fmtVal = (v) => formatNumber(metric === 'kd' ? Number(v.toFixed(2)) : v);
+    const kdOf = (p) => ((p.deaths || 0) === 0 ? (p.kills || 0) : (p.kills || 0) / p.deaths);
+
+    // Columnas separadas: la métrica elegida (con barra) + rondas/kills/muertes/K-D,
+    // sin repetir la métrica si ya es una de esas columnas.
+    const cols = [
+        { label: '#', width: '56px' },
+        { label: 'Jugador', width: 'minmax(0,1.6fr)' },
+        { label, width: 'minmax(0,2fr)' },
+        { label: 'Rondas', width: '80px', align: 'end' },
+    ];
+    if (metric !== 'kills') cols.push({ label: 'Kills', width: '80px', align: 'end' });
+    cols.push({ label: 'Muertes', width: '90px', align: 'end' });
+    if (metric !== 'kd') cols.push({ label: 'K/D', width: '80px', align: 'end' });
+
     const rows = shown.map((p, i) => {
-        const pos = i + 1;
         const value = metricValue(p, metric);
-        const kd = (p.deaths || 0) === 0 ? (p.kills || 0) : (p.kills || 0) / (p.deaths || 1);
-        const name = escapeHtml(p.ign);
-        return `
-            <div class="rank-row">
-                <span class="rank-pos">${rankMedal(pos)}</span>
-                <span class="rank-name">${name}</span>
-                <span class="rank-detail">
-                    <span class="stat-value">${formatNumber(metric === 'kd' ? Number(value.toFixed(2)) : value)}</span>
-                    <span class="rank-subdetail">${formatNumber(p.rounds || 0)} rondas · ${formatNumber(p.kills || 0)} K · ${formatNumber(p.deaths || 0)} D · ${kd.toFixed(2)} K/D</span>
-                </span>
-            </div>`;
-    }).join('');
+        const kd = kdOf(p);
+        const cells = [
+            posHTML(i + 1),
+            `<span class="dtable-name">${escapeHtml(p.ign)}</span>`,
+            `<span class="dtable-val-o">${fmtVal(value)}</span>${barHTML((value / top) * 100, 'orange')}`,
+            formatNumber(p.rounds || 0),
+        ];
+        if (metric !== 'kills') cells.push(formatNumber(p.kills || 0));
+        cells.push(`<span class="dtable-muted">${formatNumber(p.deaths || 0)}</span>`);
+        if (metric !== 'kd') cells.push(`<span class="${kd < 1 ? 'dtable-bad' : ''}">${formatNumber(Number(kd.toFixed(2)))}</span>`);
+        return cells;
+    });
 
     results.innerHTML = `
-        <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${data.total_rounds || 0} rondas en total</div>
-        <div class="rank-list">${rows}</div>`;
+        <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${formatNumber(data.total_rounds || 0)} rondas en total</div>
+        ${tableHTML(cols, rows, { minWidth: 640, caption: `Leaderboard por ${label}` })}`;
     return true;
 }
 

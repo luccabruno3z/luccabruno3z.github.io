@@ -686,7 +686,8 @@ html.js .hero:not(.visible) {
 ---------------------------------------------------------------------------- */
 .bento {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    /* minmax(0, …): la tabla de partidas (min-width) no debe ensanchar la grilla */
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-auto-rows: minmax(120px, auto);
     gap: 16px;
     padding: 24px 0 0;
@@ -697,6 +698,7 @@ html.js .hero:not(.visible) {
     grid-column: span 4;
     display: flex;
     flex-direction: column;
+    min-width: 0;
     min-height: 240px;
     padding: 22px;
     background: var(--glass-bg);
@@ -1671,10 +1673,20 @@ table.data-table { display: table; }
     width: 100% !important;
 }
 .clan-averages-stats {
+    width: 100%;
+}
+/* Vista "Tarjetas" de clanes (la tabla es la vista por defecto) */
+.clan-cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 16px;
-    width: 100%;
+}
+.clan-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 /* ----------------------------------------------------------------------------
@@ -2079,7 +2091,7 @@ footer a:hover {
     .predictor-teams { grid-template-columns: 1fr; }
     .team-inputs-grid { grid-template-columns: 1fr; }
     .demo-stats-container { grid-template-columns: 1fr; }
-    .clan-averages-stats { grid-template-columns: 1fr 1fr; }
+    .clan-cards-grid { grid-template-columns: 1fr 1fr; }
 
     .search-input-wrapper {
         flex-direction: column;
@@ -2116,7 +2128,7 @@ footer a:hover {
     .social-buttons { flex-direction: column; }
     .social-button { justify-content: center; }
 
-    .clan-averages-stats { grid-template-columns: 1fr; }
+    .clan-cards-grid { grid-template-columns: 1fr; }
     .charts-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
     .chart-card { padding: 16px 8px; font-size: 1.05rem; }
     .chart-card-logo { width: 38px; height: 38px; }
@@ -2318,4 +2330,193 @@ footer a:hover {
     display: inline-block; vertical-align: middle; margin-right: 6px;
     background-image: url(../img/atlas.png); background-repeat: no-repeat;
     image-rendering: -webkit-optimize-contrast;
+}
+
+/* ----------------------------------------------------------------------------
+   28. Componentes de datos (web/js/ui.js): barra, podio, tabla, chip de tier.
+   Los colores de tier son los mismos que usa el bot de Discord, así una barra
+   verde significa lo mismo en los dos lados.
+---------------------------------------------------------------------------- */
+:root {
+    --tier-c-elite: #FFD700;
+    --tier-c-veterano: #00FF88;
+    --tier-c-experimentado: #00BBFF;
+    --tier-c-soldado: #FF8800;
+    --tier-c-recluta: #FF4466;
+}
+
+.dbar {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 48px;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.07);
+    overflow: hidden;
+}
+.dbar-fill { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.dbar-orange { background: var(--secondary); }
+.dbar-tier-elite { background: var(--tier-c-elite); }
+.dbar-tier-veterano { background: var(--tier-c-veterano); }
+.dbar-tier-experimentado { background: var(--tier-c-experimentado); }
+.dbar-tier-soldado { background: var(--tier-c-soldado); }
+.dbar-tier-recluta { background: var(--tier-c-recluta); }
+
+.tier-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+    background: transparent;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-shadow: none;
+    white-space: nowrap;
+}
+.tier-chip.tier-elite { color: var(--tier-c-elite); }
+.tier-chip.tier-veterano { color: var(--tier-c-veterano); }
+.tier-chip.tier-experimentado { color: var(--tier-c-experimentado); }
+.tier-chip.tier-soldado { color: var(--tier-c-soldado); }
+.tier-chip.tier-recluta { color: var(--tier-c-recluta); }
+
+.pos { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); }
+.pos-1 { color: var(--gold); font-weight: 700; }
+.pos-2 { color: var(--silver); font-weight: 700; }
+.pos-3 { color: var(--bronze); font-weight: 700; }
+
+/* Podio: #2 · #1 · #3, el primero más alto */
+.podium {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    align-items: end;
+    margin: 8px 0 20px;
+}
+.podium-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-height: 190px;
+    padding: 20px 14px;
+    text-align: center;
+    background: var(--surface-solid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+}
+.podium-1 { min-height: 230px; border-color: rgba(255, 215, 0, 0.45); }
+.podium-2 { border-color: rgba(207, 214, 224, 0.25); }
+.podium-3 { border-color: rgba(205, 127, 50, 0.35); }
+.podium-place { font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.1em; color: var(--text-muted); }
+.podium-1 .podium-place { color: var(--gold); }
+.podium-2 .podium-place { color: var(--silver); }
+.podium-3 .podium-place { color: var(--bronze); }
+.podium-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    color: var(--text);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.podium-sub { font-size: 0.85rem; color: var(--text-muted); display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.podium-value { font-family: var(--font-mono); font-weight: 700; font-size: 1.6rem; color: var(--accent); }
+
+/* Tabla con columnas alineadas */
+.dtable-wrap { overflow-x: auto; }
+.dtable { display: grid; }
+.dtable-row {
+    display: grid;
+    grid-template-columns: var(--cols);
+    align-items: center;
+    border-top: 1px solid var(--hairline);
+}
+.dtable-row:not(.dtable-head):hover { background: rgba(0, 255, 255, 0.03); }
+.dtable-head { border-top: none; }
+.dtable-th {
+    padding: 10px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+.dtable-td {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 11px 12px;
+    font-size: 0.95rem;
+    color: var(--text);
+}
+.dtable-td.is-num, .dtable-th.is-num { justify-content: flex-end; text-align: right; font-family: var(--font-mono); }
+.dtable-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dtable-val { font-family: var(--font-mono); font-weight: 700; color: var(--accent); min-width: 3.2em; }
+.dtable-val-o { font-family: var(--font-mono); font-weight: 700; color: var(--secondary); min-width: 3.2em; }
+.dtable-muted { color: var(--text-muted); }
+.dtable-bad { color: #ff8a8a; }
+.dtable-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+}
+.dtable-chip.is-win { background: rgba(0, 255, 255, 0.1); color: var(--accent); }
+
+/* Selector segmentado (Tabla / Tarjetas) */
+.segmented {
+    display: inline-flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--r-md);
+    background: rgba(10, 10, 18, 0.8);
+    border: 1px solid var(--hairline);
+}
+.segmented button {
+    min-height: 36px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+.segmented button[aria-pressed="true"] { background: var(--accent-dim); color: var(--accent); font-weight: 700; }
+
+/* Filas de las tarjetas del dashboard: nombre + barra a la izquierda, valor a la derecha */
+.tile-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-top: 1px solid var(--hairline);
+}
+.tile-row:first-child { border-top: none; }
+.tile-who { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tile-name { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 500; }
+.tile-name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 640px) {
+    .podium { gap: 8px; }
+    .podium-card { min-height: 160px; padding: 14px 8px; }
+    .podium-1 { min-height: 190px; }
+    .podium-title { font-size: 1.15rem; }
+    .podium-value { font-size: 1.2rem; }
 }

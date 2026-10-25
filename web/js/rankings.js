@@ -5,7 +5,8 @@
 
 import { state } from './data.js';
 import { MIN_ROUNDS_FOR_RANKING } from './config.js';
-import { escapeHtml, clanLogoHTML, tierBadge, rankMedal, formatNumber } from './utils.js';
+import { escapeHtml, clanLogoHTML, formatNumber } from './utils.js';
+import { barHTML, tierBarHTML, tierChipHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 // Metric value → the raw player field it reads, plus whether higher is better.
 const METRICS = {
@@ -68,27 +69,40 @@ function renderRankings() {
     const headerBits = [`Top ${shown.length} por ${escapeHtml(metric.label)}`];
     if (clanLabel) headerBits.push(`Clan ${escapeHtml(clanLabel)}`);
 
-    const rows = shown.map((p, i) => {
-        const pos = i + 1;
-        const value = p[metric.key] || 0;
-        const pct = Math.max(0, Math.min(100, (value / maxValue) * 100));
-        const tier = tierBadge(p['Performance Score'] || 0);
-        const name = escapeHtml(p.Player);
-        const clan = p.Clan ? `${clanLogoHTML(p.Clan, 18)} <span class="rank-clan">${escapeHtml(p.Clan)}</span>` : '';
-        return `
-            <div class="rank-row">
-                <span class="rank-pos">${rankMedal(pos)}</span>
-                <span class="rank-name">${name} ${clan}
-                    <span class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</span>
-                </span>
-                <div class="progress-row">
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width:${pct}%;"></div>
-                    </div>
-                </div>
-                <span class="rank-value">${formatNumber(value)}</span>
-            </div>`;
-    }).join('');
+    const fmt = (v) => formatNumber(metricKey === 'kd' || metricKey === 'performance' ? Number((v || 0).toFixed(2)) : v || 0);
+    const clanCell = (p) => p.Clan
+        ? `${clanLogoHTML(p.Clan, 20)} <span class="dtable-muted">${escapeHtml(p.Clan)}</span>` : '';
+    // Performance: barra coloreada por tier (mismos umbrales que el rango). Resto: cian,
+    // relativa al primero.
+    const bar = (v) => metricKey === 'performance' ? tierBarHTML(v) : barHTML((v / maxValue) * 100);
+
+    const podium = podiumHTML(shown.slice(0, 3).map((p) => ({
+        title: p.Player,
+        sub: `${p.Clan ? clanLogoHTML(p.Clan, 18) + ' ' + escapeHtml(p.Clan) : ''} ${tierChipHTML(p['Performance Score'])}`,
+        value: fmt(p[metric.key]),
+        logo: '',
+    })));
+
+    const rest = shown.slice(3);
+    const table = rest.length ? tableHTML(
+        [
+            { label: '#', width: '56px' },
+            { label: 'Jugador', width: 'minmax(0,1.6fr)' },
+            { label: 'Clan', width: 'minmax(0,1fr)' },
+            { label: 'Tier', width: '130px' },
+            { label: metric.label, width: 'minmax(0,1.6fr)' },
+            { label: 'Valor', width: '90px', align: 'end' },
+        ],
+        rest.map((p, i) => [
+            posHTML(i + 4),
+            `<span class="dtable-name">${escapeHtml(p.Player)}</span>`,
+            clanCell(p),
+            tierChipHTML(p['Performance Score']),
+            bar(p[metric.key] || 0),
+            `<span class="dtable-val">${fmt(p[metric.key])}</span>`,
+        ]),
+        { minWidth: 680, caption: headerBits.join(' · ') },
+    ) : '';
 
     const excludedNote = excluded > 0
         ? `<p class="rankings-excluded">${excluded} jugador${excluded === 1 ? '' : 'es'} excluido${excluded === 1 ? '' : 's'} por tener menos de ${minRounds} rondas.</p>`
@@ -96,7 +110,7 @@ function renderRankings() {
 
     results.innerHTML = `
         <div class="rankings-header">${headerBits.join(' · ')}</div>
-        <div class="rank-list">${rows}</div>
+        ${podium}${table}
         ${excludedNote}`;
 }
 
