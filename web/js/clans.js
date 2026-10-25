@@ -60,16 +60,20 @@ function scopeNoteHTML() {
         Clanes con menos de ${p.min_active || 5} activos no aparecen.</p>`;
 }
 
-function render(results, clans) {
+function render(results, controls, clans) {
+    // Los selectores van arriba del gráfico (controls) porque también lo cambian.
+    controls.innerHTML = toolbarHTML() + scopeNoteHTML();
+    const canvas = document.getElementById('clanAveragesChart');
+    const chartBox = canvas && canvas.parentElement;
     if (ui.scope === 'activos') {
         clans = (activeData && activeData.clans) || [];
         if (!clans.length) {
-            results.innerHTML = toolbarHTML() + scopeNoteHTML()
-                + '<div class="empty-state">Todavía no hay datos de clanes activos: se generan en la próxima actualización.</div>';
+            if (chartBox) chartBox.style.display = 'none';
+            results.innerHTML = '<div class="empty-state">Todavía no hay datos de clanes activos: se generan en la próxima actualización.</div>';
             return;
         }
     }
-    const canvas = document.getElementById('clanAveragesChart');
+    if (chartBox) chartBox.style.display = '';
     if (canvas) renderClanAveragesChart(clans, canvas);
     const sort = SORTS[ui.sort] || SORTS.performance;
     const sorted = [...clans].sort((a, b) => (b[sort.key] || 0) - (a[sort.key] || 0));
@@ -118,7 +122,7 @@ function render(results, clans) {
         );
         body = podium + table;
     }
-    results.innerHTML = toolbarHTML() + scopeNoteHTML() + body;
+    results.innerHTML = body;
 }
 
 /** Clan averages init: gráfico + podio/tabla (o tarjetas), con orden y vista elegibles. */
@@ -133,7 +137,13 @@ export function initClanAverages() {
         return;
     }
 
-    results.addEventListener('click', async (e) => {
+    // Barra de selectores antes del gráfico.
+    const container = results.closest('.clan-averages-container') || results.parentElement;
+    const controls = document.createElement('div');
+    controls.className = 'clan-controls';
+    container.insertBefore(controls, container.firstChild);
+
+    container.addEventListener('click', async (e) => {
         const btn = e.target.closest('button[data-sort], button[data-view], button[data-scope]');
         if (!btn) return;
         if (btn.dataset.sort) ui.sort = btn.dataset.sort;
@@ -142,7 +152,7 @@ export function initClanAverages() {
             ui.scope = btn.dataset.scope;
             if (ui.scope === 'activos' && !activeData) activeData = await loadClanAveragesActive();
         }
-        render(results, clans);
+        render(results, controls, clans);
     });
-    render(results, clans);
+    render(results, controls, clans);
 }

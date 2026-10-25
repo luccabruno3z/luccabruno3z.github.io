@@ -2663,3 +2663,12 @@ footer a:hover {
 .clan-scope-note b { color: var(--text); }
 .meter-shown { margin-left: 6px; font-family: var(--font-mono); font-weight: 700; color: var(--accent); }
 .meter-row { grid-template-columns: minmax(150px, 1.2fr) minmax(0, 1.4fr) 76px; }
+
+/* Jugadores: sin perfil cargado, el radar/historial vacíos dejaban ~350 px en blanco
+   entre el buscador y Comparar. Se muestran recién cuando hay un perfil. */
+.player-profile-card:empty + .charts-row { display: none; }
+
+/* Clanes: los selectores (alcance / orden / vista) van ARRIBA del gráfico, que también
+   cambia con ellos. */
+.clan-averages-container > .clan-toolbar { width: 100%; margin-bottom: 0; }
+.clan-controls { width: 100%; }
