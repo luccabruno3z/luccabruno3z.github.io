@@ -8,17 +8,47 @@ import {
 } from './data.js';
 import {
     escapeHtml, formatNumber, findPlayer, tierBadge, getPlayerArchetype,
-    experienceBadge, sampleReliability, percentile, scoreBreakdown,
-    activityIndex, activityTier, sigmoidPenalty, clanLogoHTML,
+    experienceBadge, sampleReliability,
+    activityIndex, activityTier, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
 } from './utils.js';
+import { barHTML, tierBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
-/** A labelled stat row, optionally with a percentile note. */
-function statRow(label, value, percentileNote) {
-    const note = percentileNote ? ` <span class="stat-percentile">(${escapeHtml(percentileNote)})</span>` : '';
-    return `<div class="stat-row"><span class="stat-label">${escapeHtml(label)}</span>` +
-        `<span class="stat-value">${value}${note}</span></div>`;
+/** Fracción de jugadores con un valor menor (0-1) y su texto "top N%". */
+function rankOf(value, values) {
+    if (!values.length) return { below: 0, label: '' };
+    const below = values.filter(v => v < value).length / values.length;
+    const top = Math.max(1, Math.round((1 - below) * 100));
+    return { below, label: `top ${top}%` };
+}
+
+/** Tarjeta de KPI: etiqueta, valor grande, barra y percentil. */
+function kpiHTML(label, value, bar, note) {
+    return `<div class="kpi-card">
+        <span class="kpi-label">${escapeHtml(label)}</span>
+        <span class="kpi-value">${value}</span>
+        ${bar}
+        ${note ? `<span class="kpi-note">${escapeHtml(note)}</span>` : ''}
+    </div>`;
+}
+
+/** Desglose del puntaje con barras coloreadas por tier (como en el bot). */
+function breakdownHTML(player) {
+    const comps = [
+        ['Normalized_KD', 'Combate (K/D)'], ['Normalized_Score', 'Puntuación (SPR)'],
+        ['Normalized_Kills_Per_Round', 'Agresividad (KPR)'], ['Normalized_Rounds', 'Experiencia'],
+    ].map(([k, name]) => ({ name, value: player[k] || 0 }));
+    const max = Math.max(...comps.map(c => c.value));
+    const min = Math.min(...comps.map(c => c.value));
+    return comps.map(c => {
+        const mark = c.value === max ? ' ⭐' : (c.value === min && c.value < 0.7 ? ' ⚠️' : '');
+        return `<div class="meter-row">
+            <span class="meter-label">${escapeHtml(c.name)}${mark}</span>
+            ${tierBarHTML(c.value)}
+            <span class="meter-value">${Math.round(c.value * 100)}</span>
+        </div>`;
+    }).join('');
 }
 
 /** Build and render the full profile card for a player. */
@@ -39,79 +69,78 @@ async function renderPlayerProfile(player) {
     const exp = experienceBadge(rounds);
     const rel = sampleReliability(rounds);
 
-    // Percentiles over the population.
-    const pctPS = percentile(ps, players.map(p => p['Performance Score'] || 0));
-    const pctKD = percentile(kd, players.map(p => p['K/D Ratio'] || 0));
-    const pctKPR = percentile(kpr, players.map(p => p['Kills per Round'] || 0));
-    const pctKills = percentile(player['Total Kills'] || 0, players.map(p => p['Total Kills'] || 0));
+    // Percentiles sobre la población.
+    const rPS = rankOf(ps, players.map(p => p['Performance Score'] || 0));
+    const rKD = rankOf(kd, players.map(p => p['K/D Ratio'] || 0));
+    const rKPR = rankOf(kpr, players.map(p => p['Kills per Round'] || 0));
+    const rSPR = rankOf(spr, players.map(p => p['Score per Round'] || 0));
+    const rKills = rankOf(player['Total Kills'] || 0, players.map(p => p['Total Kills'] || 0));
 
-    // Activity.
+    // Actividad.
     const actIdx = activityIndex(rounds, spr, kpr);
     const actTier = activityTier(actIdx);
 
-    // Sigmoid confidence penalty.
+    // Penalización por muestra chica (sigmoide).
     const penalty = sigmoidPenalty(rounds);
-    let penaltyWarning = '';
+    const warnings = [];
     if (penalty * 100 < 95) {
         const needed = Math.ceil(25 + 10 * Math.log(19)); // ~54
         const remaining = Math.max(0, needed - rounds);
-        penaltyWarning = `<div class="profile-warning">⚠️ Confianza del puntaje: ${(penalty * 100).toFixed(0)}%.` +
-            ` Faltan ~${remaining} rondas para alcanzar el 95%.</div>`;
+        warnings.push(`Confianza del puntaje: ${(penalty * 100).toFixed(0)}%. Faltan ~${remaining} rondas para alcanzar el 95%.`);
     }
+    if (rounds < 50) warnings.push('Menos de 50 rondas: el jugador no califica para los rankings.');
 
-    let lowRoundsWarning = '';
-    if (rounds < 50) {
-        lowRoundsWarning = `<div class="profile-warning">⚠️ Menos de 50 rondas: el jugador no califica para los rankings.</div>`;
-    }
-
-    const clanLine = player.Clan
-        ? `<span class="profile-clan">${clanLogoHTML(player.Clan, 24)} ${escapeHtml(player.Clan)}</span>`
-        : '';
-
+    const f2 = (v) => formatNumber(Number((v || 0).toFixed(2)));
     host.innerHTML = `
-        <div class="card profile-card">
-            <div class="profile-head">
-                <div class="profile-name">${escapeHtml(player.Player)}</div>
-                <div class="profile-rank">#${rank} global</div>
-                <div class="profile-meta">${clanLine}</div>
-                <div class="profile-badges">
-                    <span class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</span>
-                    <span class="badge profile-archetype">${arch.emoji} ${escapeHtml(arch.name)}</span>
-                    <span class="badge profile-experience">${exp.emoji} ${escapeHtml(exp.name)}</span>
-                    <span class="badge ${rel.cssClass}">${rel.emoji} ${escapeHtml(rel.text)}</span>
-                </div>
-                ${arch.desc ? `<p class="profile-archetype-desc">${escapeHtml(arch.desc)}</p>` : ''}
-            </div>
-
-            ${penaltyWarning}${lowRoundsWarning}
-
-            <div class="profile-stats">
-                ${statRow('Performance Score', formatNumber(ps), pctPS)}
-                ${statRow('K/D Ratio', formatNumber(kd), pctKD)}
-                ${statRow('Kills por Ronda', formatNumber(kpr), pctKPR)}
-                ${statRow('Score por Ronda', formatNumber(spr))}
-                ${statRow('Total Kills', formatNumber(player['Total Kills'] || 0), pctKills)}
-                ${statRow('Total Deaths', formatNumber(player['Total Deaths'] || 0))}
-                ${statRow('Rondas', formatNumber(rounds))}
-            </div>
-
-            <div class="profile-breakdown">
-                <h4 class="profile-subtitle">Desglose del puntaje</h4>
-                ${scoreBreakdown(player)}
-            </div>
-
-            <div class="profile-activity">
-                <h4 class="profile-subtitle">Actividad</h4>
-                <div class="activity-row">
-                    <span class="activity-tier">${actTier.emoji} ${escapeHtml(actTier.name)}</span>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width:${actIdx}%; background:#00FFFF;"></div>
+        <div class="profile-v2">
+            <section class="card profile-hero ${tier.cssClass}-border">
+                <div class="profile-logo">${player.Clan ? clanLogoHTML(player.Clan, 72) : ''}</div>
+                <div class="profile-id">
+                    <div class="profile-title">
+                        <h3 class="profile-name">${escapeHtml(player.Player)}</h3>
+                        <span class="profile-rank">#${rank} global${player.Clan ? ` · ${escapeHtml(player.Clan)}` : ''}</span>
                     </div>
-                    <span class="activity-value">${actIdx}/100</span>
+                    <div class="profile-badges">
+                        ${tierChipHTML(ps)}
+                        <span class="profile-tag">${arch.emoji} ${escapeHtml(arch.name)}</span>
+                        <span class="profile-tag">${exp.emoji} ${escapeHtml(exp.name)}</span>
+                        <span class="profile-tag ${rel.cssClass}">${rel.emoji} ${escapeHtml(rel.text)}</span>
+                    </div>
+                    ${arch.desc ? `<p class="profile-desc">${escapeHtml(arch.desc)}</p>` : ''}
                 </div>
+            </section>
+
+            ${warnings.map(w => `<div class="profile-warning">⚠️ ${escapeHtml(w)}</div>`).join('')}
+
+            <div class="kpi-grid">
+                ${kpiHTML('Performance', f2(ps), tierBarHTML(ps), rPS.label)}
+                ${kpiHTML('K/D', f2(kd), tierBarHTML(rKD.below), rKD.label)}
+                ${kpiHTML('Kills por ronda', f2(kpr), tierBarHTML(rKPR.below), rKPR.label)}
+                ${kpiHTML('Score por ronda', formatNumber(Math.round(spr)), tierBarHTML(rSPR.below), rSPR.label)}
             </div>
 
-            <div id="profile-demo-block" class="profile-demo"></div>
+            <div class="profile-grid">
+                <section class="card profile-records" id="profile-demo-block">
+                    <h4 class="profile-subtitle">Récords</h4>
+                    <p class="profile-muted">Cargando datos de demos…</p>
+                </section>
+                <section class="card profile-side">
+                    <h4 class="profile-subtitle">Desglose del puntaje</h4>
+                    ${breakdownHTML(player)}
+                    <h4 class="profile-subtitle">Actividad</h4>
+                    <div class="meter-row">
+                        <span class="meter-label">${actTier.emoji} ${escapeHtml(actTier.name)}</span>
+                        ${barHTML(actIdx)}
+                        <span class="meter-value">${actIdx}</span>
+                    </div>
+                </section>
+            </div>
+
+            <div class="kpi-grid kpi-grid-3">
+                ${kpiHTML('Total kills', formatNumber(player['Total Kills'] || 0), '', rKills.label)}
+                ${kpiHTML('Total muertes', formatNumber(player['Total Deaths'] || 0), '', `K/D ${f2(kd)}`)}
+                ${kpiHTML('Rondas', formatNumber(rounds), '', 'PRStats')}
+            </div>
         </div>`;
 
     // Radar vs clan average.
@@ -131,33 +160,72 @@ async function renderPlayerProfile(player) {
     }
 }
 
-/** Best-effort demo-stats enrichment block (keyed by ign). */
+const DEMO_RE = /tracker_(\d{4})_(\d{2})_(\d{2})_\d{2}_\d{2}_\d{2}_(.+?)_(gpm_[a-z_]+?)_\d+\.PRdemo$/;
+
+/** "Battle of Debrecen · AAS · 27/06/2026" a partir de best_round. */
+function roundWhere(rnd) {
+    const parts = [mapLabel(rnd.map || '')];
+    const m = DEMO_RE.exec(String(rnd.filename || ''));
+    if (m) parts.push(gamemodeLabel(m[5]), `${m[3]}/${m[2]}/${m[1]}`);
+    return parts.filter(Boolean).join(' · ');
+}
+
+/** Bloque de récords (mismo contenido que la pestaña Récords del bot). */
 async function enrichWithDemo(player) {
     const block = document.getElementById('profile-demo-block');
     if (!block) return;
     try {
         await loadDemoData();
     } catch (_) { /* non-fatal */ }
-    const demo = getDemoInfo(player.Player);
-    if (!demo) return; // silently skip when no demo record (defensive)
-
-    const wins = demo.wins;
-    const losses = demo.losses;
-    let winrate = '';
-    if (typeof wins === 'number' && typeof losses === 'number' && (wins + losses) > 0) {
-        winrate = `${((wins / (wins + losses)) * 100).toFixed(1)}%`;
+    const d = getDemoInfo(player.Player);
+    if (!d || !d.rounds_played) {
+        block.innerHTML = '<h4 class="profile-subtitle">Récords</h4><p class="profile-muted">Todavía no hay rondas con demo para este jugador.</p>';
+        return;
     }
 
+    const best = d.best_round && d.best_round.kills > 0 ? d.best_round : null;
+    const items = [];
+    const add = (label, value) => { if (value) items.push([label, value]); };
+    add('Racha de kills', d.best_killstreak);
+    add('Racha de victorias', d.longest_win_streak);
+    add('Clutch kills', d.total_clutch_kills);
+    add('First bloods', d.total_first_bloods);
+    add('Vehículos destruidos', d.total_vehicles_destroyed);
+    add('Revives dados', d.total_revives_given);
+    const maps = Object.entries(d.maps_played || {}).sort((a, b) => b[1] - a[1]);
+    if (maps.length) items.push(['Mapa más jugado', `${mapLabel(maps[0][0])} (${maps[0][1]})`]);
+    if ((d.played_seconds || 0) >= 3600) items.push(['Tiempo registrado', `${Math.round(d.played_seconds / 3600)} h`]);
+
+    const bars = [];
+    const w = d.wins || 0, l = d.losses || 0;
+    if (w + l) bars.push([`Winrate · ${w}–${l}`, w / (w + l)]);
+    const modes = Object.entries(d.gamemode_stats || {}).filter(([, s]) => (s.rounds || 0) >= 5)
+        .sort((a, b) => (b[1].winrate || 0) - (a[1].winrate || 0));
+    if (modes.length) bars.push([`Mejor modo · ${gamemodeLabel(modes[0][0])}`, (modes[0][1].winrate || 0) / 100]);
+
     block.innerHTML = `
-        <h4 class="profile-subtitle">Datos de demos</h4>
-        <div class="profile-stats">
-            ${typeof demo.rounds_played === 'number' ? statRow('Rondas (demos)', formatNumber(demo.rounds_played)) : ''}
-            ${typeof demo.total_kills === 'number' ? statRow('Kills (demos)', formatNumber(demo.total_kills)) : ''}
-            ${typeof demo.total_deaths === 'number' ? statRow('Deaths (demos)', formatNumber(demo.total_deaths)) : ''}
-            ${winrate ? statRow('Winrate', winrate) : ''}
-            ${typeof demo.total_revives_given === 'number' ? statRow('Revives', formatNumber(demo.total_revives_given)) : ''}
-            ${typeof demo.total_vehicles_destroyed === 'number' ? statRow('Vehículos destruidos', formatNumber(demo.total_vehicles_destroyed)) : ''}
-        </div>`;
+        <div class="profile-records-head">
+            <h4 class="profile-subtitle">Récords</h4>
+            <span class="profile-muted">De ${formatNumber(d.rounds_played)} rondas con demo</span>
+        </div>
+        ${best ? `<div class="best-round">
+            <div class="best-round-where">
+                <span class="best-round-label">Mejor ronda</span>
+                <span class="best-round-map">${escapeHtml(roundWhere(best).split(' · ')[0])}</span>
+                <span class="profile-muted">${escapeHtml(roundWhere(best).split(' · ').slice(1).join(' · '))}</span>
+            </div>
+            <div class="best-round-nums">
+                <div><b class="is-gold">${formatNumber(best.kills)}</b><span>kills</span></div>
+                <div><b>${formatNumber(best.deaths || 0)}</b><span>muertes</span></div>
+                <div><b>${formatNumber(best.score || 0)}</b><span>puntos</span></div>
+            </div>
+        </div>` : ''}
+        <div class="record-grid">
+            ${items.map(([k, v]) => `<div class="record-item"><b>${escapeHtml(String(v))}</b><span>${escapeHtml(k)}</span></div>`).join('')}
+        </div>
+        ${bars.map(([label, frac]) => `<div class="meter-row">
+            <span class="meter-label">${escapeHtml(label)}</span>${tierBarHTML(frac)}
+            <span class="meter-value">${Math.round(frac * 100)}%</span></div>`).join('')}`;
 }
 
 /** Player search init: form submit + autocomplete. */
