@@ -93,6 +93,19 @@ class DetailedStats(commands.Cog):
         mode = self.bot.guild_settings.get_mode(ctx.guild.id) if ctx.guild else "combined"
         return mode == "prstats"
 
+    async def _open_profile(self, ctx: commands.Context, ign: str, tab: str) -> bool:
+        """Abre el perfil unificado en ``tab`` si ``ign`` existe en PRStats."""
+        from bot.ui.player_profile import send_profile
+        try:
+            data = await self.fetcher.fetch_all_players()
+        except Exception:
+            return False
+        if not find_player(data, ign):
+            return False
+        await ctx.defer()
+        await send_profile(ctx, ign, tab)
+        return True
+
     @commands.hybrid_command(
         name="kits",
         description="Mostrar los kits más usados por un jugador (datos de demos)",
@@ -108,6 +121,11 @@ class DetailedStats(commands.Cog):
 
         if not player:
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        # Si el jugador también está en PRStats, abrir la tarjeta unificada en esta
+        # pestaña (mismo formato que -estadisticas). Si solo tiene demos, sigue abajo.
+        if await self._open_profile(ctx, player["ign"], "kits"):
             return
 
         # Normalize faction variants into base kit categories
@@ -177,6 +195,11 @@ class DetailedStats(commands.Cog):
 
         if not player:
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        # Si el jugador también está en PRStats, abrir la tarjeta unificada en esta
+        # pestaña (mismo formato que -estadisticas). Si solo tiene demos, sigue abajo.
+        if await self._open_profile(ctx, player["ign"], "vehiculos"):
             return
 
         kw = player.get("kill_weapons", {})
@@ -268,6 +291,11 @@ class DetailedStats(commands.Cog):
 
         if not player:
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        # Si el jugador también está en PRStats, abrir la tarjeta unificada en esta
+        # pestaña (mismo formato que -estadisticas). Si solo tiene demos, sigue abajo.
+        if await self._open_profile(ctx, player["ign"], "assets"):
             return
 
         kw = player.get("kill_weapons", {})
@@ -492,6 +520,11 @@ class DetailedStats(commands.Cog):
 
         if not player:
             await ctx.send(f"No se encontró a **{jugador}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            return
+
+        # Si el jugador también está en PRStats, abrir la tarjeta unificada en esta
+        # pestaña (mismo formato que -estadisticas). Si solo tiene demos, sigue abajo.
+        if await self._open_profile(ctx, player["ign"], "demos"):
             return
 
         rounds = player.get("rounds_played", 1)
