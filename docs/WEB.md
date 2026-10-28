@@ -29,7 +29,7 @@ sección.
 | Clanes | `#/clanes` | `clan-averages`, `charts` | `clans.js`, `charts.js` |
 | Partidas | `#/partidas` | `recent-matches`, `heatmaps`, `demo-stats` | `matches.js`, `heatmaps.js`, `demos.js` |
 | Equipos | `#/equipos` | `match-predictor`, `team-analysis` | `predictor.js`, `team.js`, `chips.js` |
-| Guías | `#/guias` | `guides`, `social` | — |
+| Guías | `#/guias`, `#/guias/<guía>` | `guides`, `guide-reader`, `social` | `guides.js` |
 
 Los anchors viejos (`#rankings`, `#heatmaps`, `#guias`…) siguen funcionando: el router
 los traduce a la ruta nueva. El bot y algunos links externos todavía los usan.
@@ -59,6 +59,17 @@ En Equipos, `chips.js` reemplaza las grillas de 8 campos por un único campo con
 chips. Los campos originales siguen en el DOM, ocultos, y el selector los llena en
 orden. Así `predictor.js` y `team.js` los leen por id sin saber que hay chips.
 
+### Guías
+Cada guía es un fragmento HTML en `web/guides/<slug>.html` (`kits`, `infanteria`, `lider`,
+`urbano`, `cqb`, `mapas`) y se abre en `#/guias/<slug>`. `guides.js` lo baja, arma el
+índice con los `h2` (botones, no `#anchors`, para no pelear con el router) y oculta la
+grilla. Los datos de mecánica salen del [manual oficial de PR](https://www.realitymod.org/manual/en/);
+las cifras por mapa, de las demos (octubre de 2026). Los diagramas son SVG inline con las
+clases `.g-fig` de la sección 37 de `styles.css`; los íconos de kit están en
+`web/img/kits/` y las miniaturas de mapas en `web/img/maps/thumbs/`. Para sumar una guía:
+el archivo en `web/guides/`, una entrada en `GUIDES` de `guides.js` y su tarjeta en
+`index.html`.
+
 ### Perfil de jugador
 `player.js` arma primero lo que sale de PRStats (cabecera con las fuentes de datos,
 KPIs, camino al próximo tier con los 7 componentes del Performance y contexto de clan)
@@ -81,6 +92,7 @@ recientes:
 | 34 | Chips |
 | 35 | Comparación, demos y guías |
 | 36 | Perfil v2 (fuentes, camino al próximo tier, forma reciente, clan, roles) |
+| 37 | Lector de guías y diagramas |
 
 Los colores y espacios salen de variables CSS en `:root`. Usalas en vez de valores
 sueltos.

@@ -21,6 +21,7 @@ import { initClanAverages } from './clans.js';
 import { initDemoStats } from './demos.js';
 import { initHeatmaps } from './heatmaps.js';
 import { initRecentMatches } from './matches.js';
+import { initGuides } from './guides.js';
 
 // Run one init in isolation so a single broken feature can't take down the page.
 function safe(name, fn) {
@@ -59,6 +60,8 @@ function showCoreError() {
 async function boot() {
     // Primero la vista: un deep link (#/clanes) no muestra Inicio mientras cargan los datos.
     safe('router', initRouter);
+    // Las guías no dependen de los datos: se abren aunque falle la carga.
+    safe('guides', initGuides);
     // Emojis → íconos SVG (también en lo que se pinte después).
     safe('icons', initIcons);
     setupReveal();

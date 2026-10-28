@@ -3105,3 +3105,120 @@ body .cta-button.ghost:hover {
 .kpi-card .dbar { flex: 0 0 auto; height: 10px; border-radius: 5px; }
 .kpi-card .dbar-fill { border-radius: 5px; }
 .kpi-card .pv-pos, .kpi-card .kpi-note { margin-top: auto; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   37. Lector de guías (web/js/guides.js, web/guides/*.html)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.guides-docs { margin-top: 20px; font-size: 0.85rem; color: var(--text-dim); }
+.guides-docs a, #guides .section-subtitle a { color: var(--accent); }
+
+.guide-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.guide-back { font-weight: 700; color: var(--accent); }
+.guide-count { font-size: 0.8rem; color: var(--text-dim); }
+
+.guide-layout { display: grid; grid-template-columns: 230px minmax(0, 1fr); gap: 32px; align-items: start; }
+.guide-toc { position: sticky; top: calc(var(--header-h) + 16px); }
+.guide-toc summary { cursor: pointer; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+.guide-toc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; border-left: 1px solid var(--hairline); }
+.guide-toc-list button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 6px 12px; color: var(--text-muted); font: inherit; font-size: 0.85rem; cursor: pointer; border-left: 2px solid transparent; margin-left: -1px; }
+.guide-toc-list button:hover, .guide-toc-list button:focus-visible { color: var(--accent); border-left-color: var(--accent); }
+
+.guide-body { max-width: 74ch; min-width: 0; color: var(--text); line-height: 1.65; font-size: 1rem; }
+.guide-body > header { margin-bottom: 24px; }
+.guide-body h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 5vw, 2.8rem); letter-spacing: 1px; line-height: 1.05; margin: 0 0 8px; color: var(--text); }
+.guide-lead { font-size: 1.08rem; color: var(--text-muted); margin: 0; }
+.guide-body h2 { font-family: var(--font-display); font-weight: 400; font-size: 1.75rem; letter-spacing: 1px; color: var(--accent); margin: 40px 0 10px; scroll-margin-top: calc(var(--header-h) + 16px); }
+.guide-body h3 { font-size: 1.08rem; font-weight: 700; color: var(--text); margin: 26px 0 6px; }
+.guide-body p { margin: 0 0 12px; }
+.guide-body ul, .guide-body ol { margin: 0 0 14px; padding-left: 22px; }
+.guide-body li { margin-bottom: 5px; }
+.guide-body li::marker { color: var(--accent); }
+.guide-body strong { color: var(--text); }
+.guide-body kbd { font-family: var(--font-mono); font-size: 0.82em; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border-medium); background: var(--bg-2); }
+.guide-body a { color: var(--accent); }
+.guide-src { font-size: 0.78rem; color: var(--text-dim); }
+
+/* Cajas: concepto (teoría), en PR (mecánica del juego), ojo (error común) */
+.g-box { margin: 18px 0; padding: 14px 16px; border-radius: var(--r-md); border: 1px solid var(--hairline); background: var(--bg-2); }
+.g-box > :last-child { margin-bottom: 0; }
+.g-box-title { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.g-concept { border-color: rgba(0, 255, 255, 0.25); }
+.g-concept .g-box-title { color: var(--accent); }
+.g-pr { border-color: rgba(255, 165, 0, 0.3); }
+.g-pr .g-box-title { color: var(--secondary); }
+.g-warn { border-color: rgba(255, 68, 102, 0.3); }
+.g-warn .g-box-title { color: var(--danger); }
+
+.g-table-wrap { overflow-x: auto; margin: 14px 0 18px; }
+.g-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.g-table th { text-align: left; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); padding: 0 10px 8px 0; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.g-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+.g-table td.n { font-family: var(--font-mono); white-space: nowrap; }
+
+/* Diagramas SVG de posiciones (CQB) */
+.g-fig { margin: 16px 0 20px; }
+.g-fig svg { display: block; width: 100%; max-width: 420px; height: auto; background: var(--bg-2); border: 1px solid var(--hairline); border-radius: var(--r-md); }
+.g-fig figcaption { font-size: 0.8rem; color: var(--text-dim); margin-top: 6px; }
+.g-fig .wall { fill: none; stroke: var(--text-dim); stroke-width: 3; }
+.g-fig .op { fill: var(--accent); }
+.g-fig .op2 { fill: var(--secondary); }
+.g-fig .lbl { fill: var(--bg); font: 700 10px var(--font-mono); text-anchor: middle; dominant-baseline: central; }
+.g-fig .path { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.g-fig .path2 { fill: none; stroke: var(--secondary); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.g-fig .sector { fill: rgba(0, 255, 255, 0.10); }
+.g-fig .sector2 { fill: rgba(255, 165, 0, 0.12); }
+.g-fig .txt { fill: var(--text-muted); font: 11px var(--font-body); }
+
+/* Guía de mapas */
+.g-maps { display: flex; flex-direction: column; gap: 18px; margin-top: 18px; }
+.g-map { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 16px; padding: 14px; border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface-solid); }
+.g-map img { width: 150px; height: 150px; object-fit: cover; border-radius: var(--r-sm); background: var(--bg-2); }
+.g-map h3 { margin: 0 0 4px; font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; letter-spacing: 1px; }
+.g-map-meta { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; }
+.g-map-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.g-chip { font-size: 0.74rem; padding: 2px 9px; border-radius: 999px; border: 1px solid var(--hairline); background: var(--bg-2); color: var(--text-muted); }
+.g-chip b { font-family: var(--font-mono); color: var(--text); }
+.g-chip.is-far { border-color: rgba(255, 165, 0, 0.35); }
+.g-chip.is-near { border-color: rgba(0, 255, 255, 0.3); }
+.g-map p { margin: 0 0 6px; font-size: 0.94rem; }
+.g-map .g-tag { display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-right: 6px; }
+
+.guide-end { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--hairline); }
+
+@media (max-width: 900px) {
+    .guide-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .guide-toc { position: static; padding: 10px 14px; border: 1px solid var(--hairline); border-radius: var(--r-md); background: var(--surface-solid); }
+    .guide-toc summary { margin-bottom: 0; }
+    .guide-toc details[open] summary { margin-bottom: 10px; }
+}
+@media (max-width: 520px) {
+    .g-map { grid-template-columns: minmax(0, 1fr); }
+    .g-map img { width: 100%; height: 160px; }
+}
+.guide-body h3.g-kit { display: flex; align-items: center; gap: 10px; }
+.guide-body h3.g-kit img { width: 30px; height: 30px; padding: 4px; box-sizing: content-box; border-radius: var(--r-sm); background: var(--bg-2); border: 1px solid var(--hairline); }
+.g-fig .en { fill: var(--danger); }
+.g-fig .ground { fill: rgba(255, 255, 255, 0.06); stroke: var(--text-dim); stroke-width: 1.5; }
+.g-fig .sky { stroke: rgba(0, 187, 255, 0.25); stroke-width: 24; }
+.g-fig .cover { fill: rgba(255, 255, 255, 0.10); stroke: var(--text-dim); }
+.g-fig .tree { fill: rgba(0, 255, 136, 0.15); stroke: rgba(0, 255, 136, 0.4); }
+.g-fig .fire { stroke: var(--warning); stroke-width: 1.5; stroke-dasharray: 2 3; }
+.g-fig .fire-l { stroke: var(--text); stroke-width: 2; }
+.g-fig .gridl { stroke: var(--text-dim); stroke-width: 1; fill: none; }
+.g-fig .num { fill: var(--accent); font: 700 16px var(--font-mono); text-anchor: middle; dominant-baseline: central; }
+.guide-toc-list button { text-transform: none; letter-spacing: normal; font-weight: 500; }
+.g-fig .phase { fill: rgba(0, 255, 255, 0.07); stroke: var(--border-strong); }
+.g-fig .ph-t { fill: var(--accent); font: 400 15px var(--font-display); letter-spacing: 1px; text-anchor: middle; dominant-baseline: central; }
+.g-fig .ring { fill: none; stroke: var(--border-strong); stroke-width: 2; stroke-dasharray: 6 4; }
+.g-fig .node { fill: var(--surface-solid); stroke: var(--accent); stroke-width: 1.5; }
+.g-fig .smoke { fill: rgba(200, 200, 210, 0.35); }
+.g-fig .door { stroke: var(--warning); stroke-width: 3; }
+.g-fig .danger { fill: rgba(255, 68, 102, 0.16); }
+/* Perfil: tabla desplegable de mapas */
+.pv-maps { margin-top: 14px; }
+.pv-maps summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border-medium); color: var(--accent); font-weight: 700; cursor: pointer; list-style: none; }
+.pv-maps summary::-webkit-details-marker { display: none; }
+.pv-maps summary::before { content: "▸"; transition: transform var(--t-fast); }
+.pv-maps[open] summary::before { transform: rotate(90deg); }
+.pv-maps[open] summary { margin-bottom: 12px; }
+.pv-table td.pv-bad { color: var(--danger); }

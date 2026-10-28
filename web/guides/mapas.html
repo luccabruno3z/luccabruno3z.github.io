@@ -1,0 +1,358 @@
+<header>
+    <h1>Guía de mapas</h1>
+    <p class="guide-lead">Cómo se pelea en los 30 mapas más jugados por nuestra comunidad. Cada mapa trae lo que miden nuestras demos (a qué distancia ocurren las bajas, cuántas son con vehículos, cuánto dura la ronda) y una recomendación de cómo jugarlo.</p>
+    <p class="guide-src">Datos: 8,956 rondas con demo de servidores LATAM y Brasil, octubre de 2026. Tamaño, modos, facciones y vehículos: <a href="https://mapgallery.realitymod.org/" target="_blank" rel="noopener">PR Map Gallery</a>. Las facciones y los vehículos cambian según la capa; mostramos los de la capa principal.</p>
+</header>
+
+<h2>Cómo leer cada mapa</h2>
+<ul>
+    <li><strong>Mediana:</strong> la mitad de las bajas del mapa ocurren más cerca que esa distancia.</li>
+    <li><strong>&lt; 30 m:</strong> parte de las bajas a menos de 30 metros. Alta = CQB.</li>
+    <li><strong>&gt; 150 m:</strong> parte de las bajas a más de 150 metros. Alta = mapa abierto, de líneas de fuego.</li>
+    <li><strong>Con vehículos:</strong> parte de las bajas hechas con armas de vehículos.</li>
+</ul>
+
+<h2>Tres conceptos que cambian según el mapa</h2>
+<h3>Línea de fuego y exposición</h3>
+<p>Una <strong>línea de fuego</strong> es una posición desde donde tu gente puede disparar sobre una zona. En un mapa abierto, la mejor es la que te deja ver al enemigo mostrando lo mínimo: el borde de una cresta, no la cima. Desde ahí se hace el <strong>fuego de cobertura</strong> que deja avanzar al resto del equipo (está explicado en <a href="#/guias/infanteria">fundamentos de infantería</a>).</p>
+<figure class="g-fig">
+    <svg viewBox="0 0 420 200" role="img" aria-label="Línea de fuego en terreno abierto: un grupo de apoyo detrás de una cresta cubre al resto del equipo que avanza por una hondonada hacia el objetivo.">
+        <path class="ground" d="M0 150 Q80 110 140 112 Q200 116 250 150 Q320 180 420 140 L420 200 L0 200 Z"/>
+        <circle class="op" cx="120" cy="106" r="6"/><circle class="op" cx="140" cy="107" r="6"/>
+        <line class="fire" x1="146" y1="104" x2="400" y2="120"/><line class="fire" x1="126" y1="102" x2="400" y2="112"/>
+        <circle class="en" cx="402" cy="118" r="6"/><text class="txt" x="350" y="104">objetivo</text>
+        <circle class="op2" cx="240" cy="152" r="6"/><circle class="op2" cx="262" cy="160" r="6"/><circle class="op2" cx="284" cy="166" r="6"/>
+        <path class="path2" d="M230 160 Q300 182 370 150"/>
+        <text class="txt" x="40" y="80">Apoyo: detrás de la cresta,</text>
+        <text class="txt" x="40" y="94">solo asoma la cabeza</text>
+        <text class="txt" x="200" y="190">Asalto: avanza por la hondonada, fuera de la vista</text>
+    </svg>
+    <figcaption>En mapas abiertos, una parte del equipo pone una línea de fuego desde atrás de una cresta, con poca exposición, y mantiene al enemigo agachado mientras el resto avanza por donde no lo ven.</figcaption>
+</figure>
+<h3>Ritmo según la visibilidad</h3>
+<p>Con buena visibilidad se avanza por saltos largos, de cresta en cresta. Con niebla, noche o bosque denso, el contacto llega de golpe y cerca: se va lento, junto y escuchando.</p>
+<figure class="g-fig">
+    <svg viewBox="0 0 420 170" role="img" aria-label="Distancia de visión: con buena visibilidad la escuadra ve y puede ser vista a 300 metros o más; con niebla, los encuentros pasan a menos de 100 metros.">
+        <rect class="cover" x="10" y="20" width="400" height="50" rx="6"/><rect class="smoke" x="10" y="100" width="400" height="50" rx="6"/>
+        <circle class="op" cx="40" cy="45" r="7"/><circle class="en" cx="370" cy="45" r="7"/><line class="fire" x1="48" y1="45" x2="362" y2="45"/>
+        <text class="txt" x="150" y="38">día despejado: contacto a 300 m o más</text>
+        <circle class="op" cx="40" cy="125" r="7"/><circle class="en" cx="130" cy="125" r="7"/><line class="fire" x1="48" y1="125" x2="122" y2="125"/>
+        <text class="txt" x="150" y="129">niebla: el enemigo aparece a menos de 100 m</text>
+    </svg>
+    <figcaption>Menos visibilidad, más lento. Con niebla no hay ventaja en correr: el que se mueve rápido es el que entra primero en la vista del otro.</figcaption>
+</figure>
+<h3>Vehículos</h3>
+<p>En los mapas abiertos la infantería sola pierde: se mueve en transporte, baja fuera de la vista del objetivo y lleva anti-tanques. En los cerrados, los blindados son vulnerables en las esquinas: avanzan detrás de la infantería.</p>
+
+<h2>Mapas de combate cercano</h2>
+<p>Más del 44 % de las bajas a menos de 30 m. Gana quien despeja mejor y se cubre en las esquinas.</p>
+<div class="g-maps">
+<article class="g-map">
+    <img src="web/img/maps/thumbs/gaza_2.jpg" alt="Minimapa de Gaza" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Gaza</h3>
+        <div class="g-map-meta">1 km · Insurgencia · Skirmish · AAS · Hamas vs. Israel (IDF) · 3 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>29 m</b></span><span class="g-chip is-near">&lt; 30 m <b>51 %</b></span><span class="g-chip is-far">&gt; 150 m <b>9 %</b></span><span class="g-chip">Con vehículos <b>7 %</b></span><span class="g-chip">Ronda <b>~66 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad costera densa, de manzanas chicas y callejones.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Es CQB casi todo el tiempo: avanzá edificio por edificio, cubrí los callejones laterales y no te quedes en los techos más de lo necesario. Los blindados de la IDF en AAS no entran bien a las calles angostas: un LAT esperando en una esquina los para.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/kokan.jpg" alt="Minimapa de Kokan" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Kokan</h3>
+        <div class="g-map-meta">2 km · Skirmish · Insurgencia · Talibanes vs. EE.UU. (Ejército) · 1 aeronaves en la capa principal</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>30 m</b></span><span class="g-chip is-near">&lt; 30 m <b>50 %</b></span><span class="g-chip is-far">&gt; 150 m <b>20 %</b></span><span class="g-chip">Con vehículos <b>10 %</b></span><span class="g-chip">Ronda <b>~48 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Aldeas de muros de adobe, huertos y un río con vados.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Cada compound (casas rodeadas de muros) es un edificio a despejar: apilate en el portón y entrá como en un cuarto. Los muros dan cobertura pero también esconden al enemigo a pocos metros. Los vados del río son embudos: cruzalos de a uno, cubiertos.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/donbas.jpg" alt="Minimapa de Donbas" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Donbas</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Comando (CNC) · Rusia vs. Países Bajos · 11 blindados y 4 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>26 m</b></span><span class="g-chip is-near">&lt; 30 m <b>54 %</b></span><span class="g-chip is-far">&gt; 150 m <b>14 %</b></span><span class="g-chip">Con vehículos <b>14 %</b></span><span class="g-chip">Ronda <b>~57 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Campos abiertos divididos por líneas de árboles, con pueblos.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Aunque parece abierto, la mediana de las bajas es de 26 m: se pelea en las líneas de árboles y en los pueblos. Avanzá por los bordes de los árboles, nunca por el medio del campo. Hay blindados en AAS: el campo abierto es de ellos.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/operation_falcon.jpg" alt="Minimapa de Operation Falcon" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Operation Falcon</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Rusia vs. Países Bajos · 2 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>35 m</b></span><span class="g-chip is-near">&lt; 30 m <b>46 %</b></span><span class="g-chip is-far">&gt; 150 m <b>18 %</b></span><span class="g-chip">Con vehículos <b>10 %</b></span><span class="g-chip">Ronda <b>~56 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Bosque europeo con un río, puentes y pueblos.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Se pelea sobre todo en los pueblos y los bordes del bosque. Los puentes son embudos: no los cruces sin humo o sin alguien cubriendo la otra orilla. En el bosque, movete por los bordes y escuchá antes de avanzar.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/assault_on_grozny.jpg" alt="Minimapa de Assault on Grozny" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Assault on Grozny</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Chechenia vs. Rusia · 6 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>34 m</b></span><span class="g-chip is-near">&lt; 30 m <b>47 %</b></span><span class="g-chip is-far">&gt; 150 m <b>9 %</b></span><span class="g-chip">Con vehículos <b>12 %</b></span><span class="g-chip">Ronda <b>~59 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad de bloques, con calles en grilla.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Combates cortos entre bloques. Para la infantería, cada bloque es un edificio a despejar; para los blindados rusos, cada esquina puede tener un RPG: los tanques avanzan detrás de la infantería, no adelante.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/talbisah.jpg" alt="Minimapa de Talbisah" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Talbisah</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Rebeldes sirios vs. Ejército sirio · 4 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>36 m</b></span><span class="g-chip is-near">&lt; 30 m <b>44 %</b></span><span class="g-chip is-far">&gt; 150 m <b>14 %</b></span><span class="g-chip">Con vehículos <b>13 %</b></span><span class="g-chip">Ronda <b>~52 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Pueblo sirio rodeado de campos y huertos.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Las casas del pueblo y los muros de los huertos dan combates cortos. Entre pueblo y campos hay tramos abiertos: cruzalos por saltos, con cobertura.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/asad_khal.jpg" alt="Minimapa de Asad Khal" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Asad Khal</h3>
+        <div class="g-map-meta">1 km · AAS · Skirmish · Hamas vs. Israel (IDF) · 1 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>34 m</b></span><span class="g-chip is-near">&lt; 30 m <b>46 %</b></span><span class="g-chip is-far">&gt; 150 m <b>2 %</b></span><span class="g-chip">Con vehículos <b>4 %</b></span><span class="g-chip">Ronda <b>~44 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Pueblo chico en un valle seco.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Casi no hay tiros largos (solo el 2 % pasa los 150 m): todo pasa entre casas y muros. Granadas, entradas rápidas y cubrir los callejones. Un AR bien puesto en una esquina frena a toda una escuadra.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/kafar_halab.jpg" alt="Minimapa de Kafr Halab" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Kafr Halab</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Rebeldes sirios vs. Ejército sirio · 2 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>37 m</b></span><span class="g-chip is-near">&lt; 30 m <b>44 %</b></span><span class="g-chip is-far">&gt; 150 m <b>16 %</b></span><span class="g-chip">Con vehículos <b>14 %</b></span><span class="g-chip">Ronda <b>~59 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Pueblo grande con zonas abiertas alrededor.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Como Talbisah: combates cortos en el pueblo y tramos abiertos entre manzanas. Tomá un edificio con vista antes de cruzar a la siguiente zona.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/sbeneh_outskirts.jpg" alt="Minimapa de Sbeneh Outskirts" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Sbeneh Outskirts</h3>
+        <div class="g-map-meta">2 km · AAS · Vehicle Warfare · Insurgencia · Rebeldes sirios vs. Ejército sirio · 1 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>33 m</b></span><span class="g-chip is-near">&lt; 30 m <b>47 %</b></span><span class="g-chip is-far">&gt; 150 m <b>14 %</b></span><span class="g-chip">Con vehículos <b>14 %</b></span><span class="g-chip">Ronda <b>~51 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Afueras de una ciudad, con casas dispersas y huertos.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Combates cortos entre casas. Las casas dispersas dejan espacios abiertos entre ellas: cruzá de a uno, con alguien cubriendo, y despejá cada casa antes de dejarla atrás.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/grostok.jpg" alt="Minimapa de Grostok" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Grostok</h3>
+        <div class="g-map-meta">1 km · AAS · Insurgencia · Skirmish · Chechenia vs. Rusia · 6 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>30 m</b></span><span class="g-chip is-near">&lt; 30 m <b>50 %</b></span><span class="g-chip is-far">&gt; 150 m <b>6 %</b></span><span class="g-chip">Con vehículos <b>9 %</b></span><span class="g-chip">Ronda <b>~62 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Pueblo industrial chico, con bloques y fábricas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>La mitad de las bajas son a menos de 30 m: CQB puro. Granadas en cada esquina, nadie solo, y el médico en el último edificio despejado.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/krivaja_valley.jpg" alt="Minimapa de Krivaja Valley" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Krivaja Valley</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Milicia vs. Francia · 6 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>23 m</b></span><span class="g-chip is-near">&lt; 30 m <b>57 %</b></span><span class="g-chip is-far">&gt; 150 m <b>15 %</b></span><span class="g-chip">Con vehículos <b>12 %</b></span><span class="g-chip">Ronda <b>~58 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Valle boscoso con aldeas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>El mapa con las bajas más cercanas de la lista (mediana de 23 m): el bosque es tan denso que el enemigo aparece encima. Andá lento, escuchá y flanqueá por el bosque. Las aldeas son CQB.</p>
+    </div>
+</article>
+</div>
+<h2>Mapas abiertos</h2>
+<p>Más del 40 % de las bajas a más de 150 m, y muchas con vehículos. Gana quien se expone menos y usa bien los vehículos.</p>
+<div class="g-maps">
+<article class="g-map">
+    <img src="web/img/maps/thumbs/khamisiyah.jpg" alt="Minimapa de Khamisiyah" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Khamisiyah</h3>
+        <div class="g-map-meta">4 km · Vehicle Warfare · AAS · Skirmish · Coalición de Oriente Medio vs. EE.UU. (Ejército) · 10 blindados y 12 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>136 m</b></span><span class="g-chip is-near">&lt; 30 m <b>22 %</b></span><span class="g-chip is-far">&gt; 150 m <b>48 %</b></span><span class="g-chip">Con vehículos <b>40 %</b></span><span class="g-chip">Ronda <b>~57 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Desierto abierto con muy poca cobertura.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>El 40 % de las bajas son con vehículos y la mitad a más de 150 m. A pie en el abierto sos un blanco: moverse en transporte, bajar cerca del objetivo y usar cualquier hondonada como cobertura. Los anti-tanques y el AA valen oro.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/silent_eagle.jpg" alt="Minimapa de Silent Eagle" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Silent Eagle</h3>
+        <div class="g-map-meta">4 km · Vehicle Warfare · AAS · Skirmish · Rusia vs. Alemania · 12 blindados y 8 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>125 m</b></span><span class="g-chip is-near">&lt; 30 m <b>23 %</b></span><span class="g-chip is-far">&gt; 150 m <b>45 %</b></span><span class="g-chip">Con vehículos <b>39 %</b></span><span class="g-chip">Ronda <b>~52 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Grandes campos europeos con bosques, muchos blindados y aeronaves.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Mapa de armas combinadas: casi la mitad de las bajas son a más de 150 m y el 39 % con vehículos. La infantería no gana sola: viajá en transporte, bajá en los bordes de bosque y llevá anti-tanques. Pasar el campo a pie es exponerse a todo.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/road_to_damascus.jpg" alt="Minimapa de Road to Damascus" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Road to Damascus</h3>
+        <div class="g-map-meta">4 km · Vehicle Warfare · AAS · Insurgencia · Ejército sirio vs. Rebeldes sirios · 10 blindados y 4 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>88 m</b></span><span class="g-chip is-near">&lt; 30 m <b>32 %</b></span><span class="g-chip is-far">&gt; 150 m <b>41 %</b></span><span class="g-chip">Con vehículos <b>30 %</b></span><span class="g-chip">Ronda <b>~49 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Terreno semiárido con pueblos dispersos y una carretera.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Entre pueblo y pueblo hay distancia y poca cobertura: moverse en vehículo y pelear en los pueblos. La carretera es el camino obvio, y por eso el lugar de las emboscadas.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/icebreaker.jpg" alt="Minimapa de Icebreaker" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Icebreaker</h3>
+        <div class="g-map-meta">4 km · AAS · Vehicle Warfare · Skirmish · Rusia vs. EE.UU. (Ejército)</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>99 m</b></span><span class="g-chip is-near">&lt; 30 m <b>26 %</b></span><span class="g-chip is-far">&gt; 150 m <b>42 %</b></span><span class="g-chip">Con vehículos <b>24 %</b></span><span class="g-chip">Ronda <b>~53 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Costa ártica nevada, con colinas y poca cobertura.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Terreno abierto: el 42 % de las bajas pasa los 150 m. Moverse por detrás de las colinas y pelear desde las crestas, mostrando lo mínimo. En Vehicle Warfare es casi todo blindado.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/kashan_desert.jpg" alt="Minimapa de Kashan Desert" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Kashan Desert</h3>
+        <div class="g-map-meta">4 km · AAS · Vehicle Warfare · Skirmish · Coalición de Oriente Medio vs. EE.UU. (USMC) · 6 blindados y 6 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>240 m</b></span><span class="g-chip is-near">&lt; 30 m <b>20 %</b></span><span class="g-chip is-far">&gt; 150 m <b>58 %</b></span><span class="g-chip">Con vehículos <b>38 %</b></span><span class="g-chip">Ronda <b>~50 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Desierto enorme con colinas, tanques, helicópteros y jets.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Es el mapa más abierto de la lista: la mediana de las bajas es de 240 m y el 58 % pasa los 150 m. La infantería gana desde una línea de fuego con poca exposición, detrás de una cresta, dando apoyo al equipo mientras avanza. Nunca cruces el abierto a pie: viajá en transporte y bajá detrás de una loma.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/black_gold.jpg" alt="Minimapa de Black Gold" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Black Gold</h3>
+        <div class="g-map-meta">4 km · AAS · Vehicle Warfare · Skirmish · Coalición de Oriente Medio vs. China · 12 blindados y 8 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>100 m</b></span><span class="g-chip is-near">&lt; 30 m <b>27 %</b></span><span class="g-chip is-far">&gt; 150 m <b>44 %</b></span><span class="g-chip">Con vehículos <b>29 %</b></span><span class="g-chip">Ronda <b>~54 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Desierto con colinas y una refinería.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Terreno abierto (el 44 % pasa los 150 m) con blindados y aeronaves. Las colinas son tus líneas de fuego; la refinería, el lugar donde la infantería se acerca cubierta. Moverse en transporte.</p>
+    </div>
+</article>
+</div>
+<h2>Mapas mixtos</h2>
+<p>Ciudad, bosque y abierto mezclados. Hay que saber cambiar de ritmo según dónde estés.</p>
+<div class="g-maps">
+<article class="g-map">
+    <img src="web/img/maps/thumbs/fallujah_west.jpg" alt="Minimapa de Fallujah West" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Fallujah West</h3>
+        <div class="g-map-meta">1 km · Insurgencia · AAS · Skirmish · Coalición de Oriente Medio vs. EE.UU. (USMC)</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>52 m</b></span><span class="g-chip is-near">&lt; 30 m <b>38 %</b></span><span class="g-chip is-far">&gt; 150 m <b>18 %</b></span><span class="g-chip">Con vehículos <b>7 %</b></span><span class="g-chip">Ronda <b>~64 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad con avenidas anchas que separan las manzanas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Adentro de las manzanas se pelea de cerca, pero las avenidas son líneas de fuego largas: cruzalas con humo y con alguien cubriendo desde una ventana alta. Poné el AR en un techo mirando la avenida por la que avanza tu escuadra.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/beirut.jpg" alt="Minimapa de Beirut" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Beirut</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Rusia vs. Israel (IDF) · 2 blindados y 4 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>58 m</b></span><span class="g-chip is-near">&lt; 30 m <b>34 %</b></span><span class="g-chip is-far">&gt; 150 m <b>24 %</b></span><span class="g-chip">Con vehículos <b>16 %</b></span><span class="g-chip">Ronda <b>~52 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad costera con edificios altos y calles largas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Mezcla de CQB adentro y tiros largos por las calles. Los pisos altos dominan: tomá altura antes de avanzar y cubrí las ventanas de enfrente. Hay helicópteros en AAS: el antiaéreo tiene trabajo.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/muttrah_city_2.jpg" alt="Minimapa de Muttrah City" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Muttrah City</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Coalición de Oriente Medio vs. EE.UU. (USMC) · 5 blindados y 6 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>64 m</b></span><span class="g-chip is-near">&lt; 30 m <b>28 %</b></span><span class="g-chip is-far">&gt; 150 m <b>26 %</b></span><span class="g-chip">Con vehículos <b>17 %</b></span><span class="g-chip">Ronda <b>~60 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad portuaria rodeada de cerros.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Los cerros dan líneas de fuego sobre toda la ciudad: quien los controla ve las calles desde arriba. Si atacás desde el agua, desembarcá cubierto por el humo y tomá los primeros edificios rápido. Adentro, CQB.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/operation_marlin.jpg" alt="Minimapa de Operation Marlin" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Operation Marlin</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Coalición de Oriente Medio vs. Francia · 4 blindados y 2 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>55 m</b></span><span class="g-chip is-near">&lt; 30 m <b>35 %</b></span><span class="g-chip is-far">&gt; 150 m <b>27 %</b></span><span class="g-chip">Con vehículos <b>19 %</b></span><span class="g-chip">Ronda <b>~50 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad costera con una pista de aterrizaje abierta.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>La pista es una zona de muerte: nadie la cruza a pie sin humo y sin cobertura desde los edificios. En la ciudad, mezcla de calles largas y CQB; tomá altura para dominar las avenidas.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/saaremaa.jpg" alt="Minimapa de Saaremaa" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Saaremaa</h3>
+        <div class="g-map-meta">4 km · AAS · Comando (CNC) · Skirmish · Rusia vs. EE.UU. (USMC) · 2 blindados y 5 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>40 m</b></span><span class="g-chip is-near">&lt; 30 m <b>41 %</b></span><span class="g-chip is-far">&gt; 150 m <b>16 %</b></span><span class="g-chip">Con vehículos <b>16 %</b></span><span class="g-chip">Ronda <b>~61 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Isla báltica con bosque denso y costas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>El bosque da combates cortos y emboscadas. Las aeronaves (en AAS hay varias) llevan a la infantería: coordiná con el piloto el lugar de bajada, lejos de la bandera. En el bosque, formación abierta y alguien mirando cada flanco.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/burning_sands.jpg" alt="Minimapa de Burning Sands" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Burning Sands</h3>
+        <div class="g-map-meta">4 km · AAS · Skirmish · Coalición de Oriente Medio vs. Alemania · 14 blindados y 10 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>77 m</b></span><span class="g-chip is-near">&lt; 30 m <b>28 %</b></span><span class="g-chip is-far">&gt; 150 m <b>33 %</b></span><span class="g-chip">Con vehículos <b>24 %</b></span><span class="g-chip">Ronda <b>~60 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Desierto con una ciudad amurallada en el centro.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Dos mapas en uno: CQB adentro de la ciudad y tiros largos afuera. Para llegar a la ciudad, transporte y humo; adentro, edificio por edificio. Hay muchos blindados y aeronaves en AAS.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/operation_thunder.jpg" alt="Minimapa de Operation Thunder" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Operation Thunder</h3>
+        <div class="g-map-meta">4 km · AAS · Skirmish · Milicia vs. Polonia · 3 blindados y 3 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>48 m</b></span><span class="g-chip is-near">&lt; 30 m <b>38 %</b></span><span class="g-chip is-far">&gt; 150 m <b>24 %</b></span><span class="g-chip">Con vehículos <b>21 %</b></span><span class="g-chip">Ronda <b>~70 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Bosque y lagos.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Combates a media distancia en bordes de bosque y claros. Los lagos obligan a rodear: esas rutas son predecibles y buenas para emboscar.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/zakho.jpg" alt="Minimapa de Zakho" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Zakho</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Rebeldes sirios vs. Coalición de Oriente Medio · 2 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>42 m</b></span><span class="g-chip is-near">&lt; 30 m <b>40 %</b></span><span class="g-chip is-far">&gt; 150 m <b>14 %</b></span><span class="g-chip">Con vehículos <b>7 %</b></span><span class="g-chip">Ronda <b>~59 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad con un río que la cruza.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Pelea urbana a media distancia. Los puentes son embudos: tomá la orilla con vista antes de cruzar y cruzá con humo.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/ulyanovsk.jpg" alt="Minimapa de Ulyanovsk" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Ulyanovsk</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Rusia vs. Alemania · 3 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>44 m</b></span><span class="g-chip is-near">&lt; 30 m <b>40 %</b></span><span class="g-chip is-far">&gt; 150 m <b>21 %</b></span><span class="g-chip">Con vehículos <b>12 %</b></span><span class="g-chip">Ronda <b>~48 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Campos y zonas industriales rusas.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Las zonas industriales dan combates cortos entre galpones; los campos, tiros largos. Usá los galpones para acercarte y no cruces el campo a la vista.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/route.jpg" alt="Minimapa de Route E-106" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Route E-106</h3>
+        <div class="g-map-meta">2 km · AAS · Skirmish · Rusia vs. EE.UU. (Ejército) · 4 blindados y 2 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>53 m</b></span><span class="g-chip is-near">&lt; 30 m <b>33 %</b></span><span class="g-chip is-far">&gt; 150 m <b>18 %</b></span><span class="g-chip">Con vehículos <b>13 %</b></span><span class="g-chip">Ronda <b>~50 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Bosque denso con una carretera.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>La carretera es el camino de los vehículos y por eso el lugar de las emboscadas: los LAT y el ingeniero esperan en el borde del bosque. A pie, movete adentro del bosque, paralelo a la ruta, nunca por ella.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/yamalia.jpg" alt="Minimapa de Yamalia" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Yamalia</h3>
+        <div class="g-map-meta">4 km · AAS · Skirmish · Vehicle Warfare · Rusia vs. EE.UU. (Ejército) · 8 blindados y 6 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>73 m</b></span><span class="g-chip is-near">&lt; 30 m <b>24 %</b></span><span class="g-chip is-far">&gt; 150 m <b>26 %</b></span><span class="g-chip">Con vehículos <b>18 %</b></span><span class="g-chip">Ronda <b>~52 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Taiga nevada con niebla y visibilidad corta.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>La niebla acorta los combates: el enemigo aparece de golpe a media distancia. Lo mejor es ir lento, con la escuadra junta y alguien mirando cada flanco, y escuchar. Los vehículos se encuentran a corta distancia: un LAT bien escondido los sorprende.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/shahadah.jpg" alt="Minimapa de Shahadah" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Shahadah</h3>
+        <div class="g-map-meta">2 km · AAS · Insurgencia · Skirmish · Coalición de Oriente Medio vs. Canadá · 4 blindados en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>45 m</b></span><span class="g-chip is-near">&lt; 30 m <b>40 %</b></span><span class="g-chip is-far">&gt; 150 m <b>23 %</b></span><span class="g-chip">Con vehículos <b>14 %</b></span><span class="g-chip">Ronda <b>~58 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad a orillas de un río, con puentes.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Mezcla de calles y orilla abierta. Cruzar el río es lo más peligroso: tomá primero los edificios de tu orilla con vista sobre el puente y recién ahí cruzá.</p>
+    </div>
+</article>
+<article class="g-map">
+    <img src="web/img/maps/thumbs/ramiel.jpg" alt="Minimapa de Ramiel" loading="lazy" width="150" height="150">
+    <div>
+        <h3>Ramiel</h3>
+        <div class="g-map-meta">2 km · Insurgencia · AAS · Skirmish · Resistencia africana vs. EE.UU. (Ejército) · 4 blindados y 3 aeronaves en AAS</div>
+        <div class="g-map-stats"><span class="g-chip">Mediana <b>43 m</b></span><span class="g-chip is-near">&lt; 30 m <b>39 %</b></span><span class="g-chip is-far">&gt; 150 m <b>17 %</b></span><span class="g-chip">Con vehículos <b>15 %</b></span><span class="g-chip">Ronda <b>~60 min</b></span></div>
+        <p><span class="g-tag">Terreno</span>Ciudad costera con un aeródromo.</p>
+        <p><span class="g-tag">Cómo jugarlo</span>Pelea urbana a media distancia, con zonas abiertas alrededor del aeródromo. Dominá las calles desde altura y cruzá el abierto con humo.</p>
+    </div>
+</article>
+</div>
