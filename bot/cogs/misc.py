@@ -24,9 +24,14 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         if not self._synced:
-            await self.bot.tree.sync()
-            self._synced = True
-            logger.info("Slash commands sincronizados.")
+            # Si Discord falla, se reintenta en el próximo on_ready (reconexión) en vez
+            # de cortar el resto de este handler.
+            try:
+                await self.bot.tree.sync()
+                self._synced = True
+                logger.info("Slash commands sincronizados.")
+            except Exception as exc:
+                logger.warning("No se pudieron sincronizar los slash commands: %s", exc)
         if not self._emojis_synced:
             try:
                 await self._sync_app_emojis()
@@ -61,7 +66,13 @@ class Misc(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
         error = getattr(error, "original", error)
+        try:
+            await self._reply_error(ctx, error)
+        except discord.HTTPException as exc:
+            # Sin permiso para escribir en el canal, mensaje borrado, etc.
+            logger.warning("No se pudo avisar el error al usuario: %s", exc)
 
+    async def _reply_error(self, ctx: commands.Context, error):
         if isinstance(error, commands.CommandNotFound):
             await ctx.send(
                 "❌ **Comando no reconocido.** Usa `-ayuda` para ver todos los comandos."
@@ -79,8 +90,8 @@ class Misc(commands.Cog):
                 f"⏳ Cooldown activo. Intenta en {error.retry_after:.1f}s."
             )
         else:
+            logger.error("Error inesperado en %s", ctx.command, exc_info=error)
             await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
-            logger.error("Error inesperado: %s", error)
 
     # ── -hola / -hi ─────────────────────────────────────────────────────
 

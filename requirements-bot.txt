@@ -1,4 +1,3 @@
-discord.py>=2.7,<3
-python-dotenv
-aiohttp
-matplotlib
+# Las dependencias del bot están en requirements.txt (es el archivo que instala
+# Railway, y nixpacks lo copia solo antes de instalar).
+-r requirements.txt

@@ -45,6 +45,14 @@ class Automation(commands.Cog):
             await self.fetcher.pre_cache()
         except Exception as e:
             logger.warning("Cache refresh failed: %s", e)
+        # Una vez por hora, los nombres legibles de assets (el scraper suma armas,
+        # vehículos y mapas nuevos; antes solo se cargaban al arrancar).
+        if self.cache_refresh.current_loop % 12 == 11:
+            try:
+                from bot.assets.kit_mapping import load_aliases
+                await load_aliases()
+            except Exception as e:
+                logger.warning("Alias refresh failed: %s", e)
 
     @cache_refresh.before_loop
     async def before_cache_refresh(self):
@@ -57,10 +65,21 @@ class Automation(commands.Cog):
         """Post top 10 players in configured channels."""
         if datetime.datetime.now(datetime.timezone.utc).weekday() != LEADERBOARD_WEEKDAY:
             return
+        # Un error no manejado dentro de un tasks.loop lo detiene para siempre (hasta el
+        # próximo reinicio): todo el cuerpo va protegido.
+        try:
+            await self._post_weekly_leaderboard()
+        except Exception:
+            logger.exception("Weekly leaderboard failed")
+
+    async def _post_weekly_leaderboard(self):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
             logger.error("Weekly leaderboard fetch failed: %s", e)
+            return
+        if not isinstance(data, list) or not data:
+            logger.error("Weekly leaderboard: all_players vacío o con formato inesperado.")
             return
 
         sorted_players = sorted(data, key=lambda x: x.get("Performance Score", 0), reverse=True)
@@ -95,6 +114,9 @@ class Automation(commands.Cog):
                     logger.info("Leaderboard posted in guild %s", guild_id)
                 except discord.Forbidden:
                     logger.warning("No permission to post in channel %s", channel_id)
+                except discord.HTTPException as e:
+                    # Un canal con problemas no corta el envío a los demás.
+                    logger.warning("Could not post leaderboard in channel %s: %s", channel_id, e)
 
     @weekly_leaderboard.before_loop
     async def before_weekly_leaderboard(self):

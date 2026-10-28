@@ -81,9 +81,13 @@ class DataFetcher:
                 self._cache[url] = (now, data)
                 return data
 
-            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            # ValueError: JSON inválido (Pages a veces sirve una página de error o un
+            # archivo a medio publicar). Antes no se reintentaba ni se usaba la caché.
+            except (aiohttp.ClientError, asyncio.TimeoutError, ValueError) as e:
                 last_error = e
-                wait = 2 ** attempt  # 1s, 2s, 4s
+                if attempt == self.max_retries - 1:
+                    break
+                wait = 2 ** attempt  # 1s, 2s
                 logger.warning(
                     "Fetch attempt %d/%d failed for %s: %s. Retrying in %ds...",
                     attempt + 1, self.max_retries, url, e, wait,

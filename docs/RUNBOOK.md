@@ -70,6 +70,21 @@ Cada push a `main` dispara un build con nixpacks (`nixpacks.toml`, que corre
 > `graphs/**` y cualquier carpeta pesada nueva. Con el `.dockerignore` correcto, la
 > copia tarda menos de un segundo y la exportación unos 20 s.
 
+### Dependencias
+Railway instala `requirements.txt`, que tiene **solo lo que usa el bot y con versión
+fija**. Así un redeploy no trae versiones nuevas por sorpresa. Para actualizar, por
+ejemplo, discord.py:
+1. Cambiá la versión en `requirements.txt`.
+2. Probalo local (`pip install -r requirements.txt` y `python -m bot`).
+3. Pusheá y mirá el log de arranque: muestra la versión de Python y de discord.py, y
+   avisa si algún cog no cargó (`Cogs sin cargar: …`). El bot arranca igual sin ese cog.
+
+### Configuración recomendada del servicio
+- **App sleeping desactivado.** Si Railway duerme el servicio, un bot de Discord no
+  se despierta solo, porque nadie le hace pedidos HTTP.
+- **Restart policy "Always".** Si el proceso se cae, Railway lo vuelve a levantar sin
+  límite de reintentos.
+
 ### Rollback
 Railway → Deployments → elegí el último deploy sano → **Redeploy**. Después revertí
 el commit en `main`; si no, el próximo push vuelve a desplegar la versión rota.

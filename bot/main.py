@@ -53,6 +53,8 @@ async def main():
     if not token:
         raise ValueError("El token del bot no está definido en las variables de entorno")
     logger.info("Token detectado correctamente")
+    # Versiones en el log: si un deploy futuro se rompe, se ve si cambió el entorno.
+    logger.info("Python %s · discord.py %s", sys.version.split()[0], discord.__version__)
     logger.info("Datos persistentes en: %s", DATA_DIR)
 
     # Configure intents (NOT all() -- only what we need)
@@ -103,10 +105,18 @@ async def main():
         bot.clans = ClanRegistry.from_averages(None)
     logger.info("Clan registry: %d clanes (%s)", len(bot.clans.tags), ", ".join(bot.clans.tags))
 
-    # Load all cogs
+    # Load all cogs. Un cog roto (import, dato inesperado) no tira el bot entero: se
+    # loguea y el resto de los comandos sigue andando.
+    failed = []
     for ext in EXTENSIONS:
-        await bot.load_extension(ext)
-        logger.info("  Cog cargado: %s", ext)
+        try:
+            await bot.load_extension(ext)
+            logger.info("  Cog cargado: %s", ext)
+        except Exception:
+            failed.append(ext)
+            logger.exception("  No se pudo cargar el cog %s; sigo sin él.", ext)
+    if failed:
+        logger.error("Cogs sin cargar: %s", ", ".join(failed))
 
     # Register persistent (DynamicItem) components so player-card buttons keep
     # working across restarts/redeploys instead of going dead.

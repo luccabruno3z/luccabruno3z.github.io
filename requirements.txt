@@ -1,12 +1,14 @@
-pandas
-numpy
-scikit-learn
-plotly
-beautifulsoup4
-requests
-python-dotenv
-discord.py>=2.0
-aiohttp
-matplotlib
-pytz
-cloudscraper
+# Dependencias del bot de Discord. Railway (nixpacks) instala este archivo; el scraper
+# corre en GitHub Actions con requirements-scraper.txt.
+#
+# Versiones fijas: son las que Railway instaló en el último deploy que anduvo
+# (2026-10-28). Antes acá estaba todo sin versión (y además pandas, scikit-learn,
+# plotly… que el bot no usa), así que cada redeploy bajaba la última versión de todo
+# y un cambio mayor (p. ej. discord.py 3) podía tirar el bot sin tocar el código.
+# Para actualizar: subir la versión acá, probar localmente y recién ahí pushear.
+discord.py==2.7.1
+aiohttp==3.14.5
+matplotlib==3.11.2
+numpy==2.5.4
+python-dotenv==1.2.4
+pytz==2026.5
