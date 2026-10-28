@@ -209,7 +209,7 @@ async function renderPlayerProfile(player) {
                         <span class="profile-tag">${exp.emoji} ${escapeHtml(exp.name)}</span>
                         <span class="profile-tag ${rel.cssClass}">${rel.emoji} ${escapeHtml(rel.text)}</span>
                     </div>
-                    ${arch.desc ? `<p class="profile-desc">${escapeHtml(arch.desc)}</p>` : ''}
+                    <p class="profile-desc" id="pv-reading">${escapeHtml(arch.desc || '')}</p>
                     <div class="pv-sources">
                         <span class="pv-source">PRStats · <b>${formatNumber(rounds)}</b> rondas</span>
                         <span class="pv-source" id="pv-src-demos">Demos · <b>…</b></span>
@@ -298,6 +298,15 @@ function lastSeenText(last) {
 
 // ── Bloques de demos ─────────────────────────────────────────────────────────
 
+/** K/D de las últimas 10 rondas sobre el del jugador en demos (null con < 5 rondas). */
+function formTrend(pr, d) {
+    const list = (pr && Array.isArray(pr.rounds) ? pr.rounds : []).slice(-10);
+    if (list.length < 5) return null;
+    const k = list.reduce((s, r) => s + (r.kills || 0), 0), de = list.reduce((s, r) => s + (r.deaths || 0), 0);
+    const now = k / Math.max(de, 1), base = (d.total_kills || 0) / Math.max(d.total_deaths || 0, 1);
+    return base > 0 ? now / base : null;
+}
+
 /** Últimas 10 rondas contra el promedio del jugador en demos. */
 function formHTML(pr, d) {
     const list = (pr && Array.isArray(pr.rounds) ? pr.rounds : []).slice(-10);
@@ -327,18 +336,25 @@ function formHTML(pr, d) {
 /** Métricas de demos para fortalezas / a mejorar: [clave, valor(d), más es mejor]. */
 const GLANCE = [
     { key: 'winrate', label: 'Ganás seguido', weak: 'Te cuesta ganar', val: d => { const g = (d.wins || 0) + (d.losses || 0); return g >= 10 ? d.wins / g : null; },
-      fmt: v => pctTxt(v), unit: 'de victorias', tip: 'Jugar en escuadra y sobre los objetivos es lo que más mueve el winrate.' },
+      fmt: v => pctTxt(v), unit: 'de victorias', tip: 'Jugar en escuadra y sobre los objetivos es lo que más mueve el winrate.',
+      say: { que: 'gana seguido' }, sayWeak: 'pierde seguido' },
     { key: 'kd', label: 'Letal', weak: 'Morís más de lo que matás', val: d => (d.total_kills || 0) / Math.max(d.total_deaths || 0, 1),
-      fmt: v => f2(v), unit: 'K/D en demos', tip: 'Elegí mejor los enfrentamientos y moverte con cobertura.' },
+      fmt: v => f2(v), unit: 'K/D en demos', tip: 'Elegí mejor los enfrentamientos y moverte con cobertura.',
+      say: { adj: 'letal' }, sayWeak: 'muere más de lo que mata' },
     { key: 'revives', label: 'Levantás compañeros', val: d => (d.total_revives_given || 0) / Math.max(d.rounds_played || 0, 1),
-      fmt: v => f2(v), unit: 'revives por ronda', strengthOnly: true },
+      fmt: v => f2(v), unit: 'revives por ronda', strengthOnly: true, say: { que: 'levanta compañeros' } },
     { key: 'life', label: 'Sobrevivís', weak: 'Vida corta', val: d => (d.lives ? d.alive_seconds / d.lives : null),
-      fmt: v => fmtDuration(v), unit: 'por vida', tip: 'Más tiempo vivo es más score por ronda: avanzá con tu escuadra y con cobertura.' },
+      fmt: v => fmtDuration(v), unit: 'por vida', tip: 'Más tiempo vivo es más score por ronda: avanzá con tu escuadra y con cobertura.',
+      say: { que: 'sobrevive mucho' }, sayWeak: 'muere rápido' },
     { key: 'squad', label: 'Jugás en escuadra', weak: 'Poco en escuadra', val: d => ((d.rounds_with_squad_data || 0) >= 10 ? d.rounds_in_squad / d.rounds_with_squad_data : null),
-      fmt: v => pctTxt(v), unit: 'de rondas en escuadra', tip: 'Jugar dentro de una escuadra sube el teamwork y el winrate.' },
+      fmt: v => pctTxt(v), unit: 'de rondas en escuadra', tip: 'Jugar dentro de una escuadra sube el teamwork y el winrate.',
+      say: { que: 'juega en escuadra' }, sayWeak: 'juega poco en escuadra' },
     { key: 'tk', label: 'Disciplina de fuego', weak: 'Fuego amigo', lowerBetter: true,
-      val: d => (d.total_teamkills || 0) / Math.max(d.rounds_played || 0, 1),
-      fmt: v => f2(v), unit: 'teamkills por ronda', tip: 'Confirmá el blanco antes de disparar cerca de tu escuadra, sobre todo con vehículos y explosivos.' },
+      // Por cada 100 kills y no por ronda: el que más mata también hace más teamkills,
+      // y por ronda casi todo jugador bueno salía con "mucho fuego amigo".
+      val: d => ((d.total_kills || 0) >= 30 ? (d.total_teamkills || 0) / d.total_kills * 100 : null),
+      fmt: v => v.toFixed(1).replace('.', ','), unit: 'teamkills cada 100 kills', tip: 'Confirmá el blanco antes de disparar cerca de tu escuadra, sobre todo con vehículos y explosivos.',
+      say: { adj: 'disciplinado' }, sayWeak: 'tiene mucho fuego amigo' },
 ];
 
 function median(arr) {
@@ -346,10 +362,11 @@ function median(arr) {
     return s.length ? s[Math.floor(s.length / 2)] : 0;
 }
 
-/** Fortalezas y a mejorar: cada métrica contra los jugadores con 10+ rondas con demo. */
-function glanceHTML(d, player, cmp) {
+/** Fortalezas y a mejorar: cada métrica contra los jugadores con 10+ rondas con demo.
+ *  Devuelve null si no hay población suficiente para comparar. */
+function glanceItems(d, player, cmp) {
     const popD = (state.demoPlayerDetails || []).filter(p => (p.rounds_played || 0) >= 10);
-    if (popD.length < 20) return '';
+    if (popD.length < 20) return null;
     const items = [];
     for (const m of GLANCE) {
         const v = m.val(d);
@@ -363,12 +380,18 @@ function glanceHTML(d, player, cmp) {
     const spr = player['Score per Round'] || 0;
     const sprBelow = rankOf(spr, cmp.map(p => p['Score per Round'] || 0)).below;
     items.push({ m: { key: 'spr', label: 'Sumás score', weak: 'Score por ronda', fmt: v => formatNumber(Math.round(v)), unit: 'de score por ronda',
-        tip: 'Capturar banderas, construir y destruir vehículos suma score.' }, v: spr, good: sprBelow, below: sprBelow,
+        tip: 'Capturar banderas, construir y destruir vehículos suma score.',
+        say: { que: 'suma mucho score' }, sayWeak: 'le cuesta sumar score' }, v: spr, good: sprBelow, below: sprBelow,
         med: median(cmp.map(p => p['Score per Round'] || 0)) });
 
     const strengths = items.filter(i => i.good >= 0.7).sort((a, b) => b.good - a.good).slice(0, 3);
     const weaknesses = items.filter(i => i.good <= 0.35 && !i.m.strengthOnly).sort((a, b) => a.good - b.good).slice(0, 3);
-    if (!strengths.length && !weaknesses.length) return '';
+    return { popSize: popD.length, strengths, weaknesses };
+}
+
+function glanceHTML(g) {
+    if (!g || (!g.strengths.length && !g.weaknesses.length)) return '';
+    const { strengths, weaknesses } = g;
     const posTxt = (i) => i.m.lowerBetter
         ? (i.below >= 0.5 ? `más que el ${pctTxt(i.below)}` : `menos que el ${pctTxt(1 - i.below)}`)
         : (i.below >= 0.5 ? `mejor que el ${pctTxt(i.below)}` : `menos que el ${pctTxt(1 - i.below)}`);
@@ -376,11 +399,59 @@ function glanceHTML(d, player, cmp) {
         <span><span class="pv-mono">${escapeHtml(i.m.fmt(i.v))}</span> ${escapeHtml(i.m.unit)} · ${escapeHtml(posTxt(i))}</span>
         <span class="pv-tip">${escapeHtml(weak && i.m.tip ? `${i.m.tip} Mediana: ${i.m.fmt(i.med)}.` : `Mediana de la comunidad: ${i.m.fmt(i.med)}.`)}</span></li>`;
     return `<div class="pv-head"><h4 class="profile-subtitle">Tu juego en una mirada</h4>
-            <span class="profile-muted">Comparado con ${formatNumber(popD.length)} jugadores con 10+ rondas con demo</span></div>
+            <span class="profile-muted">Comparado con ${formatNumber(g.popSize)} jugadores con 10+ rondas con demo</span></div>
         <div class="pv-sw">
             <div class="pv-sw-col is-good"><h5>Fortalezas</h5>${strengths.length ? `<ul>${strengths.map(i => li(i, false)).join('')}</ul>` : '<p class="profile-muted">Nada que se destaque todavía.</p>'}</div>
             <div class="pv-sw-col is-bad"><h5>A mejorar</h5>${weaknesses.length ? `<ul>${weaknesses.map(i => li(i, true)).join('')}</ul>` : '<p class="profile-muted">Nada por debajo de la mayoría.</p>'}</div>
         </div>`;
+}
+
+/** Distancia al próximo tier: { next, gap } o { elite: true }; null sin tier_config. */
+function tierGap(ps) {
+    const t = state.tierConfigData?.thresholds;
+    if (!t) return null;
+    const next = TIER_ORDER.find(([k]) => ps < t[k]);
+    return next ? { next: next[1], gap: t[next[0]] - ps } : { elite: true };
+}
+
+const cap = (txt) => txt.charAt(0).toUpperCase() + txt.slice(1);
+
+/**
+ * Lectura del jugador en dos o tres frases, armada con datos reales: su rol, sus dos
+ * fortalezas y debilidades principales (las de "Tu juego en una mirada"), la forma
+ * reciente y su lugar en el clan o la distancia al próximo tier. Reemplaza la frase
+ * fija del arquetipo, que era la misma para todos los de ese arquetipo.
+ */
+function readingText(d, g, trend, player) {
+    const roleEntry = (d.roles || []).find(r => r.key === d.best_role) || (d.roles || [])[0];
+    // "Anti-tanque (LAT/HAT)" → "Anti-tanque": el paréntesis no se lee bien en la frase.
+    const role = roleEntry ? roleEntry.label.replace(/\s*\(.*\)$/, '') : 'Jugador';
+    const parts = [];
+
+    const top = (g?.strengths || []).filter(i => i.m.say).slice(0, 2);
+    const adjs = top.filter(i => i.m.say.adj).map(i => i.m.say.adj);
+    const ques = top.filter(i => i.m.say.que).map(i => i.m.say.que);
+    if (adjs.length || ques.length) {
+        parts.push(`${role}${adjs.length ? ' ' + adjs.join(' y ') : ''}${ques.length ? ' que ' + ques.join(' y ') : ''}.`);
+    } else {
+        parts.push(`${role} sin una fortaleza que se destaque todavía.`);
+    }
+
+    const weak = (g?.weaknesses || []).filter(i => i.m.sayWeak).slice(0, 2).map(i => i.m.sayWeak);
+    if (weak.length) parts.push(`${cap(weak.join(' y '))}.`);
+
+    const ctx = [];
+    const members = player.Clan ? (state.playersData || []).filter(p => p.Clan === player.Clan) : [];
+    const pos = members.indexOf(player) + 1;
+    if (pos && pos <= 10) ctx.push(`#${pos} de ${player.Clan}`);
+    const tg = tierGap(player['Performance Score'] || 0);
+    if (tg?.elite) ctx.push('en Elite');
+    else if (tg && tg.gap <= 0.1) ctx.push(`a ${tg.gap.toFixed(3).replace('.', ',')} de ${tg.next}`);
+
+    const form = trend == null ? '' : trend >= 1.1 ? 'Viene en racha' : trend <= 0.9 ? 'Viene en baja' : 'Estable en las últimas rondas';
+    if (form) parts.push(`${form}.`);
+    if (ctx.length) parts.push(`${cap(ctx.join(', '))}.`);
+    return parts.join(' ');
 }
 
 const CONF = { alta: 'Alta', media: 'Media', baja: 'Baja' };
@@ -527,13 +598,16 @@ async function enrichWithDemo(player, cmp) {
         el.innerHTML = html;
         el.hidden = !html;
     };
-    fill('pv-glance', glanceHTML(d, player, cmp));
+    const glance = glanceItems(d, player, cmp);
+    fill('pv-glance', glanceHTML(glance));
     fill('pv-roles', rolesHTML(d));
     block.innerHTML = recordsHTML(d);
 
     const [pr, ins] = await Promise.all([loadPlayerRounds(player.Player).catch(() => null), insightsHTML(d)]);
     if (!block.isConnected) return;
     if (form) form.innerHTML = formHTML(pr, d);
+    const reading = document.getElementById('pv-reading');
+    if (reading) reading.textContent = readingText(d, glance, formTrend(pr, d), player);
     fill('pv-insights', ins);
 }
 

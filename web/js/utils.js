@@ -64,7 +64,7 @@ export function mapLabel(code) {
 export function gamemodeLabel(code) {
     return state.aliases?.gamemodes?.[code] || _rawPretty(code);
 }
-/** Human kit/role name (grouped by role, e.g. "Fusilero AT"). */
+/** Human kit/role name (grouped by role, e.g. "Anti-tanque ligero"). */
 export function kitLabel(code) {
     return state.aliases?.kits?.[code] || _rawPretty(code);
 }
@@ -191,11 +191,11 @@ export function rankMedal(position) {
 
 /** Classify playstyle from raw stats (ordered cascade). */
 export function classifyPlaystyle(kd, kpr, dpr, rounds) {
-    if (kd >= 2.0 && kpr < 3.0)          return { emoji: '\u{1F3AF}', name: 'Francotirador' };
+    if (kd >= 2.0 && kpr < 3.0)          return { emoji: '\u{1F3AF}', name: 'Preciso' };
     if (kpr >= 5.0 && dpr >= 4.0)        return { emoji: '\u{1F5E1}️', name: 'Asesino' };
     if (dpr < 2.5 && kd >= 1.2)          return { emoji: '\u{1F6E1}️', name: 'Superviviente' };
     if (rounds >= 500 && kd >= 0.8 && kd <= 1.8) return { emoji: '🧭', name: 'Todoterreno' };
-    if (kpr >= 4.0 && rounds >= 200)     return { emoji: '\u{1F3CB}️', name: 'Tanque' };
+    if (kpr >= 4.0 && rounds >= 200)     return { emoji: '\u{1F3CB}️', name: 'Dominante' };
     if (rounds < 50)                     return { emoji: '\u{1F331}', name: 'Novato' };
     return { emoji: '🪖', name: 'Infante' };
 }
