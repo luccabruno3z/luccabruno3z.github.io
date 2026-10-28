@@ -80,8 +80,11 @@ ejemplo, discord.py:
    avisa si algún cog no cargó (`Cogs sin cargar: …`). El bot arranca igual sin ese cog.
 
 ### Configuración recomendada del servicio
-- **App sleeping desactivado.** Si Railway duerme el servicio, un bot de Discord no
-  se despierta solo, porque nadie le hace pedidos HTTP.
+- **App sleeping:** en el plan gratuito Railway lo exige activado. En la práctica no
+  duerme al bot, porque Railway solo duerme servicios sin tráfico saliente durante
+  10 minutos y el bot le manda un heartbeat a Discord cada ~40 segundos. Si alguna vez
+  aparece offline sin errores en el log, lo primero es redeployarlo. En un plan pago,
+  conviene desactivarlo.
 - **Restart policy "Always".** Si el proceso se cae, Railway lo vuelve a levantar sin
   límite de reintentos.
 
