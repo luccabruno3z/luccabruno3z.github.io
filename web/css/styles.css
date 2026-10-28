@@ -3247,3 +3247,28 @@ body .cta-button.ghost:hover {
 .guide-body img.g-veh { width: 26px; height: 26px; vertical-align: middle; image-rendering: pixelated; margin-right: 4px; }
 .g-veh-table td:first-child { width: 40px; }
 .guide-body img.g-veh { display: inline-block; }
+
+/* ── 38. Escuadras de clan ─────────────────────────────────────────────── */
+.sq-table td { vertical-align: middle; }
+.sq-clan { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.sq-sub { display: block; font-size: .78rem; color: var(--text-muted); }
+.sq-barcell { min-width: 120px; }
+.sq-open, .sq-close { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: .82rem; white-space: nowrap; }
+.sq-open:hover, .sq-close:hover { border-color: var(--accent); color: var(--accent); }
+.sq-roster { margin-top: 16px; }
+.sq-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+.sq-stat { background: var(--bg-elevated, rgba(255,255,255,.03)); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+.sq-stat b { display: block; font-size: 1.05rem; margin-top: 2px; }
+.sq-stat small { font-weight: 400; color: var(--text-muted); }
+.sq-roles { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; }
+.sq-role { font-size: .78rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+.sq-role.is-miss { border-color: var(--danger); color: var(--danger); }
+.sq-role.is-ok { border-color: var(--success); color: var(--success); }
+.sq-on { color: var(--success); font-size: .82rem; }
+.sq-vs-title { margin-top: 28px; }
+.sq-prob { height: 10px; border-radius: 999px; background: var(--secondary); overflow: hidden; margin: 10px 0 4px; }
+.sq-prob span { display: block; height: 100%; background: var(--accent); }
+.sq-prob-lbl { display: flex; justify-content: space-between; font-size: .82rem; color: var(--text-muted); margin-bottom: 12px; }
+.sq-vs-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.sq-vs-roles > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.sq-vs-roles > div:last-child { justify-content: flex-end; }

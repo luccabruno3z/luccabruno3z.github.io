@@ -245,6 +245,7 @@
                 <a href="#/rankings/rankings" class="view-chip">Top</a>
                 <a href="#/rankings/leaderboards" class="view-chip">Por período</a>
                 <a href="#/rankings/role-leaderboards" class="view-chip">Por rol</a>
+                <a href="#/rankings/clan-squads" class="view-chip">Escuadras de clan</a>
             </div>
         </header>
 
@@ -366,6 +367,42 @@
                 </div>
             </form>
             <div id="role-results" class="top-results" aria-live="polite"></div>
+        </section>
+
+        <!-- ===== SECTION: ESCUADRAS DE CLAN ===== -->
+        <section class="section" id="clan-squads" aria-labelledby="clan-squads-title">
+            <h2 class="section-title" id="clan-squads-title">Escuadras de clan</h2>
+            <p class="section-subtitle">Los 8 mejores de cada clan armados como una escuadra: sus estadísticas juntas, los roles que cubren, cuánto jugaron entre ellos y quién ganaría un cruce.</p>
+            <form class="top-players-form" onsubmit="return false">
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="squad-scope">Jugadores</label>
+                        <select id="squad-scope" aria-label="Qué jugadores entran">
+                            <option value="todos" selected>Todos (50+ rondas)</option>
+                            <option value="activos">Solo activos (30 días)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="squad-sort">Ordenar por</label>
+                        <select id="squad-sort" aria-label="Ordenar escuadras">
+                            <option value="score" selected>Fuerza (predictor)</option>
+                            <option value="ps">Performance</option>
+                            <option value="kd">K/D</option>
+                            <option value="winrate">Winrate</option>
+                            <option value="chem">Sinergia</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+            <div id="squad-results" class="top-results" aria-live="polite"></div>
+            <h3 class="profile-subtitle sq-vs-title">Escuadra contra escuadra</h3>
+            <form class="top-players-form" onsubmit="return false">
+                <div class="form-row">
+                    <div class="input-group"><label for="squad-a">Clan A</label><select id="squad-a" aria-label="Clan A"></select></div>
+                    <div class="input-group"><label for="squad-b">Clan B</label><select id="squad-b" aria-label="Clan B"></select></div>
+                </div>
+            </form>
+            <div id="squad-vs-results" class="comparison-results" aria-live="polite"></div>
         </section>
         </div>
 

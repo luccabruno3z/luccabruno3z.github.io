@@ -25,7 +25,7 @@ sección.
 |---|---|---|---|
 | Inicio | `#/inicio` | `hero`, `dashboard` | `hero.js`, `dashboard.js` |
 | Jugadores | `#/jugadores` | `player-search-section`, `comparison` | `player.js`, `comparison.js` |
-| Rankings | `#/rankings` | `rankings`, `leaderboards`, `role-leaderboards` | `rankings.js`, `leaderboards.js`, `roles.js` |
+| Rankings | `#/rankings` | `rankings`, `leaderboards`, `role-leaderboards`, `clan-squads` | `rankings.js`, `leaderboards.js`, `roles.js`, `squads.js` |
 | Clanes | `#/clanes` | `clan-averages`, `charts` | `clans.js`, `charts.js` |
 | Partidas | `#/partidas` | `recent-matches`, `heatmaps`, `demo-stats` | `matches.js`, `heatmaps.js`, `demos.js` |
 | Equipos | `#/equipos` | `match-predictor`, `team-analysis` | `predictor.js`, `team.js`, `chips.js` |
