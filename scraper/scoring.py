@@ -44,6 +44,16 @@ W_TEAMWORK = 0.15
 W_CONSISTENCY = 0.10
 W_EXPERIENCE = 0.10
 
+# Orden de los componentes en "ps_components" (el peso de cada uno se publica en
+# tier_config.json → "ps_components") para que la web y el bot muestren el desglose
+# sin recalcular percentiles.
+PS_COMPONENTS = [
+    ("combat", "Combate", W_COMBAT), ("effectiveness", "Efectividad", W_EFFECTIVENESS),
+    ("score", "Puntuación", W_SCORE), ("winrate", "Winrate", W_WINRATE),
+    ("teamwork", "Teamwork", W_TEAMWORK), ("consistency", "Consistencia", W_CONSISTENCY),
+    ("experience", "Experiencia", W_EXPERIENCE),
+]
+
 # Neutral value for missing demo components
 NEUTRAL = 0.5
 
@@ -155,11 +165,14 @@ def _compute_ps_v3(
     kd: float, kpr: float, spr: float, rounds: int,
     demo: dict | None,
     kd_pct: float, kpr_pct: float, spr_pct: float,
+    parts: list | None = None,
 ) -> float:
     """Compute Performance Score v3 for a single player.
 
     PRStats components use percentile rank (0-1).
     Demo components use absolute normalization.
+    Si se pasa `parts`, se le agrega el nivel (0-1) de cada componente en el orden de
+    PS_COMPONENTS; los de demos van en None cuando no hay demos (cuentan neutros).
     """
     if rounds < MIN_ROUNDS_PENALTY:
         return 0.05
@@ -199,6 +212,16 @@ def _compute_ps_v3(
         consistency = NEUTRAL * W_CONSISTENCY
 
     raw = combat + effectiveness + score_c + winrate + teamwork + consistency + experience
+    if parts is not None:
+        has_demo = bool(demo and demo.get("rounds_played", 0) >= 5)
+        parts.extend([
+            round(combat / W_COMBAT, 3), round(effectiveness / W_EFFECTIVENESS, 3),
+            round(score_c / W_SCORE, 3),
+            round(winrate / W_WINRATE, 3) if has_demo else None,
+            round(teamwork / W_TEAMWORK, 3) if has_demo else None,
+            round(consistency / W_CONSISTENCY, 3) if has_demo else None,
+            round(experience / W_EXPERIENCE, 3),
+        ])
     return round(raw * _sigmoid_penalty(rounds), 4)
 
 
@@ -463,6 +486,7 @@ def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
 
     # Performance Score v3
     ps_list = []
+    parts_list = []
     radar_list = []
     ratings_list = []
     archetype_list = []
@@ -478,11 +502,13 @@ def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
         rounds = int(row["Rounds"])
         dpr = row["Deaths per Round"]
 
+        parts: list = []
         ps = _compute_ps_v3(
             kd, kpr, spr, rounds, demo,
-            row["_kd_pct"], row["_kpr_pct"], row["_spr_pct"],
+            row["_kd_pct"], row["_kpr_pct"], row["_spr_pct"], parts,
         )
         ps_list.append(ps)
+        parts_list.append(parts or None)
 
         radar = _compute_radar(
             row["_kd_pct"], row["_kpr_pct"], dpr, p95_dpr,
@@ -500,6 +526,7 @@ def calculate_scores(df: pd.DataFrame) -> pd.DataFrame:
         archetype_list.append(archetype)
 
     df["Performance Score"] = ps_list
+    df["ps_components"] = parts_list
     df["radar"] = radar_list
     df["ratings"] = ratings_list
     df["archetype"] = archetype_list

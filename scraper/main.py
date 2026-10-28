@@ -31,6 +31,7 @@ from .demo_fetcher import get_new_demo_urls, fetch_demo_batch, mark_processed, B
 from .fetcher import fetch_all_clans
 from .activity import mark_active, write_active_averages
 from .history import update_history
+from .roles import build_role_leaderboards
 from .parser import parse_clan_html
 from .prdemo import parse_demo, RoundStats
 from .prdemo.decode import DemoReader
@@ -43,7 +44,7 @@ from .rounds_store import (
     build_player_rounds,
     build_player_heatmaps,
 )
-from .scoring import calculate_scores, compute_tier_thresholds
+from .scoring import PS_COMPONENTS, calculate_scores, compute_tier_thresholds
 from .server_discovery import discover_servers
 
 os.environ["OMP_NUM_THREADS"] = "1"
@@ -152,6 +153,12 @@ def run() -> None:
             "rounds": NORM_CAPS["rounds"],
         },
         "min_rounds": LOW_ROUNDS_THRESHOLD,
+        # Orden y peso de los niveles de "ps_components" de cada jugador.
+        "ps_components": [
+            {"key": k, "label": label, "weight": w,
+             "source": "demos" if k in ("winrate", "teamwork", "consistency") else "prstats"}
+            for k, label, w in PS_COMPONENTS
+        ],
         "ps_stats": {
             "mean": round(float(ps_col.mean()), 4),
             "median": round(float(ps_col.median()), 4),
@@ -280,6 +287,7 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
         # Still refresh rolling-window leaderboards from what we already have.
         if existing_rounds:
             build_leaderboards(existing_rounds, clan_player_names)
+            build_role_leaderboards(existing_rounds, clan_player_names, _clan_map(df))
         return
 
     if not new_urls:
@@ -288,6 +296,7 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
         # precomputed leaderboards even when there are no new demos.
         if existing_rounds:
             build_leaderboards(existing_rounds, clan_player_names)
+            build_role_leaderboards(existing_rounds, clan_player_names, _clan_map(df))
         return
 
     total_available = len(new_urls)
@@ -383,6 +392,13 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
     # 5. Re-aggregate per-player and per-map stats only when rounds changed.
     if newly_parsed:
         player_details = _aggregate_player_details(existing_rounds, clan_player_names, df)
+        # Roles (kit puesto al matar/morir, comparado con el resto de ese rol). Escribe
+        # también el top por rol; abajo solo se rehace si no hubo rondas nuevas.
+        roles = build_role_leaderboards(existing_rounds, clan_player_names, _clan_map(df))
+        for p in player_details:
+            r = roles.get(p["ign"])
+            p["roles"] = r["roles"] if r else []
+            p["best_role"] = r["best_role"] if r else None
         details_path = os.path.join(DEMOS_DIR, "player_details.json")
         with open(details_path, "w") as f:
             json.dump(player_details, f)
@@ -441,6 +457,15 @@ def _process_demos(timestamp: str, clan_player_names: set[str] | None = None, df
     # 6. Rebuild precomputed period leaderboards for the Discord bot. Always run
     #    (rolling windows shift over time even with no new rounds).
     build_leaderboards(existing_rounds, clan_player_names)
+    if not newly_parsed:
+        build_role_leaderboards(existing_rounds, clan_player_names, _clan_map(df))
+
+
+def _clan_map(df) -> dict:
+    """Nombre de PRStats → clan, para mostrar el clan en los tops por rol."""
+    if df is None or "Player" not in getattr(df, "columns", []):
+        return {}
+    return dict(zip(df["Player"], df["Clan"]))
 
 
 def _aggregate_player_details(
@@ -497,7 +522,8 @@ def _aggregate_player_details(
                     "rounds_as_medic": 0,  # rondas donde usó el kit médico (para revives/ronda)
                     "total_vehicles_destroyed": 0,
                     "total_flags_captured": 0,
-                    "kits_used": {},
+                    "kits_used": {},      # cambios de kit, incluye los mirados en el menú: no sirve como "uso"
+                    "kit_activity": {},   # kit -> kills + muertes con ese kit puesto (uso real)
                     "kit_performance": {},  # rol -> {"kills","deaths"} (solo rondas nuevas)
                     "kill_weapons": {},
                     "death_weapons": {},
@@ -570,15 +596,24 @@ def _aggregate_player_details(
             p["total_flags_captured"] += pdata.get("flags_captured", 0)
 
             round_kits = pdata.get("kits_used", {})
-            # Ronda "de médico" si usó algún kit médico (todos los codes médicos llevan
-            # "medic"). En PR solo el médico revive, así revives/ronda-de-médico es la
-            # métrica correcta. Se calcula de toda la data (los kits por ronda ya existen).
-            if any("medic" in str(k).lower() for k in round_kits):
+            # Ronda "de médico": mató, murió o estuvo vivo con kit médico (mismo criterio
+            # que scraper/roles.py). `kits_used` no sirve: incluye los kits que se miran en
+            # el menú, y con eso la mitad de la comunidad salía médico. En las rondas
+            # viejas sin kit por evento, la única señal confiable es haber revivido.
+            if "kit_kills" in pdata or "kit_deaths" in pdata:
+                event_kits = (list(pdata.get("kit_kills") or {}) + list(pdata.get("kit_deaths") or {})
+                              + list(pdata.get("kit_alive_ticks") or {}))
+                as_medic = any("medic" in str(k).lower() for k in event_kits)
+            else:
+                as_medic = pdata.get("revives_given", 0) > 0
+            if as_medic:
                 p["rounds_as_medic"] += 1
             for kit, count in round_kits.items():
                 p["kits_used"][kit] = p["kits_used"].get(kit, 0) + count
             # Desempeño por kit: agrupar kit_kills/kit_deaths crudos por ROL (alias),
             # consistente con normalize_kits del bot. Solo presente en rondas nuevas.
+            for kit, count in list((pdata.get("kit_kills") or {}).items()) +                     list((pdata.get("kit_deaths") or {}).items()):
+                p["kit_activity"][kit] = p["kit_activity"].get(kit, 0) + count
             for kit, count in pdata.get("kit_kills", {}).items():
                 role = resolve_kit(kit)
                 kp = p["kit_performance"].setdefault(role, {"kills": 0, "deaths": 0})
