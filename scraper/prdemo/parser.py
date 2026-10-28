@@ -71,6 +71,12 @@ class PlayerStats:
     life_count: int = 0      # vidas completadas (para "vida promedio")
     cohesion_sum: float = 0.0  # suma de distancias al centroide de su escuadra
     cohesion_samples: int = 0  # muestras tomadas (para promediar cohesión)
+    # Junto a la escuadra: muestras con el jugador VIVO y en una escuadra con otro
+    # compañero vivo (o solo en su escuadra), y cuántas de esas tenía a un compañero
+    # vivo a <= SQUAD_NEAR_M. A diferencia de la cohesión no cuenta muertos y no
+    # castiga a la escuadra partida en dos equipos de fuego.
+    near_hits: int = 0
+    near_samples: int = 0
 
 
 @dataclass
@@ -184,6 +190,8 @@ class RoundStats:
                     "life_count": ps.life_count,
                     "cohesion_sum": round(ps.cohesion_sum, 1),
                     "cohesion_samples": ps.cohesion_samples,
+                    "near_hits": ps.near_hits,
+                    "near_samples": ps.near_samples,
                     "flags_captured": ps.flags_captured,
                     "kill_weapons": ps.kill_weapons,
                     "death_weapons": ps.death_weapons,
@@ -232,6 +240,7 @@ def parse_demo(reader: DemoReader) -> RoundStats:
     first_blood_done = False
     last_cohesion_tick = -1000
     COHESION_EVERY = 33   # muestrear cohesión/movimiento ~cada 33 frames (~10s)
+    SQUAD_NEAR_M = 50     # "junto a la escuadra": un compañero vivo a 50 m o menos
     CLUTCH_TICKETS = 25   # umbral de tickets propios para considerar una baja "clutch"
     MOVE_G = stats.move_grid_size  # grilla de densidad de movimiento
     tickets1_latest = 0
@@ -335,8 +344,12 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                     ps.kits_used[pu.kit_name] = ps.kits_used.get(pu.kit_name, 0) + 1
                     last_kit[pu.id] = pu.kit_name
                 if pu.squad is not None:
-                    last_squad[pu.id] = pu.squad
-                    if pu.squad:
+                    # El bit alto (0x80) marca al líder de escuadra: 129 es el SL de la
+                    # escuadra 1 y 128 el comandante. Sin la máscara cada SL quedaba
+                    # como una escuadra aparte (cohesión, sinergia y junto a la escuadra).
+                    sq_num = pu.squad & 0x7F
+                    last_squad[pu.id] = sq_num
+                    if sq_num:
                         ever_squad[pu.id] = True
                 if pu.position is not None:
                     last_pos[pu.id] = (pu.position.x, pu.position.y, pu.position.z)
@@ -540,6 +553,24 @@ def parse_demo(reader: DemoReader) -> RoundStats:
                         d = ((pos[0] - cx) ** 2 + (pos[2] - cz) ** 2) ** 0.5
                         stats.players[pid].cohesion_sum += d
                         stats.players[pid].cohesion_samples += 1
+                # Junto a la escuadra (solo vivos). Todos juegan en una escuadra por
+                # reglamento: lo que importa es si van con ella o solos. El que está
+                # solo en su escuadra cuenta como lejos; si sus compañeros están todos
+                # muertos no se mide (no depende de él).
+                for members in groups.values():
+                    alive = [(pid, pos) for pid, pos in members if pid in spawn_tick]
+                    if len(members) == 1 and alive:
+                        stats.players[alive[0][0]].near_samples += 1
+                        continue
+                    if len(alive) < 2:
+                        continue
+                    for pid, pos in alive:
+                        near = min(((pos[0] - q[0]) ** 2 + (pos[2] - q[2]) ** 2) ** 0.5
+                                   for qid, q in alive if qid != pid)
+                        ps_ = stats.players[pid]
+                        ps_.near_samples += 1
+                        if near <= SQUAD_NEAR_M:
+                            ps_.near_hits += 1
 
         # ── Round End ────────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.ROUND_END:

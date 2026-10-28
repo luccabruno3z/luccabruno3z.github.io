@@ -542,6 +542,8 @@ def _aggregate_player_details(
                     "lives": 0,                        # vidas completadas (para vida promedio)
                     "cohesion_sum": 0.0,              # distancia al centroide de su escuadra
                     "cohesion_samples": 0,
+                    "near_hits": 0,                   # muestras vivo con un compañero de escuadra a <= 50 m
+                    "near_samples": 0,                # denominador (solo rondas nuevas)
                     "played_seconds": 0.0,            # duración de las rondas jugadas (para kills/min)
                     "last_round_date": "",            # fecha del último demo capturado (última vez visto)
                     "maps_played": {},
@@ -647,6 +649,8 @@ def _aggregate_player_details(
             p["lives"] += pdata.get("life_count", 0)
             p["cohesion_sum"] += pdata.get("cohesion_sum", 0)
             p["cohesion_samples"] += pdata.get("cohesion_samples", 0)
+            p["near_hits"] += pdata.get("near_hits", 0)
+            p["near_samples"] += pdata.get("near_samples", 0)
             if round_data.get("duration_seconds"):
                 p["played_seconds"] += round_data["duration_seconds"]
             _rdate = _date_from_filename(round_filename)
@@ -907,7 +911,7 @@ def _aggregate_synergy(
         for pdata in rd.get("players", {}).values():
             if "squad" not in pdata:      # solo rondas nuevas tienen escuadra
                 continue
-            sq = pdata.get("squad", 0)
+            sq = (pdata.get("squad", 0) or 0) & 0x7F  # 0x80 = líder (rondas viejas sin máscara)
             if not sq:
                 continue
             name = matcher.match(pdata.get("ign", ""))
