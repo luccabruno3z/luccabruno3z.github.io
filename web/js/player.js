@@ -530,7 +530,38 @@ async function insightsHTML(d) {
     if (d.lives) tile('Vida promedio', fmtDuration(d.alive_seconds / d.lives), 'por vida');
     if (tiles.length < 3) return '';
     return `<div class="pv-head"><h4 class="profile-subtitle">Datos de tus demos</h4><span class="profile-muted">${formatNumber(d.rounds_played)} rondas</span></div>
-        <div class="pv-insights">${tiles.slice(0, 8).join('')}</div>`;
+        <div class="pv-insights">${tiles.slice(0, 8).join('')}</div>
+        ${mapsTableHTML(d)}`;
+}
+
+/** Tabla desplegable con el rendimiento en cada mapa jugado (no solo el mejor y el peor). */
+function mapsTableHTML(d) {
+    const rows = Object.entries(d.per_map_stats || {})
+        .filter(([, s]) => (s.rounds || 0) > 0)
+        .sort((a, b) => (b[1].rounds || 0) - (a[1].rounds || 0));
+    if (rows.length < 2) return '';
+    const body = rows.map(([m, s]) => {
+        const g = (s.wins || 0) + (s.losses || 0);
+        const wr = g >= 3 ? s.wins / g : null;
+        const kd = (s.avg_kpr || 0) / Math.max(s.avg_dpr || 0, 0.01);
+        return `<tr>
+            <td>${escapeHtml(mapLabel(m))}</td>
+            <td class="n">${formatNumber(s.rounds)}</td>
+            <td class="n">${s.wins || 0}–${s.losses || 0}</td>
+            <td class="pv-barcell">${wr == null ? '<span class="pv-sub">pocas partidas</span>' : `${barHTML(wr * 100, wr >= 0.5 ? 'tier-veterano' : 'orange')}<span class="pv-sub">${pctTxt(wr)}</span>`}</td>
+            <td class="n">${f2(s.avg_kpr)}</td>
+            <td class="n">${f2(s.avg_dpr)}</td>
+            <td class="n ${kd < 1 ? 'pv-bad' : ''}">${f2(kd)}</td>
+        </tr>`;
+    }).join('');
+    return `<details class="pv-maps">
+        <summary>Ver rendimiento en los ${rows.length} mapas</summary>
+        <div class="pv-scroll"><table class="pv-table">
+            <thead><tr><th>Mapa</th><th class="n">Rondas</th><th class="n">V–D</th><th>Winrate</th><th class="n">Kills/ronda</th><th class="n">Muertes/ronda</th><th class="n">K/D</th></tr></thead>
+            <tbody>${body}</tbody>
+        </table></div>
+        <p class="profile-muted">Ordenado por rondas jugadas. El winrate aparece con 3 o más partidas decididas; el K/D sale de kills y muertes por ronda.</p>
+    </details>`;
 }
 
 function recordsHTML(d) {
