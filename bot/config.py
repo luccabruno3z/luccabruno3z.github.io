@@ -191,7 +191,7 @@ def performance_color(score: float, thresholds: dict | None = None):
 
 # ── Static page URLs ─────────────────────────────────────────────────────────
 GITHUB_INDEX = BASE_URL
-GITHUB_GUIDES = f"{BASE_URL}/#guias"
+GITHUB_GUIDES = f"{BASE_URL}/#/guias"
 GITHUB_VISUALIZER_2D = f"{BASE_URL}/realitytracker.github.io/"
 
 # ── Thumbnail ─────────────────────────────────────────────────────────────────
