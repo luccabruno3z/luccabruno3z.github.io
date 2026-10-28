@@ -12,7 +12,7 @@
 
 import { state, loadDemoData, getDemoInfo, loadSynergy } from './data.js';
 import { NORM_CAPS } from './config.js';
-import { escapeHtml, formatNumber, clanLogoHTML, fmtDuration } from './utils.js';
+import { escapeHtml, formatNumber, clanLogoHTML, fmtDuration, avgLife, NEAR_MIN_SAMPLES, COHESION_MIN_SAMPLES } from './utils.js';
 import { barHTML, versusBarHTML, tierChipHTML, posHTML } from './ui.js';
 
 const SIZE = 8;
@@ -45,14 +45,16 @@ function composite(sq) {
     return ps * sq.ps + kd * (sq.kdAvg / NORM_CAPS.kd) + kpr * (sq.kpr / NORM_CAPS.kpr);
 }
 
-function buildSquad(clan, members, synergy) {
+/** Estadísticas de un grupo de jugadores. `clan` es el nombre que se muestra; con
+ *  `isClan` en false (equipos armados a mano) no se muestra logo. */
+export function buildSquad(clan, members, synergy, isClan = true) {
     const demos = members.map(p => ({ p, d: getDemoInfo(p.Player) })).filter(x => x.d && x.d.rounds_played);
     const D = demos.map(x => x.d);
     const kills = sum(members, p => p['Total Kills']), deaths = sum(members, p => p['Total Deaths']);
     const wins = sum(D, d => d.wins), losses = sum(D, d => d.losses);
     const dr = sum(D, d => d.rounds_played);
     const sq = {
-        clan, members, demos,
+        clan, isClan, members, demos,
         ps: avg(members, p => p['Performance Score']),
         kd: kills / Math.max(deaths, 1),
         kdAvg: avg(members, p => p['K/D Ratio']),
@@ -63,8 +65,9 @@ function buildSquad(clan, members, synergy) {
         record: [wins, losses],
         revives: dr ? sum(D, d => d.total_revives_given) / dr : null,
         teamwork: D.length ? avg(D, d => d.teamwork_ratio) : null,
-        inSquad: sum(D, d => d.rounds_with_squad_data) >= 10 ? sum(D, d => d.rounds_in_squad) / sum(D, d => d.rounds_with_squad_data) : null,
-        life: sum(D, d => d.lives) ? sum(D, d => d.alive_seconds) / sum(D, d => d.lives) : null,
+        near: sum(D, d => d.near_samples) >= NEAR_MIN_SAMPLES * 3 ? sum(D, d => d.near_hits) / sum(D, d => d.near_samples) : null,
+        dist: sum(D, d => d.cohesion_samples) >= COHESION_MIN_SAMPLES * 3 ? sum(D, d => d.cohesion_sum) / sum(D, d => d.cohesion_samples) : null,
+        life: (() => { const L = D.filter(d => avgLife(d)); return sum(L, d => d.lives) ? sum(L, d => d.alive_seconds) / sum(L, d => d.lives) : null; })(),
         tk: sum(D, d => d.total_kills) >= 30 ? sum(D, d => d.total_teamkills) / sum(D, d => d.total_kills) * 100 : null,
         clutch: dr ? sum(D, d => d.total_clutch_kills) / dr : null,
         streak: D.length ? Math.max(...D.map(d => d.best_killstreak || 0)) : null,
@@ -159,7 +162,10 @@ function rankingHTML(squads, sortKey) {
         <p class="rankings-excluded">Escuadra = los ${SIZE} jugadores con más Performance de cada clan (${MIN_ROUNDS}+ rondas). Fuerza = el mismo cálculo del predictor de Equipos (Performance, K/D y kills por ronda). Pares que jugaron juntos: de los 28 pares posibles, cuántos compartieron escuadra en ${MIN_PAIR_ROUNDS}+ rondas con demo.</p>`;
 }
 
-function rosterHTML(sq) {
+const logo = (sq, size) => (sq.isClan ? clanLogoHTML(sq.clan, size) : '');
+
+/** Plantilla con todas las estadísticas del grupo. */
+export function rosterHTML(sq, closable = true) {
     const rows = sq.members.map((p) => {
         const d = getDemoInfo(p.Player);
         const role = d?.best_role ? roleLabel(d, d.best_role) : '—';
@@ -177,12 +183,12 @@ function rosterHTML(sq) {
     }).join('');
     const stat = (label, v) => `<div class="sq-stat"><span class="kpi-label">${label}</span><b>${v}</b></div>`;
     return `<div class="sq-roster card">
-        <div class="pv-head"><h4 class="profile-subtitle">${clanLogoHTML(sq.clan, 22)} Escuadra ${escapeHtml(sq.clan)}</h4>
-            <button type="button" class="sq-close">Cerrar</button></div>
+        <div class="pv-head"><h4 class="profile-subtitle">${logo(sq, 22)} ${sq.isClan ? 'Escuadra ' : ''}${escapeHtml(sq.clan)}</h4>
+            ${closable ? '<button type="button" class="sq-close">Cerrar</button>' : ''}</div>
         <div class="sq-stats">
             ${stat('Performance', f2(sq.ps))}${stat('K/D', f2(sq.kd))}${stat('Kills/ronda', f2(sq.kpr))}${stat('Score/ronda', formatNumber(Math.round(sq.spr)))}
             ${stat('Winrate (demos)', `${pct(sq.winrate)}<small> ${sq.record[0]}–${sq.record[1]}</small>`)}${stat('Revives/ronda', sq.revives == null ? '—' : f2(sq.revives))}
-            ${stat('En escuadra', pct(sq.inSquad))}${stat('Vida promedio', sq.life ? fmtDuration(sq.life) : '—')}
+            ${sq.near == null ? '' : stat('Junto a su escuadra', pct(sq.near))}${stat('Distancia a su escuadra', sq.dist == null ? '—' : `${Math.round(sq.dist)} m`)}${stat('Vida promedio', sq.life ? fmtDuration(sq.life) : '—')}
             ${stat('Teamkills c/100 kills', sq.tk == null ? '—' : sq.tk.toFixed(1).replace('.', ','))}${stat('Mejor racha', sq.streak ?? '—')}
             ${stat('Sinergia', `${sq.chem.pairs}/${sq.chem.possible} pares`)}${stat('Winrate juntos', pct(sq.chem.winrate))}
         </div>
@@ -203,7 +209,8 @@ const VS_ROWS = [
     ['Winrate (demos)', sq => sq.winrate, pct, true],
     ['Revives por ronda', sq => sq.revives, f2, true],
     ['Teamwork (parte del score)', sq => sq.teamwork, pct, true],
-    ['En escuadra', sq => sq.inSquad, pct, true],
+    ['Junto a su escuadra (compañero a ≤ 50 m)', sq => sq.near, pct, true],
+    ['Distancia al centro de su escuadra', sq => sq.dist, v => `${Math.round(v)} m`, false],
     ['Vida promedio', sq => sq.life, v => fmtDuration(v), true],
     ['Teamkills c/100 kills', sq => sq.tk, v => v.toFixed(1).replace('.', ','), false],
     ['Clutch kills por ronda', sq => sq.clutch, f2, true],
@@ -212,11 +219,13 @@ const VS_ROWS = [
     ['Jugadores activos', sq => sq.active, v => String(v), true],
 ];
 
-function versusHTML(a, b) {
+/** Comparación A vs B con la probabilidad del predictor. */
+export function versusHTML(a, b) {
     const pa = a.score / (a.score + b.score || 1);
     const wins = [0, 0];
     const rows = VS_ROWS.map(([label, fn, fmt, hb]) => {
         const v1 = fn(a), v2 = fn(b);
+        if (v1 == null && v2 == null) return '';   // métrica sin dato todavía (p.ej. junto a la escuadra)
         if (v1 == null || v2 == null) {
             return `<div class="compare-row"><span class="compare-cell">${v1 == null ? '—' : fmt(v1)}</span><span class="compare-metric">${escapeHtml(label)}</span><span class="compare-cell">${v2 == null ? '—' : fmt(v2)}</span></div>`;
         }
@@ -230,11 +239,13 @@ function versusHTML(a, b) {
     }).join('');
     const fav = pa >= 0.5 ? a : b;
     return `<div class="compare-header">
-            <span class="compare-entity side-1">${clanLogoHTML(a.clan, 24)} ${escapeHtml(a.clan)}</span>
+            <span class="compare-entity side-1">${logo(a, 24)} ${escapeHtml(a.clan)}</span>
             <span class="compare-vs">VS</span>
-            <span class="compare-entity side-2">${clanLogoHTML(b.clan, 24)} ${escapeHtml(b.clan)}</span>
+            <span class="compare-entity side-2">${logo(b, 24)} ${escapeHtml(b.clan)}</span>
         </div>
-        <div class="compare-verdict">Favorita: <strong>${escapeHtml(fav.clan)}</strong> con ${Math.round(Math.max(pa, 1 - pa) * 100)} % según el predictor · gana ${wins[0]} a ${wins[1]} en las métricas comparables</div>
+        <div class="compare-verdict">${Math.abs(pa - 0.5) < 0.02
+            ? 'Parejo según el predictor'
+            : `Favorita: <strong>${escapeHtml(fav.clan)}</strong> con ${Math.round(Math.max(pa, 1 - pa) * 100)} % según el predictor`} · ${escapeHtml(a.clan)} gana ${wins[0]} y ${escapeHtml(b.clan)} ${wins[1]} de las métricas comparables</div>
         <div class="sq-prob"><span style="width:${(pa * 100).toFixed(1)}%"></span></div>
         <div class="sq-prob-lbl"><span>${escapeHtml(a.clan)} ${Math.round(pa * 100)} %</span><span>${Math.round((1 - pa) * 100)} % ${escapeHtml(b.clan)}</span></div>
         <div class="compare-table">${rows}</div>

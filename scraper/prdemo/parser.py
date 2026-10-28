@@ -310,7 +310,9 @@ def parse_demo(reader: DemoReader) -> RoundStats:
             stats.map_size = sd.map_size
             stats.tickets1_start = sd.tickets1
             stats.tickets2_start = sd.tickets2
-            stats.demo_time_per_tick = sd.demo_time_per_tick
+            # Encabezados corruptos traen valores absurdos (millones de s por tick).
+            tpt = sd.demo_time_per_tick
+            stats.demo_time_per_tick = tpt if 0 < tpt <= 2.0 else 0.0
 
         # ── Player Add ───────────────────────────────────────────────
         elif raw_msg.msg_type == MessageType.PLAYER_ADD:

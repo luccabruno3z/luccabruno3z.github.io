@@ -3272,3 +3272,16 @@ body .cta-button.ghost:hover {
 .sq-vs-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
 .sq-vs-roles > div { display: flex; flex-wrap: wrap; gap: 6px; }
 .sq-vs-roles > div:last-child { justify-content: flex-end; }
+
+/* Historial de partidas del perfil */
+.pv-nowrap { white-space: nowrap; }
+.pv-history-more { margin-top: 12px; }
+#pv-history .pv-sub { display: block; font-size: .78rem; color: var(--text-muted); }
+.round-win { color: var(--success); font-weight: 600; }
+.round-loss { color: var(--danger); font-weight: 600; }
+
+/* Cómo sumar en el Performance */
+.pv-how { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; }
+.pv-how h5 { margin: 0 0 6px; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
+.pv-how ul { margin: 0; padding-left: 18px; }
+.pv-how li { margin: 4px 0; line-height: 1.45; }

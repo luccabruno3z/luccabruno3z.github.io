@@ -33,6 +33,44 @@ export function fmtDuration(seconds) {
     return `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s`;
 }
 
+/** Vida promedio en segundos, o null sin dato. Descarta valores absurdos de rondas
+ *  con el encabezado del servidor corrupto (vidas de "10^20 s"). */
+export function avgLife(d) {
+    if (!d || !d.lives || !Number.isFinite(d.alive_seconds)) return null;
+    const v = d.alive_seconds / d.lives;
+    return v > 0 && v < 4 * 3600 ? v : null;
+}
+
+/* Juego con la escuadra. Todos juegan en una escuadra por reglamento: lo que importa
+   es si van con ella o solos. Dos medidas:
+   - junto: % del tiempo vivo con un compañero de escuadra vivo a 50 m o menos (rondas
+     nuevas, la buena);
+   - distancia: metros promedio al centro de su escuadra (con historial, más gruesa:
+     cuenta muertos y castiga a la escuadra partida en dos equipos de fuego). */
+export const NEAR_MIN_SAMPLES = 600;    // ~3 rondas vivo
+export const COHESION_MIN_SAMPLES = 200;
+export function squadNear(d) {
+    return d && (d.near_samples || 0) >= NEAR_MIN_SAMPLES ? d.near_hits / d.near_samples : null;
+}
+export function squadDistance(d) {
+    return d && (d.cohesion_samples || 0) >= COHESION_MIN_SAMPLES ? d.cohesion_sum / d.cohesion_samples : null;
+}
+/** Etiqueta de la distancia al centro (cuartiles de la comunidad: ~205 / 255 / 315 m). */
+export function squadDistanceLabel(m) {
+    return m < 205 ? 'muy pegado a la escuadra' : m < 255 ? 'cerca de la escuadra'
+        : m < 315 ? 'algo separado' : 'muy separado (lobo solitario)';
+}
+
+/** Nombre corto del servidor: "[PR v1.9.0.1] [ENG] Alliance EU | alliance-community.com"
+ *  → "[ENG] Alliance EU". Saca la versión y los dominios o links de Discord (salvo que
+ *  el dominio sea el nombre, como "REALITYBRASIL.org | Foxtrot"). */
+export function serverLabel(name) {
+    const parts = String(name || '').replace(/^\s*\[PR v[^\]]*\]\s*/i, '')
+        .split(/\s+[|–-]\s+/).map(x => x.trim()).filter(Boolean);
+    const link = x => /discord\.gg|^\S+\.(com|org|net|ru|br|dev)(\/\S*)?$/i.test(x);
+    return parts.filter((x, i) => i === 0 || !link(x)).join(' · ');
+}
+
 /** Escape a string for safe innerHTML insertion. */
 export function escapeHtml(value) {
     return String(value ?? '')
@@ -63,6 +101,14 @@ export function mapLabel(code) {
 /** Human gamemode name (AAS, Insurgencia, …). */
 export function gamemodeLabel(code) {
     return state.aliases?.gamemodes?.[code] || _rawPretty(code);
+}
+/** Capas de PR: el mismo modo se juega con zonas y banderas distintas por capa. */
+const LAYER_LABELS = { 16: 'Infantería (16)', 32: 'Alternativa (32)', 64: 'Estándar (64)', 128: 'Grande (128)' };
+/** 'gpm_cq_64' → 'AAS · Estándar (64)'; sin capa, igual que gamemodeLabel. */
+export function modeLayerLabel(key) {
+    const m = /^(.*)_(\d+)$/.exec(String(key || ''));
+    if (!m) return gamemodeLabel(key);
+    return `${gamemodeLabel(m[1])} · ${LAYER_LABELS[m[2]] || `capa ${m[2]}`}`;
 }
 /** Human kit/role name (grouped by role, e.g. "Anti-tanque ligero"). */
 export function kitLabel(code) {

@@ -25,7 +25,7 @@ from statistics import median
 
 from .aliases import resolve_kit, resolve_weapon
 from .config import DEMOS_DIR
-from .rounds_store import ClanMatcher, _round_dt
+from .rounds_store import ClanMatcher, _round_dt, round_time_per_tick
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +108,7 @@ def _accumulate(rounds: list[dict], matcher: ClanMatcher, cutoff=None) -> dict:
             if dt is None or dt < cutoff:
                 continue
         winner = rd.get("winner", -1)
-        tpt = rd.get("demo_time_per_tick", 0) or 0
+        tpt = round_time_per_tick(rd)
         for pdata in rd.get("players", {}).values():
             if "kit_kills" not in pdata and "kit_deaths" not in pdata:
                 continue  # ronda vieja, sin kit por evento

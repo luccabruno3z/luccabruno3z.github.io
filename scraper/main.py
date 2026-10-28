@@ -32,6 +32,7 @@ from .fetcher import fetch_all_clans
 from .activity import mark_active, write_active_averages
 from .history import update_history
 from .roles import build_role_leaderboards
+from .rounds_store import round_time_per_tick, round_duration
 from .parser import parse_clan_html
 from .prdemo import parse_demo, RoundStats
 from .prdemo.decode import DemoReader
@@ -644,15 +645,14 @@ def _aggregate_player_details(
             p["total_clutch_kills"] += pdata.get("clutch_kills", 0)
             p["total_first_bloods"] += pdata.get("first_blood", 0)
             p["best_killstreak"] = max(p["best_killstreak"], pdata.get("best_killstreak", 0))
-            _tpt = round_data.get("demo_time_per_tick", 0) or 0
+            _tpt = round_time_per_tick(round_data)
             p["alive_seconds"] += pdata.get("alive_ticks", 0) * _tpt
             p["lives"] += pdata.get("life_count", 0)
             p["cohesion_sum"] += pdata.get("cohesion_sum", 0)
             p["cohesion_samples"] += pdata.get("cohesion_samples", 0)
             p["near_hits"] += pdata.get("near_hits", 0)
             p["near_samples"] += pdata.get("near_samples", 0)
-            if round_data.get("duration_seconds"):
-                p["played_seconds"] += round_data["duration_seconds"]
+            p["played_seconds"] += round_duration(round_data)
             _rdate = _date_from_filename(round_filename)
             if _rdate > p["last_round_date"]:
                 p["last_round_date"] = _rdate
@@ -861,8 +861,8 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
         m["total_kills"] += round_data.get("total_kills", 0)
         m["total_revives"] += round_data.get("total_revives", 0)
         m["total_vehicles_destroyed"] += round_data.get("total_vehicles_destroyed", 0)
-        if round_data.get("duration_seconds"):
-            m["_durations"].append(round_data["duration_seconds"])
+        if round_duration(round_data):
+            m["_durations"].append(round_duration(round_data))
 
         winner = round_data.get("winner", -1)
         if winner == 1:
@@ -960,6 +960,21 @@ SNIPER_MIN_DIST = 150.0  # m: kills "a distancia" para la capa de francotiradore
 _DATE_RE = re.compile(r"tracker_(\d{4})_(\d{2})_(\d{2})_")
 
 
+_MODE_LAYER_RE = re.compile(r"_(gpm_[a-z]+)_(\d+)\.PRdemo$", re.I)
+
+
+def _mode_layer(rd: dict) -> str:
+    """'gpm_cq_64' (modo + capa) para separar los heatmaps; 'gpm_cq' sin capa."""
+    gm = rd.get("gamemode") or ""
+    layer = rd.get("layer") or 0
+    if not gm or not layer:
+        m = _MODE_LAYER_RE.search(rd.get("filename", ""))
+        if m:
+            gm, layer = gm or m.group(1), layer or int(m.group(2))
+    gm = gm or "unknown"
+    return f"{gm}_{layer}" if layer else gm
+
+
 def _date_from_filename(fn: str) -> str:
     """tracker_2026_06_21_… → '2026-06-21' (para ubicar rounds/<fecha>.json)."""
     m = _DATE_RE.match(fn or "")
@@ -1005,7 +1020,10 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         if not (kps or mv or sp):
             continue
         mname = rd.get("map_name", "unknown")
-        gmode = rd.get("gamemode", "unknown")
+        # Modo + capa: AAS 16 (infantería), 32, 64 y 128 se juegan en zonas y con
+        # banderas distintas; mezclarlos ponía la pelea de la capa chica (parecida a
+        # Skirmish) en el heatmap de AAS 64. Rondas viejas sin capa: del nombre.
+        gmode = _mode_layer(rd)
         mp = maps.setdefault(mname, {"map": mname, "map_size": msize, "gm": {}, "rounds_list": []})
         m = mp["gm"].setdefault(gmode, new_gm())
         m["rounds"] += 1

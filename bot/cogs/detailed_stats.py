@@ -19,7 +19,7 @@ from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_horizontal_bars, render_multi_comparison, render_top_chart
 from bot.ui.leaderboard_card import LeaderboardView
 from bot.ui.role_leaderboard_card import RoleLeaderboardView, resolve_role
-from bot.utils import format_number, find_player, standard_footer, progress_bar
+from bot.utils import format_number, find_player, standard_footer, progress_bar, squad_play_text
 from bot.views.explain import ExplainView
 
 logger = logging.getLogger(__name__)
@@ -1072,19 +1072,11 @@ class DetailedStats(commands.Cog):
             f"  (40% tw_ratio + 30% revives + 30% flags, normalizado)",
         ]
 
-        # % de rondas jugadas en escuadra (vs lobo solitario). Solo rondas nuevas
-        # traen el dato de escuadra, por eso el denominador es aparte.
-        sq_rounds = player.get("rounds_with_squad_data", 0)
-        if sq_rounds:
-            sq_pct = player.get("rounds_in_squad", 0) / sq_rounds * 100
-            lines.append(f"👥 En escuadra: **{sq_pct:.0f}%** de las rondas ({sq_rounds} con dato)")
-        # Cohesión de escuadra: distancia media al centroide de su squad (menor = más juntos).
-        coh_n = player.get("cohesion_samples", 0)
-        if coh_n >= 20:
-            coh = player.get("cohesion_sum", 0) / coh_n
-            label = ("muy unida" if coh < 150 else "unida" if coh < 300
-                     else "dispersa" if coh < 600 else "muy dispersa")
-            lines.append(f"🧭 Cohesión de escuadra: **{label}** ({coh:.0f}m al centro)")
+        # Juego con la escuadra: todos juegan en una por reglamento, lo que importa
+        # es si van con ella o solos (lobo solitario).
+        sq_txt = squad_play_text(player)
+        if sq_txt:
+            lines.append(f"👥 Con su escuadra: {sq_txt}")
 
         # Compare vs benchmarks
         lines.append("\n**Comparación vs benchmark:**")

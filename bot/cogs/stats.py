@@ -29,6 +29,7 @@ from bot.ui.player_profile import send_profile
 from bot.ui.top_card import TopCard, DEMO_METRIC_LABELS
 from bot.assets.clan_mapping import get_clan_emoji
 from bot.utils import (
+    squad_near,
     format_number,
     find_player,
     progress_bar,
@@ -952,15 +953,15 @@ class Stats(commands.Cog):
                 return (k / (a / 60)) if a else None
 
             def _squad(p):
-                rs, rws = p.get("rounds_in_squad", 0), p.get("rounds_with_squad_data", 0)
-                return (rs / rws) if rws else None
+                # % del tiempo vivo con un compañero de escuadra a <= 50 m.
+                return squad_near(p)
 
             def _baseline(fn):
                 vals = [v for v in (fn(q) for q in demo_data) if v is not None]
                 return (sum(vals) / len(vals)) if vals else None
 
             for label, fn in (("Tiempo vivo", _alive_pct), ("Kills/min", _kpm),
-                              ("Juego en escuadra", _squad)):
+                              ("Junto a su escuadra", _squad)):
                 pv, base = fn(demo_player), _baseline(fn)
                 if pv is not None and base and pv < base:
                     gaps.append((label, (base - pv) / base, pv, base, True))
@@ -989,7 +990,7 @@ class Stats(commands.Cog):
         medal_emojis = ["1️⃣", "2️⃣", "3️⃣"]
         weakness_categories = []
 
-        _PCT_METRICS = ("Tiempo vivo", "Juego en escuadra")  # se muestran como porcentaje
+        _PCT_METRICS = ("Tiempo vivo", "Junto a su escuadra")  # se muestran como porcentaje
         for i, (name, gap_val, player_val, target_val, higher_better) in enumerate(top_gaps):
             medal = medal_emojis[i]
             if higher_better:
@@ -1019,7 +1020,7 @@ class Stats(commands.Cog):
                 weakness_categories.append("combat")
             elif name in ("Muertes/Ronda", "Tiempo vivo"):
                 weakness_categories.append("survival")
-            elif name in ("Score/Ronda", "Juego en escuadra"):
+            elif name in ("Score/Ronda", "Junto a su escuadra"):
                 weakness_categories.append("objective")
             elif name == "Rondas Jugadas":
                 weakness_categories.append("experience")

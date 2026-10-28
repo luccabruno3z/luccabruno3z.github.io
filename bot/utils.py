@@ -386,6 +386,40 @@ def ratings_display(ratings: dict) -> str:
     return "\n".join(lines)
 
 
+# ── Juego con la escuadra (demos) ───────────────────────────────────────
+# Todos juegan en una escuadra por reglamento: lo que importa es si van con ella.
+NEAR_MIN_SAMPLES = 600       # ~3 rondas vivo
+COHESION_MIN_SAMPLES = 200
+
+
+def squad_near(p: dict):
+    """% del tiempo vivo con un compañero de escuadra a <= 50 m (rondas nuevas) o None."""
+    n = p.get("near_samples", 0) or 0
+    return (p.get("near_hits", 0) or 0) / n if n >= NEAR_MIN_SAMPLES else None
+
+
+def squad_distance(p: dict):
+    """Metros promedio al centro de su escuadra (con historial) o None."""
+    n = p.get("cohesion_samples", 0) or 0
+    return (p.get("cohesion_sum", 0) or 0) / n if n >= COHESION_MIN_SAMPLES else None
+
+
+def squad_distance_label(m: float) -> str:
+    """Cuartiles de la comunidad (~205 / 255 / 315 m)."""
+    return ("muy pegado a la escuadra" if m < 205 else "cerca de la escuadra" if m < 255
+            else "algo separado" if m < 315 else "muy separado (lobo solitario)")
+
+
+def squad_play_text(p: dict):
+    """Una línea corta para mostrar en Discord, o None sin dato."""
+    near, dist = squad_near(p), squad_distance(p)
+    if near is not None:
+        return f"`{near * 100:.0f}%` del tiempo vivo junto a su escuadra (compañero a ≤ 50 m)"
+    if dist is not None:
+        return f"{squad_distance_label(dist)} (`{dist:.0f} m` al centro de su escuadra)"
+    return None
+
+
 # ── Standard error messages ──────────────────────────────────────────────
 ERR_DB = "❌ Error al conectar con la base de datos. Inténtalo más tarde."
 ERR_JSON = "❌ Error al procesar los datos."

@@ -15,7 +15,7 @@ def _group_counts(raw: dict, namer, exclude=None) -> dict:
         out[name] = out.get(name, 0) + cnt
     return out
 from bot.config import BOT_THUMBNAIL
-from bot.utils import format_number, standard_footer
+from bot.utils import format_number, standard_footer, squad_play_text
 
 
 class DemoDetailsView(discord.ui.View):
@@ -146,15 +146,15 @@ class DemoDetailsView(discord.ui.View):
             embed.add_field(name="\U0001f6e1️ Disciplina",
                             value=f"Teamkills: **{tkill}** · Suicidios: **{sui}**", inline=True)
 
-        # 🤝 Teamwork: score + % en escuadra + vehículos destruidos
+        # 🤝 Teamwork: score + juego con la escuadra + vehículos destruidos
         tw = player_data.get("total_teamwork_score", 0)
         vd = player_data.get("total_vehicles_destroyed", 0)
         tw_lines = []
         if tw:
             tw_lines.append(f"🤝 Score: **{format_number(tw)}**")
-        ris, rws = player_data.get("rounds_in_squad", 0), player_data.get("rounds_with_squad_data", 0)
-        if rws:
-            tw_lines.append(f"🪖 En escuadra: **{ris / rws * 100:.0f}%**")
+        sq_txt = squad_play_text(player_data)
+        if sq_txt:
+            tw_lines.append(f"🪖 {sq_txt}")
         if vd:
             tw_lines.append(f"💥 Vehíc. destruidos: **{vd}**")
         if tw_lines:

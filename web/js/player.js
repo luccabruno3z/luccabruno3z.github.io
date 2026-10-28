@@ -14,6 +14,7 @@ import {
     escapeHtml, formatNumber, findPlayer, tierBadge, getPlayerArchetype,
     experienceBadge, sampleReliability, fmtDuration, aggregateByLabel, weaponModel,
     weaponKind, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
+    avgLife, squadNear, squadDistance, squadDistanceLabel,
 } from './utils.js';
 import { barHTML, tierBarHTML, rankBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
@@ -59,6 +60,17 @@ const COMP_WHAT = {
     teamwork: () => 'Parte de tu score que es teamwork',
     consistency: () => 'Qué tan parejo jugás entre rondas',
     experience: (p) => `${formatNumber(p.Rounds || 0)} rondas`,
+};
+
+// Qué hacer en el juego para subir cada componente (se muestra para los dos con más margen).
+const COMP_HOW = {
+    combat: ['Morí menos', 'Peleá desde cobertura y con tu escuadra cerca, no cruces abierto sin humo, y después de disparar cambiá de posición.'],
+    effectiveness: ['Más kills por ronda', 'Jugá donde está la pelea: con tu escuadra sobre los objetivos activos. El kit cuenta: AR, MG y tirador matan más que un fusilero.'],
+    score: ['Más score por ronda', 'Capturá y defendé banderas con tu escuadra, construí el FOB y sus defensas y destruí vehículos: todo suma score además de las kills.'],
+    winrate: ['Ganá más', 'Lo que más mueve el resultado es jugar el objetivo: escuadra organizada, FOBs y rally para no perder tiempo caminando, y no regalar tickets con vehículos.'],
+    teamwork: ['Más teamwork', 'El score de teamwork sale de revivir y curar, reabastecer con la bolsa de munición, reparar vehículos, construir con la pala en el FOB y llevar a tu escuadra en vehículo. Tomá el kit de médico o fusilero de vez en cuando y ayudá a armar el FOB.'],
+    consistency: ['Más parejo', 'Las rondas malas pesan: buscá una escuadra con líder y comunicación, y evitá las rondas en solitario o en kits que no dominás.'],
+    experience: ['Más rondas', 'Se completa jugando: cuenta cada ronda, hasta el máximo de experiencia.'],
 };
 
 function levelClass(v) {
@@ -120,7 +132,9 @@ function performanceHTML(player) {
         <tfoot><tr><td colspan="3">Total</td><td class="n">${n3(ps)}</td><td></td></tr></tfoot>
     </table></div>
     <p class="profile-muted">"Podés sumar" es lo que le falta a cada componente para llegar al máximo, por su peso. Las filas marcadas son las dos con más margen.</p>`;
-    return { title, html: path + table, levers };
+    const how = levers.filter(r => COMP_HOW[r.key] && r.room > 0.005).map(r => `<li><b>${escapeHtml(COMP_HOW[r.key][0])}</b> (+${n3(r.room)}): ${escapeHtml(COMP_HOW[r.key][1])}</li>`);
+    const howHTML = how.length ? `<div class="pv-how"><h5>Cómo sumar</h5><ul>${how.join('')}</ul></div>` : '';
+    return { title, html: path + table + howHTML, levers };
 }
 
 // ── Contexto de clan ─────────────────────────────────────────────────────────
@@ -244,6 +258,7 @@ async function renderPlayerProfile(player) {
             <section class="card pv-card" id="pv-glance" hidden></section>
             <section class="card pv-card" id="pv-roles" hidden></section>
             <section class="card pv-card" id="pv-insights" hidden></section>
+            <section class="card pv-card" id="pv-history" hidden></section>
             <section class="card profile-records" id="profile-demo-block">
                 <h4 class="profile-subtitle">Récords</h4>
                 <p class="profile-muted">Cargando datos de demos…</p>
@@ -333,6 +348,39 @@ function formHTML(pr, d) {
         <div class="pv-vs"><span>Victorias</span><b>${wins} de ${list.length}</b>${baseWR == null ? '' : `<span class="profile-muted">tu promedio: ${pctTxt(baseWR)}</span>`}</div>`;
 }
 
+const HISTORY_PAGE = 15;
+
+/** Historial de partidas (las más nuevas primero). Las rondas viejas no traen
+ *  servidor, hora, bando ni kit: esas celdas quedan con "—". */
+function historyHTML(pr, shown = HISTORY_PAGE) {
+    // Sin kills, muertes ni score: entró y se fue (o se quedó en el menú), no la jugó.
+    const all = (pr && Array.isArray(pr.rounds) ? pr.rounds : [])
+        .filter(r => r.kills || r.deaths || r.score).reverse();
+    if (!all.length) return '';
+    const dash = '<span class="pv-sub">—</span>';
+    const rows = all.slice(0, shown).map((r) => {
+        const kd = (r.kills || 0) / Math.max(r.deaths || 0, 1);
+        return `<tr>
+            <td class="pv-nowrap">${escapeHtml(ddmm(r.date))}/${escapeHtml(String(r.date || '').slice(2, 4))}${r.time ? `<span class="pv-sub">${escapeHtml(r.time)}</span>` : ''}</td>
+            <td><span class="dtable-name">${escapeHtml(mapLabel(r.map || ''))}</span><span class="pv-sub">${escapeHtml(gamemodeLabel(r.gamemode) || '')}</span></td>
+            <td>${r.server ? escapeHtml(r.server) : dash}</td>
+            <td>${r.kit ? escapeHtml(r.kit) : dash}${r.faction ? `<span class="pv-sub">${escapeHtml(r.faction)}</span>` : ''}</td>
+            <td class="n">${r.kills || 0}–${r.deaths || 0}<span class="pv-sub">K/D ${f2(kd)}</span></td>
+            <td class="n">${formatNumber(r.score || 0)}</td>
+            <td class="n">${r.revives == null ? dash : r.revives}</td>
+            <td>${r.won ? '<span class="round-win">Victoria</span>' : '<span class="round-loss">Derrota</span>'}</td>
+        </tr>`;
+    }).join('');
+    const more = all.length > shown
+        ? `<button type="button" class="sq-open pv-history-more" data-shown="${shown}">Ver ${Math.min(HISTORY_PAGE, all.length - shown)} más</button>` : '';
+    return `<div class="pv-head"><h4 class="profile-subtitle">Historial de partidas</h4>
+            <span class="profile-muted">${formatNumber(all.length)} rondas con demo · mostrando ${Math.min(shown, all.length)}</span></div>
+        <div class="pv-scroll"><table class="pv-table">
+            <thead><tr><th>Fecha</th><th>Mapa y modo</th><th>Servidor</th><th>Kit y bando</th><th class="n">K–D</th><th class="n">Score</th><th class="n">Revives</th><th>Resultado</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table></div>${more}`;
+}
+
 /** Métricas de demos para fortalezas / a mejorar: [clave, valor(d), más es mejor]. */
 const GLANCE = [
     { key: 'winrate', label: 'Ganás seguido', weak: 'Te cuesta ganar', val: d => { const g = (d.wins || 0) + (d.losses || 0); return g >= 10 ? d.wins / g : null; },
@@ -341,14 +389,26 @@ const GLANCE = [
     { key: 'kd', label: 'Letal', weak: 'Morís más de lo que matás', val: d => (d.total_kills || 0) / Math.max(d.total_deaths || 0, 1),
       fmt: v => f2(v), unit: 'K/D en demos', tip: 'Elegí mejor los enfrentamientos y moverte con cobertura.',
       say: { adj: 'letal' }, sayWeak: 'muere más de lo que mata' },
+    { key: 'teamwork', label: 'Jugás para el equipo', weak: 'Poco teamwork', val: d => ((d.rounds_played || 0) >= 10 && d.teamwork_ratio != null ? d.teamwork_ratio : null),
+      fmt: v => pctTxt(v), unit: 'de tu score es teamwork',
+      tip: 'El score de teamwork sale de revivir y curar, reabastecer con la bolsa de munición, reparar vehículos, construir con la pala en el FOB y llevar a tu escuadra en vehículo.',
+      say: { que: 'juega para el equipo' }, sayWeak: 'suma poco teamwork' },
     { key: 'revives', label: 'Levantás compañeros', val: d => (d.total_revives_given || 0) / Math.max(d.rounds_played || 0, 1),
       fmt: v => f2(v), unit: 'revives por ronda', strengthOnly: true, say: { que: 'levanta compañeros' } },
-    { key: 'life', label: 'Sobrevivís', weak: 'Vida corta', val: d => (d.lives ? d.alive_seconds / d.lives : null),
+    { key: 'life', label: 'Sobrevivís', weak: 'Vida corta', val: d => avgLife(d),
       fmt: v => fmtDuration(v), unit: 'por vida', tip: 'Más tiempo vivo es más score por ronda: avanzá con tu escuadra y con cobertura.',
       say: { que: 'sobrevive mucho' }, sayWeak: 'muere rápido' },
-    { key: 'squad', label: 'Jugás en escuadra', weak: 'Poco en escuadra', val: d => ((d.rounds_with_squad_data || 0) >= 10 ? d.rounds_in_squad / d.rounds_with_squad_data : null),
-      fmt: v => pctTxt(v), unit: 'de rondas en escuadra', tip: 'Jugar dentro de una escuadra sube el teamwork y el winrate.',
-      say: { que: 'juega en escuadra' }, sayWeak: 'juega poco en escuadra' },
+    // Junto a la escuadra: la medida nueva cuando hay muestra; si no, la distancia al
+    // centro de la escuadra (con historial). Nunca las dos a la vez.
+    { key: 'near', label: 'Vas con tu escuadra', weak: 'Jugás separado de tu escuadra', val: d => squadNear(d),
+      fmt: v => pctTxt(v), unit: 'del tiempo vivo con un compañero a 50 m o menos',
+      tip: 'Moverte con tu escuadra (o con tu equipo de fuego) te da quién te reviva, quién cubra y más score de teamwork.',
+      say: { que: 'se mueve con su escuadra' }, sayWeak: 'se aleja de su escuadra' },
+    { key: 'coh', label: 'Vas con tu escuadra', weak: 'Jugás separado de tu escuadra', lowerBetter: true,
+      val: d => (squadNear(d) == null ? squadDistance(d) : null),
+      fmt: v => `${Math.round(v)} m`, unit: 'al centro de tu escuadra en promedio',
+      tip: 'Moverte con tu escuadra (o con tu equipo de fuego) te da quién te reviva, quién cubra y más score de teamwork.',
+      say: { que: 'se mueve con su escuadra' }, sayWeak: 'se aleja de su escuadra' },
     { key: 'tk', label: 'Disciplina de fuego', weak: 'Fuego amigo', lowerBetter: true,
       // Por cada 100 kills y no por ronda: el que más mata también hace más teamkills,
       // y por ronda casi todo jugador bueno salía con "mucho fuego amigo".
@@ -372,6 +432,7 @@ function glanceItems(d, player, cmp) {
         const v = m.val(d);
         if (v == null || !Number.isFinite(v)) continue;
         const vals = popD.map(m.val).filter(x => x != null && Number.isFinite(x));
+        if (vals.length < 20) continue;   // métrica nueva todavía sin población
         const below = vals.filter(x => x < v).length / vals.length;
         const good = m.lowerBetter ? 1 - below - vals.filter(x => x === v).length / vals.length : below;
         items.push({ m, v, good, below, med: median(vals) });
@@ -498,7 +559,9 @@ async function insightsHTML(d) {
         <span class="pv-ins-v ${cls}">${escapeHtml(value)}</span><span class="pv-ins-d">${desc}</span></div>`);
     const main = (d.roles || [])[0];
     if (main) tile('Rol principal', main.label, `<b>${pctTxt(main.share)}</b> de tu actividad`);
-    if ((d.rounds_with_squad_data || 0) >= 10) tile('En escuadra', pctTxt(d.rounds_in_squad / d.rounds_with_squad_data), 'de las rondas con dato de escuadra');
+    const near = squadNear(d), dist = squadDistance(d);
+    if (near != null) tile('Junto a tu escuadra', pctTxt(near), 'del tiempo vivo con un compañero de escuadra a 50 m o menos');
+    else if (dist != null) tile('Distancia a tu escuadra', `${Math.round(dist)} m`, `al centro de tu escuadra en promedio: ${squadDistanceLabel(dist)}`);
     const weapons = aggregateByLabel(d.kill_weapons, weaponModel, { exclude: c => c === '?' || ['vehicle', 'unknown'].includes(weaponKind(c)) });
     if (weapons.length) tile('Arma principal', weapons[0][0], `<b>${formatNumber(weapons[0][1])}</b> kills`);
     const maps = Object.entries(d.per_map_stats || {}).filter(([, s]) => (s.rounds || 0) >= 3 && (s.wins || 0) + (s.losses || 0) > 0)
@@ -527,7 +590,7 @@ async function insightsHTML(d) {
         const [best, bs, other, os] = ow >= bw ? ['OPFOR', f.opfor, 'BLUFOR', f.blufor] : ['BLUFOR', f.blufor, 'OPFOR', f.opfor];
         tile('Bando', best, `<b>${pctTxt(fw(bs))}</b> victorias y ${f2(bs.avg_kpr)} kills/ronda · ${other} ${pctTxt(fw(os))} y ${f2(os.avg_kpr)}`);
     }
-    if (d.lives) tile('Vida promedio', fmtDuration(d.alive_seconds / d.lives), 'por vida');
+    if (avgLife(d)) tile('Vida promedio', fmtDuration(avgLife(d)), 'por vida');
     if (tiles.length < 3) return '';
     return `<div class="pv-head"><h4 class="profile-subtitle">Datos de tus demos</h4><span class="profile-muted">${formatNumber(d.rounds_played)} rondas</span></div>
         <div class="pv-insights">${tiles.slice(0, 8).join('')}</div>
@@ -640,6 +703,14 @@ async function enrichWithDemo(player, cmp) {
     const reading = document.getElementById('pv-reading');
     if (reading) reading.textContent = readingText(d, glance, formTrend(pr, d), player);
     fill('pv-insights', ins);
+    const hist = document.getElementById('pv-history');
+    fill('pv-history', historyHTML(pr));
+    if (hist) {
+        hist.onclick = (e) => {
+            const b = e.target.closest('.pv-history-more');
+            if (b) hist.innerHTML = historyHTML(pr, Number(b.dataset.shown) + HISTORY_PAGE);
+        };
+    }
 }
 
 /** Player search init: form submit + autocomplete. */

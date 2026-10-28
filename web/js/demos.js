@@ -10,6 +10,7 @@ import {
     escapeHtml, formatNumber, fmtDuration, aggregateByLabel, findPlayer, kitUsage,
     kitLabel, weaponModel, weaponKind, vehicleLabel, mapLabel, gamemodeLabel,
     seatLabel, weaponVehicle, isVehicleKill, assetCategory, vehicleIconHTML, vehicleIconByName,
+    squadNear, squadDistance, squadDistanceLabel, avgLife,
 } from './utils.js';
 
 // Weapons that aren't a personal firearm (environmental, vehicle-mounted). If
@@ -64,9 +65,9 @@ function tabResumen(p) {
     const weapons = aggregateByLabel(p.kill_weapons, weaponModel, { exclude: _NON_INFANTRY });
     const favKit = kits.length ? kits[0][0] : '—';
     const favWeapon = weapons.length ? weapons[0][0] : '—';
-    const lives = p.lives || 0, aliveS = p.alive_seconds || 0;
+    const life = avgLife(p), aliveS = life ? p.alive_seconds : 0;
     const head = [];
-    if (lives) head.push(['Vida promedio', fmtDuration(aliveS / lives)]);
+    if (life) head.push(['Vida promedio', fmtDuration(life)]);
     if (aliveS) head.push(['Kills/min (vida)', (kills / (aliveS / 60)).toFixed(2)]);
     if (p.best_killstreak) head.push(['Mejor racha', `${p.best_killstreak} sin morir`]);
 
@@ -87,13 +88,13 @@ function tabResumen(p) {
 }
 
 function tabCombate(p) {
-    const lives = p.lives || 0, aliveS = p.alive_seconds || 0, kills = p.total_kills || 0;
+    const life = avgLife(p), lives = life ? p.lives : 0, aliveS = life ? p.alive_seconds : 0, kills = p.total_kills || 0;
     const has = lives || p.best_killstreak || p.total_clutch_kills || p.total_first_bloods
         || p.total_teamkills || p.total_suicides_demo;
     if (!has) return emptyTab();
     const rows = [];
     if (lives) {
-        rows.push(statRow('Vida promedio', fmtDuration(aliveS / lives) + ` <small>(${lives} vidas)</small>`));
+        rows.push(statRow('Vida promedio', fmtDuration(life) + ` <small>(${lives} vidas)</small>`));
         rows.push(statRow('Kills/min con vida', aliveS ? (kills / (aliveS / 60)).toFixed(2) : '—'));
     }
     rows.push(statRow('🔥 Mejor racha', `${p.best_killstreak || 0} kills sin morir`));
@@ -194,14 +195,12 @@ async function tabSinergia(p) {
 
     // Cohesión + % escuadra (de player_details, siempre disponibles si hay data nueva)
     const extra = [];
-    if (p.rounds_with_squad_data) {
-        const pct = (p.rounds_in_squad || 0) / p.rounds_with_squad_data * 100;
-        extra.push(statRow('👥 En escuadra', `${pct.toFixed(0)}% de las rondas <small>(${p.rounds_with_squad_data} con dato)</small>`));
+    const near = squadNear(p), dist = squadDistance(p);
+    if (near != null) {
+        extra.push(statRow('👥 Junto a su escuadra', `${Math.round(near * 100)}% del tiempo vivo <small>(un compañero a 50 m o menos)</small>`));
     }
-    if ((p.cohesion_samples || 0) >= 20) {
-        const coh = p.cohesion_sum / p.cohesion_samples;
-        const lbl = coh < 150 ? 'muy unida' : coh < 300 ? 'unida' : coh < 600 ? 'dispersa' : 'muy dispersa';
-        extra.push(statRow('🧭 Cohesión de escuadra', `${escapeHtml(lbl)} <small>(${coh.toFixed(0)}m al centro)</small>`));
+    if (dist != null) {
+        extra.push(statRow('🧭 Distancia a su escuadra', `${escapeHtml(squadDistanceLabel(dist))} <small>(${dist.toFixed(0)} m al centro)</small>`));
     }
     const extraHtml = extra.length ? `<div class="stat-grid">${extra.join('')}</div>` : '';
 

@@ -10,7 +10,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, loadPlayerHeatmap, state } from './data.js';
-import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, weaponKind } from './utils.js';
+import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, modeLayerLabel, weaponKind } from './utils.js';
 import { MAP_IMG_URL } from './config.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
@@ -427,14 +427,14 @@ export async function initHeatmaps() {
             if (!full) { vp.density = null; resetView(); if (meta) meta.innerHTML = '<span class="empty-state">No se pudo cargar esa ronda.</span>'; return; }
             layers = gridRound(full, hm.grid_size || 128);
             vp.mapSize = full.map_size || hm.map_size || 0;
-            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}`;
+            ctxNote = `ronda ${escapeHtml(r.date)} · ${escapeHtml(modeLayerLabel(r.gamemode))}`;
         } else {
             if (gmSel) gmSel.disabled = false;
             const gm = gmSel ? gmSel.value : null;
             layers = gamemodeLayers(hm, gm);
             vp.mapSize = hm.map_size || 0;
             const rounds = (hm.gamemodes ? (hm.gamemodes[gm]?.rounds) : hm.rounds) || 0;
-            ctxNote = (gm ? `${escapeHtml(gamemodeLabel(gm))} · ` : '') + `${formatNumber(rounds)} rondas`;
+            ctxNote = (gm ? `${escapeHtml(modeLayerLabel(gm))} · ` : '') + `${formatNumber(rounds)} rondas`;
         }
         vp.flags = layers.flags || [];
 
@@ -489,7 +489,7 @@ export async function initHeatmaps() {
             const gms = hm.gamemodes ? Object.keys(hm.gamemodes) : [];
             gmSel.innerHTML = gms.length
                 ? gms.sort((a, b) => (hm.gamemodes[b].deaths?.kills || 0) - (hm.gamemodes[a].deaths?.kills || 0))
-                     .map(gm => `<option value="${escapeHtml(gm)}">${escapeHtml(gamemodeLabel(gm))}</option>`).join('')
+                     .map(gm => `<option value="${escapeHtml(gm)}">${escapeHtml(modeLayerLabel(gm))}</option>`).join('')
                 : '<option value="">Todos los modos</option>';   // formato viejo (v1): un solo set
             gmSel.value = defaultGamemode(hm) || '';
             gmSel.disabled = !gms.length;
@@ -498,7 +498,7 @@ export async function initHeatmaps() {
             // hm.rounds es un array (v2) o un número (v1); solo iteramos el array.
             const rs = Array.isArray(hm.rounds) ? hm.rounds.slice(0, 80) : [];
             roundSel.innerHTML = '<option value="all">Todas las rondas</option>'
-                + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)} · ${escapeHtml(gamemodeLabel(r.gamemode))}</option>`).join('');
+                + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)} · ${escapeHtml(modeLayerLabel(r.gamemode))}</option>`).join('');
             roundSel.value = 'all';
             roundSel.disabled = !rs.length;
         }

@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRecentMatches } from './data.js';
-import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel } from './utils.js';
+import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel, serverLabel } from './utils.js';
 import { tableHTML } from './ui.js';
 
 /** Ganador como chip (1=blufor, 2=opfor, otro=empate), igual que en el Inicio. */
@@ -40,6 +40,7 @@ async function renderRecentMatches() {
         [
             { label: 'Fecha', width: '120px' },
             { label: 'Mapa', width: 'minmax(0,2fr)' },
+            { label: 'Servidor', width: 'minmax(0,2fr)' },
             { label: 'Modo', width: 'minmax(0,1fr)' },
             { label: 'Ganador', width: 'minmax(0,1fr)' },
             { label: 'Kills', width: '80px', align: 'end' },
@@ -47,11 +48,12 @@ async function renderRecentMatches() {
         matches.map((r) => [
             `<span class="dtable-muted">${escapeHtml(matchDateLabel(r.filename) || '—')}</span>`,
             `<span class="dtable-name">${escapeHtml(mapLabel(r.map_name))}</span>`,
+            `<span class="dtable-muted" title="${escapeHtml(r.server_name || '')}">${escapeHtml(serverLabel(r.server_name) || '—')}</span>`,
             `<span class="dtable-chip">${escapeHtml(gamemodeLabel(r.gamemode) || '—')}</span>`,
             winnerLabel(r),
             formatNumber(r.total_kills || 0),
         ]),
-        { minWidth: 600, caption: 'Partidas recientes' },
+        { minWidth: 760, caption: 'Partidas recientes' },
     );
     return true;
 }

@@ -23,6 +23,16 @@ from bot.config import (
 logger = logging.getLogger(__name__)
 
 
+
+def _clean_times(p: dict) -> None:
+    """Rondas con el encabezado del servidor corrupto sumaban tiempos absurdos
+    (vidas de 10^20 s). Si el total no tiene sentido se descarta el dato de tiempo."""
+    alive, played = p.get("alive_seconds") or 0, p.get("played_seconds") or 0
+    rounds = max(p.get("rounds_played") or 0, 1)
+    if played > rounds * 8 * 3600 or alive > played * 1.05 + 1:
+        p["alive_seconds"] = p["played_seconds"] = 0
+        p["lives"] = 0
+
 class DataFetcher:
     """Cached async HTTP client for fetching JSON data from GitHub Pages.
 
@@ -135,7 +145,11 @@ class DataFetcher:
 
     async def fetch_player_details(self):
         """Fetch the aggregated player details JSON (from demos)."""
-        return await self.fetch_json(demo_player_details_url())
+        data = await self.fetch_json(demo_player_details_url())
+        if isinstance(data, list):
+            for p in data:
+                _clean_times(p)
+        return data
 
     async def fetch_synergy(self):
         """Fetch the duo-synergy JSON (from demos)."""

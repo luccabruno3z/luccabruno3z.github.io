@@ -3,7 +3,8 @@
    See .rebuild/CONTRACT.md §2.8 and FEATURE_API.md (team notes).
    ═══════════════════════════════════════════════════════════════════════════ */
 
-import { state } from './data.js';
+import { state, loadDemoData, loadSynergy } from './data.js';
+import { buildSquad, rosterHTML } from './squads.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 import { renderTeamRadar } from './charts.js';
 import {
@@ -44,7 +45,7 @@ function playerCard(p) {
         </div>`;
 }
 
-function performTeamAnalysis() {
+async function performTeamAnalysis() {
     const results = document.getElementById('team-results');
     if (!results) return;
 
@@ -62,6 +63,10 @@ function performTeamAnalysis() {
     const avgDPR = teamAverage(team, 'Deaths per Round');
 
     const cards = team.map(playerCard).join('');
+    results.innerHTML = '<div class="empty-state">Analizando…</div>';
+    try { await loadDemoData(); } catch (_) { /* las demos son opcionales */ }
+    const synergy = await loadSynergy().catch(() => null);
+    const squad = buildSquad(`Tu equipo (${team.length} jugadores)`, team, synergy, false);
 
     results.innerHTML = `
         <div class="card team-aggregates">
@@ -73,6 +78,7 @@ function performTeamAnalysis() {
             <div class="stat-row"><span class="stat-label">Kills totales</span><span class="stat-value">${formatNumber(totalKills)}</span></div>
             <div class="stat-row"><span class="stat-label">Muertes totales</span><span class="stat-value">${formatNumber(totalDeaths)}</span></div>
         </div>
+        ${rosterHTML(squad, false)}
         <div class="team-player-cards">${cards}</div>
         <div class="team-radar-wrapper"></div>`;
 

@@ -24,6 +24,7 @@ import re
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
+from .aliases import resolve_kit
 from .config import DEMOS_DIR
 
 logger = logging.getLogger(__name__)
@@ -246,6 +247,24 @@ def _longest_substring(haystack: str, candidates) -> str | None:
     return best
 
 
+# Algunos demos traen el encabezado del servidor corrupto (p.ej. 35 millones de
+# segundos por tick → "vida promedio" de 10^20 s). PR graba a 0,3 s por tick.
+MAX_TIME_PER_TICK = 2.0
+MAX_ROUND_SECONDS = 8 * 3600
+
+
+def round_time_per_tick(rd: dict) -> float:
+    """Segundos por tick de la ronda, o 0 si falta o es absurdo."""
+    t = rd.get("demo_time_per_tick", 0) or 0
+    return t if 0 < t <= MAX_TIME_PER_TICK else 0
+
+
+def round_duration(rd: dict) -> float:
+    """Duración de la ronda en segundos, o 0 si falta o es absurda."""
+    d = rd.get("duration_seconds", 0) or 0
+    return d if 0 < d <= MAX_ROUND_SECONDS and round_time_per_tick(rd) else 0
+
+
 def _round_dt(filename: str):
     """Parse a demo *filename* into a tz-aware datetime (UTC-3), or None."""
     m = _ROUND_DT_RE.match(filename or "")
@@ -317,11 +336,46 @@ def build_leaderboards(rounds: list[dict], clan_player_names: set | None) -> Non
         )
 
 
+_SERVER_VERSION_RE = re.compile(r"^\s*\[PR v[^\]]*\]\s*", re.I)
+_SERVER_SPLIT_RE = re.compile(r"\s+[|\u2013-]\s+")
+_SERVER_LINK_RE = re.compile(r"discord\.gg|^\S+\.(com|org|net|ru|br|dev)(/\S*)?$", re.I)
+_TIME_RE = re.compile(r"^tracker_\d{4}_\d{2}_\d{2}_(\d{2})_(\d{2})")
+
+
+def server_label(name: str) -> str:
+    """'[PR v1.9.0.1] [ENG] Alliance EU | alliance-community.com' → '[ENG] Alliance EU'.
+
+    Saca la versión y los dominios o links de Discord, salvo que el dominio sea el
+    nombre ('REALITYBRASIL.org | Foxtrot' → 'REALITYBRASIL.org · Foxtrot'). Igual
+    que serverLabel() de la web.
+    """
+    parts = [x.strip() for x in _SERVER_SPLIT_RE.split(_SERVER_VERSION_RE.sub("", name or "")) if x.strip()]
+    return " · ".join(x for i, x in enumerate(parts) if i == 0 or not _SERVER_LINK_RE.search(x))
+
+
+def _round_time(filename: str) -> str:
+    m = _TIME_RE.match(filename or "")
+    return f"{m.group(1)}:{m.group(2)}" if m else ""
+
+
+def _main_kit(pdata: dict) -> str:
+    """Kit con el que más jugó la ronda (tiempo vivo; si no hay, kills + muertes)."""
+    use = dict(pdata.get("kit_alive_ticks") or {})
+    if not use:
+        for src in ("kit_kills", "kit_deaths"):
+            for k, v in (pdata.get(src) or {}).items():
+                use[k] = use.get(k, 0) + v
+    if not use:
+        return ""
+    return resolve_kit(max(use, key=use.get)) or ""
+
+
 def build_player_rounds(rounds: list[dict], clan_player_names: set | None) -> None:
     """Write each clan player's per-round timeline for the web profile view.
 
-    ``player_rounds/<safe_name>.json`` holds ``{player, rounds:[{date, map,
-    gamemode, kills, deaths, score, won}]}`` sorted chronologically, plus an
+    ``player_rounds/<safe_name>.json`` holds ``{player, rounds:[{date, time, map,
+    gamemode, server, faction, kit, kills, deaths, score, revives, won}]}`` sorted
+    chronologically (rondas viejas sin kit por evento no traen ``kit``), plus an
     ``index.json`` mapping each player to its file + round count.
 
     Files are only rewritten when their content actually changed (past rounds
@@ -338,6 +392,9 @@ def build_player_rounds(rounds: list[dict], clan_player_names: set | None) -> No
         rmap = rd.get("map_name", "unknown")
         gamemode = rd.get("gamemode", "unknown")
         winner = rd.get("winner", -1)
+        rtime = _round_time(rd.get("filename", ""))
+        server = server_label(rd.get("server_name", ""))
+        factions = {1: rd.get("blufor_team", ""), 2: rd.get("opfor_team", "")}
         for pdata in rd.get("players", {}).values():
             ign = pdata.get("ign", "").strip()
             if not ign:
@@ -348,11 +405,16 @@ def build_player_rounds(rounds: list[dict], clan_player_names: set | None) -> No
             team = pdata.get("team", -1)
             by_player[matched].append({
                 "date": rdate,
+                "time": rtime,
                 "map": rmap,
                 "gamemode": gamemode,
+                "server": server,
+                "faction": factions.get(team, ""),
+                "kit": _main_kit(pdata),
                 "kills": pdata.get("kills", 0),
                 "deaths": pdata.get("deaths", 0),
                 "score": pdata.get("score", 0),
+                "revives": pdata.get("revives_given", 0),
                 "won": winner != -1 and team != -1 and winner == team,
             })
 

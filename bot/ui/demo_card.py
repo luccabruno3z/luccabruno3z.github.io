@@ -17,7 +17,7 @@ from bot.assets.kit_mapping import (
 )
 from bot.config import BOT_THUMBNAIL
 from bot.ui.theme import accent_meter, ACCENT, last_seen
-from bot.utils import format_number
+from bot.utils import format_number, squad_near, squad_play_text
 
 
 def _group(raw: dict, namer, exclude=None) -> list[tuple[str, int]]:
@@ -73,13 +73,13 @@ def demo_items(d: dict) -> list[discord.ui.Item]:
         per = f"`{_f2(rg / medic)}` por ronda de médico" if medic else f"`{_f2(rg / max(rounds, 1))}` por ronda"
         blocks.append(f"**Revives** · dados `{rg}` · recibidos `{rr}`\n-# {per}")
 
-    ris, rws = d.get("rounds_in_squad", 0) or 0, d.get("rounds_with_squad_data", 0) or 0
     tw, vd = d.get("total_teamwork_score", 0) or 0, d.get("total_vehicles_destroyed", 0) or 0
+    near, sq_txt = squad_near(d), squad_play_text(d)
     team = []
-    if rws:
-        team.append(f"**Teamwork** {accent_meter(ris / rws)} `{ris / rws * 100:.0f}%` de rondas en escuadra")
-    elif tw or vd:
-        team.append("**Teamwork**")
+    if near is not None:
+        team.append(f"**Teamwork** {accent_meter(near)} {sq_txt}")
+    elif sq_txt or tw or vd:
+        team.append("**Teamwork**" + (f" · {sq_txt}" if sq_txt else ""))
     sub = []
     if tw:
         sub.append(f"score `{format_number(tw)}`")
