@@ -61,9 +61,16 @@ En Railway, abrí el servicio y entrá en **Deployments** → el último → **L
 arranque sano muestra que se cargaron los 12 cogs y la cantidad de Application Emojis.
 
 ### Deploy
-Cada push a `main` dispara un build con nixpacks (`nixpacks.toml`, que corre
-`python -m bot`). `.dockerignore` deja fuera de la imagen `graphs/`, `web/`,
-`scraper/` y el resto de lo que el bot no usa.
+La configuración del servicio está en `railway.json` (en el repo, así no depende de lo
+que haya en el panel). Railway redeploya **solo cuando un push cambia archivos del
+bot** (`bot/`, `logos/`, `requirements.txt`, `nixpacks.toml`, `Procfile`,
+`.dockerignore` o `railway.json`). Antes, cada commit del scraper redeployaba y
+reiniciaba el bot, varias veces por día. Si agregás una carpeta nueva que use el bot,
+sumala a `watchPatterns`.
+
+El build usa nixpacks (`nixpacks.toml`, que corre `python -m bot`). `.dockerignore`
+deja fuera de la imagen `graphs/`, `web/`, `scraper/` y el resto de lo que el bot no
+usa.
 
 > **Falla con `context deadline exceeded` al exportar la imagen.** Casi siempre es
 > que algo grande entró en la imagen. Revisá que `.dockerignore` siga excluyendo
@@ -85,8 +92,8 @@ ejemplo, discord.py:
   10 minutos y el bot le manda un heartbeat a Discord cada ~40 segundos. Si alguna vez
   aparece offline sin errores en el log, lo primero es redeployarlo. En un plan pago,
   conviene desactivarlo.
-- **Restart policy "Always".** Si el proceso se cae, Railway lo vuelve a levantar sin
-  límite de reintentos.
+- **Restart policy "Always"** (en `railway.json`). Si el proceso se cae, Railway lo
+  vuelve a levantar sin límite de reintentos.
 
 ### Rollback
 Railway → Deployments → elegí el último deploy sano → **Redeploy**. Después revertí
