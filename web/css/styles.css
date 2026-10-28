@@ -3222,3 +3222,28 @@ body .cta-button.ghost:hover {
 .pv-maps[open] summary::before { transform: rotate(90deg); }
 .pv-maps[open] summary { margin-bottom: 12px; }
 .pv-table td.pv-bad { color: var(--danger); }
+/* Diagramas animados (figs.py): leyenda, pasos y elementos nuevos */
+.g-fig .step { fill: var(--text); font: 700 12px var(--font-body); }
+.g-fig .leg { fill: var(--text-muted); font: 11px var(--font-body); dominant-baseline: central; }
+.g-fig .hit { fill: none; stroke: var(--danger); stroke-width: 3; }
+.g-fig .phase-on { fill: rgba(0, 255, 255, 0.16); stroke: var(--accent); stroke-width: 2; }
+.g-fig .node-on { fill: rgba(0, 255, 255, 0.22); stroke: var(--accent); stroke-width: 3; }
+.g-fig .fog { fill: rgba(200, 205, 215, 0.22); }
+.g-fig .aim { stroke: var(--text-muted); stroke-width: 2; stroke-linecap: round; }
+.g-fig .ping { fill: none; stroke: var(--gold); stroke-width: 2.5; }
+.g-fig .arm-strong { fill: rgba(0, 255, 136, 0.45); stroke: var(--success); }
+.g-fig .arm-mid { fill: rgba(255, 170, 0, 0.28); stroke: var(--warning); }
+.g-fig .arm-weak { fill: rgba(255, 68, 102, 0.55); stroke: var(--danger); }
+.g-fig .gun { stroke: var(--text); stroke-width: 4; stroke-linecap: round; }
+.g-fig .heli { fill: var(--accent); stroke: var(--accent); stroke-width: 2; }
+.g-fig .road { stroke: rgba(255, 255, 255, 0.18); stroke-width: 10; }
+.g-fig .crate { fill: var(--secondary); stroke: var(--bg); }
+.g-fig .laser { stroke: var(--danger); stroke-width: 1.5; stroke-dasharray: 3 2; }
+.g-fig .arc { fill: none; stroke: var(--text-dim); stroke-width: 1; stroke-dasharray: 2 4; }
+.g-fig .shell { fill: var(--text); }
+.g-fig .boom { fill: rgba(255, 165, 0, 0.55); stroke: var(--warning); }
+.g-fig figcaption::before { content: "▶ animado · "; color: var(--accent); font-weight: 700; }
+.g-fig.is-static figcaption::before { content: ""; }
+.guide-body img.g-veh { width: 26px; height: 26px; vertical-align: middle; image-rendering: pixelated; margin-right: 4px; }
+.g-veh-table td:first-child { width: 40px; }
+.guide-body img.g-veh { display: inline-block; }

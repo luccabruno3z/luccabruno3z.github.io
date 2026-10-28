@@ -17,6 +17,7 @@ export const GUIDES = [
     { slug: 'urbano', title: 'Combate urbano', short: 'Combate urbano' },
     { slug: 'cqb', title: 'CQB: combate en espacios cerrados', short: 'CQB' },
     { slug: 'mapas', title: 'Guía de mapas', short: 'Mapas' },
+    { slug: 'assets', title: 'Assets: vehículos, emplazamientos y logística', short: 'Assets' },
 ];
 
 const SITE_TITLE = 'Legión de Hierro — Stats Tracker';
@@ -75,6 +76,23 @@ function render(reader, guide, html) {
         list.appendChild(li);
     });
     if (window.matchMedia('(max-width: 900px)').matches) reader.querySelector('.guide-toc details').open = false;
+    prepareFigures(body);
+}
+
+/** Diagramas: los que no tienen animación se marcan como estáticos; con "reducir
+ *  movimiento" los animados se muestran quietos en su estado final (data-end). */
+function prepareFigures(body) {
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    body.querySelectorAll('figure.g-fig').forEach((fig) => {
+        const svg = fig.querySelector('svg');
+        const end = svg && parseFloat(svg.dataset.end);
+        if (!svg || !end) { fig.classList.add('is-static'); return; }
+        if (reduce && typeof svg.pauseAnimations === 'function') {
+            svg.pauseAnimations();
+            svg.setCurrentTime(end - 0.05);
+            fig.classList.add('is-static');
+        }
+    });
 }
 
 async function route() {

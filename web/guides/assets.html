@@ -1,0 +1,171 @@
+<header>
+    <h1>Assets: vehículos, emplazamientos y logística</h1>
+    <p class="guide-lead">Qué es cada vehículo, quién lo puede usar, dónde pegarle, cómo se opera un blindado y un helicóptero, y cómo se sostiene todo con logística, emplazamientos y morteros.</p>
+    <p class="guide-src">Fuentes: <a href="https://www.realitymod.org/manual/en/operating_vehicles.html" target="_blank" rel="noopener">Operating Vehicles</a>, <a href="https://www.realitymod.org/manual/en/vehicle_icons.html" target="_blank" rel="noopener">Vehicle Icons</a> y <a href="https://www.realitymod.org/manual/en/the_squad_leader.html" target="_blank" rel="noopener">The Squad Leader</a> del manual oficial; la traducción comunitaria del manual (tickets y tiempos de calentamiento); los manuales de vehículos, de campo y el tutorial de mortero de la comunidad. Íconos: los del minimapa del juego.</p>
+</header>
+
+<h2>Qué pesan los assets en una partida</h2>
+<p>En las rondas con demo de nuestra comunidad (casi 13.000 rondas), <strong>el 14 % de todas las bajas se hacen desde un asset</strong>: un 9 % desde vehículos terrestres, un 4 % desde emplazamientos y un 2 % desde aeronaves. Lo que más mata no son los tanques:</p>
+<div class="g-table-wrap"><table class="g-table">
+    <thead><tr><th>Asset</th><th>Bajas en nuestras demos</th></tr></thead>
+    <tbody>
+        <tr><td><img class="g-veh" src="web/img/vehicles/stw_tripodmg.png" alt="" width="32" height="32"> Ametralladora pesada .50 (M2HB)</td><td class="n">34.475</td></tr>
+        <tr><td><img class="g-veh" src="web/img/vehicles/stw_mortar.png" alt="" width="32" height="32"> Mortero M252</td><td class="n">28.383</td></tr>
+        <tr><td><img class="g-veh" src="web/img/vehicles/ifv_medium.png" alt="" width="32" height="32"> BMP-2</td><td class="n">17.972</td></tr>
+        <tr><td><img class="g-veh" src="web/img/vehicles/apc_medium.png" alt="" width="32" height="32"> AAVP7A1</td><td class="n">17.613</td></tr>
+        <tr><td><img class="g-veh" src="web/img/vehicles/apc_medium.png" alt="" width="32" height="32"> Namer</td><td class="n">17.231</td></tr>
+        <tr><td><img class="g-veh" src="web/img/vehicles/stw_mortar.png" alt="" width="32" height="32"> Mortero 2B14 Podnos</td><td class="n">16.606</td></tr>
+    </tbody>
+</table></div>
+<p>Y lo que más se pierde son los vehículos livianos: <strong>jeeps (32 % de los vehículos destruidos) y camiones (27 %)</strong>, con los camiones logísticos a la cabeza. Cada uno que cae es un FOB que no se arma.</p>
+
+<h2>Clases de vehículos</h2>
+<p>Cada vehículo propio aparece en el mapa con su ícono. Los enemigos no se pueden usar.</p>
+<div class="g-table-wrap"><table class="g-table g-veh-table">
+    <thead><tr><th></th><th>Clase</th><th>Kit para manejarlo</th><th>Qué lo frena</th></tr></thead>
+    <tbody>
+<tr><td><img class="g-veh" src="web/img/vehicles/jep_mg.png" alt="Jeep" width="32" height="32"></td><td><strong>Jeep</strong><br><span class="guide-src">Transporte rápido de una parte de la escuadra; algunos con ametralladora, lanzagranadas o ATGM. Pueden soltar cajas de munición.</span></td><td>Ninguno (salvo jeeps blindados)</td><td>Fusiles 7,62 en adelante, LAT, .50</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/trk_logi.png" alt="Camión de transporte y logístico" width="32" height="32"></td><td><strong>Camión de transporte y logístico</strong><br><span class="guide-src">El de transporte lleva una escuadra y suelta una caja chica. El logístico lleva 2 soldados y suelta 2 cajas pesadas y estaciones de reparación.</span></td><td>Ninguno</td><td>Casi cualquier arma; LAT</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/tec_50.png" alt="Technical" width="32" height="32"></td><td><strong>Technical</strong><br><span class="guide-src">Camionetas de los bandos irregulares con ametralladora, cohetes o SPG-9.</span></td><td>Ninguno</td><td>Igual que un camión</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/apc_medium.png" alt="APC" width="32" height="32"></td><td><strong>APC</strong><br><span class="guide-src">Blindado de transporte: 2 tripulantes y 6 pasajeros. Poco armamento, ideal para llevar y cubrir infantería. Se pueden pedir kits en sus escotillas.</span></td><td>Tripulante</td><td>.50 sostenida, LAT al costado o atrás</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/ifv_medium.png" alt="IFV" width="32" height="32"></td><td><strong>IFV</strong><br><span class="guide-src">Mejor armado que un APC: cañón de 20-30 mm y, muchas veces, misil anti-tanque. Algunos no llevan pasajeros (reconocimiento).</span></td><td>Tripulante</td><td>LAT atrás, HAT, otro IFV o tanque</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/atm_medium.png" alt="Vehículo ATGM" width="32" height="32"></td><td><strong>Vehículo ATGM</strong><br><span class="guide-src">Lanzador de misiles anti-tanque; no lleva infantería.</span></td><td>Tripulante</td><td>Cualquier anti-tanque; casi sin defensa de cerca</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/tnk_heavy.png" alt="Tanque" width="32" height="32"></td><td><strong>Tanque</strong><br><span class="guide-src">El blindado más pesado: munición perforante (AP), explosiva (HE) y ametralladora coaxial.</span></td><td>Tripulante</td><td>HAT, otro tanque, ATGM; LAT solo atrás o arriba</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/aav_medium.png" alt="Antiaéreo móvil" width="32" height="32"></td><td><strong>Antiaéreo móvil</strong><br><span class="guide-src">Blindados livianos con misiles o cañones contra aviones y helicópteros.</span></td><td>Tripulante</td><td>Cualquier anti-tanque</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/the_medium.png" alt="Helicóptero de transporte" width="32" height="32"></td><td><strong>Helicóptero de transporte</strong><br><span class="guide-src">Lleva escuadras y cajas de suministros; muchos tienen ametralladoras de puerta.</span></td><td>Piloto</td><td>AA, HMG, cohetes en el aterrizaje</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/ahe_heavy.png" alt="Helicóptero de ataque" width="32" height="32"></td><td><strong>Helicóptero de ataque</strong><br><span class="guide-src">Cañón, cohetes y misiles guiados. Los de reconocimiento marcan blancos con láser.</span></td><td>Piloto</td><td>AA, jets</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/jet_2_attack.png" alt="Avión" width="32" height="32"></td><td><strong>Avión</strong><br><span class="guide-src">Ataque, caza o cazabombardero. Necesita que la infantería marque el blanco con láser para atacar con armas guiadas.</span></td><td>Piloto</td><td>AA, otros aviones</td></tr>
+<tr><td><img class="g-veh" src="web/img/vehicles/shp_light.png" alt="Bote" width="32" height="32"></td><td><strong>Bote</strong><br><span class="guide-src">Desde lanchas sin armas hasta patrulleras y botes de desembarco.</span></td><td>Ninguno</td><td>Ametralladoras, LAT</td></tr>
+    </tbody>
+</table></div>
+<h3>Lo que cuesta perderlos</h3>
+<p>Además del tiempo sin ese vehículo (los pesados tardan cerca de 20 minutos en volver), cada uno destruido le cuesta tickets al equipo:</p>
+<div class="g-table-wrap"><table class="g-table">
+    <thead><tr><th>Vehículo destruido</th><th>Tickets</th></tr></thead>
+    <tbody><tr><td>Jeep o camión</td><td class="n">2</td></tr>
+<tr><td>Helicóptero de transporte</td><td class="n">5</td></tr>
+<tr><td>APC, AAV o reconocimiento</td><td class="n">5</td></tr>
+<tr><td>Tanque o IFV</td><td class="n">10</td></tr>
+<tr><td>Avión o helicóptero de ataque</td><td class="n">10</td></tr></tbody>
+</table></div>
+<p class="guide-src">Tickets y tiempo de reaparición según la traducción comunitaria del manual; pueden variar por mapa y versión.</p>
+
+<h2>Tripulación y kits</h2>
+<ul>
+    <li>Jeeps, camiones, botes y la mayoría de los vehículos livianos los maneja cualquiera. Los <strong>blindados piden el kit de Tripulante</strong> y los <strong>helicópteros y aviones, el de Piloto</strong>. Se piden en el vehículo o en una caja de suministros.</li>
+    <li>Sin el kit, el asiento de conductor o artillero se ve en negro; si no te bajás en unos segundos, morís.</li>
+    <li>Conductor y artillero tienen que estar <strong>en la misma escuadra</strong>, igual que la tripulación de un helicóptero. Un piloto no puede ir de pasajero: tiene que soltar el kit.</li>
+    <li>Con <kbd>F8</kbd> cambiás al siguiente asiento libre (en servidores públicos).</li>
+    <li>Bajarte de un vehículo en movimiento te lastima según la velocidad; bajarte de uno que se incendia te deja muy herido.</li>
+</ul>
+<h3>Tiempos de calentamiento</h3>
+<div class="g-table-wrap"><table class="g-table">
+    <thead><tr><th>Arma</th><th>Tiempo antes de poder usarla</th></tr></thead>
+    <tbody>
+        <tr><td>Ametralladora</td><td class="n">5 s</td></tr>
+        <tr><td>Misil antiaéreo</td><td class="n">5 s</td></tr>
+        <tr><td>Anti-tanque fijo</td><td class="n">10 s</td></tr>
+        <tr><td>Cañón principal de un blindado</td><td class="n">30 s</td></tr>
+    </tbody>
+</table></div>
+<p>Un tanque que recién cambia de tripulante no dispara durante 30 segundos: no te subas a la torreta en medio de una pelea.</p>
+
+<h2>Dónde pegarle a un blindado</h2>
+<figure class="g-fig"><svg viewBox="0 0 420 230" role="img" aria-label="Blindaje de un tanque visto desde arriba: frente y torreta fuertes, costados medios, atrás y arriba débiles. Tres disparos anti-tanque llegan en secuencia desde el frente, el costado y atrás." data-end="10.0"><rect class="arm-mid" x="150" y="70" width="150" height="80" rx="6"/><rect class="arm-strong" x="290" y="70" width="14" height="80"/><rect class="arm-weak" x="146" y="70" width="12" height="80"/><circle class="arm-strong" cx="228" cy="110" r="24"/><line class="gun" x1="250" y1="110" x2="360" y2="110"/><text class="txt" x="300" y="64">frente: fuerte</text><text class="txt" x="190" y="164">costado: medio</text><text class="txt" x="80" y="64">atrás: débil</text><circle class="op" cx="400" cy="150" r="7"/><g opacity="0"><line class="fire" x1="394" y1="146" x2="306" y2="120"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.010;0.050;0.300;0.340;1"/></g><g opacity="0"><text class="step" x="14" y="214">1. De frente: casi no le hace daño</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.030;0.050;0.330;0.350;1"/></g><circle class="op" cx="225" cy="214" r="7"/><g opacity="0"><line class="fire" x1="225" y1="206" x2="225" y2="152"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.320;0.360;0.620;0.660;1"/></g><g opacity="0"><text class="step" x="14" y="214">2. Al costado: daño medio</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.340;0.360;0.640;0.660;1"/></g><circle class="op" cx="60" cy="110" r="7"/><g opacity="0"><line class="fire" x1="68" y1="110" x2="146" y2="110"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.640;0.680;0.950;0.990;1"/></g><g opacity="0"><text class="step" x="14" y="214">3. Atrás: lo más débil</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.660;0.680;1"/></g><g opacity="0"><path class="hit" d="M136 96 l20 28 M156 96 l-20 28"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.740;0.780;1"/></g></svg><figcaption>Dónde pegarle a un blindado: el frente y la torreta son lo más fuerte; los costados y las orugas, intermedios; atrás y arriba, lo más débil. Un solo disparo atrás puede inutilizarlo.</figcaption></figure>
+<ul>
+    <li><strong>El LAT</strong> es para vehículos livianos y transportes. Contra un tanque solo sirve atrás o arriba.</li>
+    <li><strong>El HAT</strong> (uno por equipo) y los <strong>ATGM</strong> son lo que destruye tanques. Un misil guiado por cable necesita unos 7 segundos con el lanzador quieto.</li>
+    <li><strong>Los blindados no reciben ninguna alarma</strong> cuando los apunta un cohete o un misil: la sorpresa es tuya.</li>
+    <li>La .50 desgasta jeeps blindados y APC livianos con fuego sostenido; contra un tanque no sirve.</li>
+</ul>
+
+<h2>Operar un blindado</h2>
+<h3>Munición y vista</h3>
+<ul>
+    <li><strong>AP</strong> (perforante) contra blindados, <strong>HE</strong> (<kbd>2</kbd>) contra infantería y objetivos blandos, <strong>misil</strong> (<kbd>3</kbd>) contra blindaje pesado y <strong>coaxial</strong> (<kbd>F</kbd>) contra infantería. Cambiar de munición tiene una demora: elegí antes de necesitarla.</li>
+    <li><kbd>X</kbd> hace zoom; la vista térmica se activa en el menú de radio (<kbd>T</kbd> → DAY / THERMAL). Con <kbd>2</kbd> algunos tanques, APC e IFV tienen vista de comandante de 360°.</li>
+    <li><strong>Humo:</strong> el artillero tiene dos salvas rápidas y después espera 60 segundos para las otras dos. Algunos humos tapan la térmica; los de vehículos viejos no.</li>
+    <li>Los conductores de APC, IFV y algunos transportes pueden soltar <strong>cajas de munición</strong> con clic derecho.</li>
+</ul>
+<h3>Sistema de tiro y distancia</h3>
+<ul>
+    <li>Las miras vienen calibradas para disparar directo hasta unos 150 m. Más lejos hay que compensar la caída.</li>
+    <li>En vehículos con telémetro láser, <kbd>C</kbd> mide la distancia y ajusta la mira sola: tiene 1 segundo de espera, no mide a menos de 150 m (muestra "v v v v") y tiene un error de ±5 m.</li>
+    <li>Para ajustar a mano, mantené <kbd>Q</kbd> y sumá distancia. Si el blanco está fuera de alcance, los números se ponen rojos o aparece "^ ^ ^ ^".</li>
+    <li>Los misiles guiados no necesitan calcular distancia.</li>
+</ul>
+<h3>Posición: casco oculto</h3>
+<figure class="g-fig"><svg viewBox="0 0 420 240" role="img" aria-label="Posición de casco oculto vista de costado: un tanque detrás de una loma muestra solo la torreta; otro arriba de la loma queda expuesto entero." data-end="10.0"><path class="ground" d="M0 170 Q140 120 220 120 Q300 122 420 168 L420 230 L0 230 Z"/><rect class="op" x="120" y="122" width="56" height="18" rx="4"/><rect class="op" x="134" y="110" width="26" height="12" rx="3"/><line class="gun" x1="160" y1="115" x2="200" y2="113"/><rect class="op2" x="250" y="96" width="56" height="18" rx="4"/><rect class="op2" x="264" y="84" width="26" height="12" rx="3"/><line class="gun" x1="290" y1="89" x2="330" y2="88"/><circle class="en" cx="410" cy="150" r="7"/><g opacity="0"><line class="fire" x1="200" y1="113" x2="402" y2="148"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.010;0.050;0.450;0.490;1"/></g><g opacity="0"><line class="fire" x1="402" y1="146" x2="300" y2="108"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.460;0.500;0.900;0.940;1"/></g><g opacity="0"><text class="step" x="14" y="24">Detrás de la loma: solo asoma la torreta</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.000;0.000;0.480;0.500;1"/></g><g opacity="0"><text class="step" x="14" y="24">Arriba de la loma: expuesto entero</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.460;0.480;1"/></g><circle class="op" cx="14" cy="228" r="5"/><text class="leg" x="23" y="228">casco oculto</text><circle class="op2" cx="99.19999999999999" cy="228" r="5"/><text class="leg" x="108.19999999999999" y="228">expuesto</text><circle class="en" cx="162.0" cy="228" r="5"/><text class="leg" x="171.0" y="228">enemigo</text></svg><figcaption>Hull-down: detrás de una loma, el blindado muestra solo la torreta para disparar y esconde el casco. Arriba de la loma queda entero a la vista y expone la panza.</figcaption></figure>
+<p>Dispará desde atrás de una loma, mostrando solo la torreta, y después de disparar movete: un blindado quieto que ya disparó es el blanco del HAT enemigo.</p>
+
+<h2>Infantería y blindados juntos</h2>
+<figure class="g-fig"><svg viewBox="0 0 420 270" role="img" aria-label="Infantería y blindado en una calle: la infantería avanza adelante y descubre un anti-tanque en una esquina; el blindado, que viene detrás, lo elimina con fuego explosivo." data-end="10.0"><rect class="cover" x="0" y="20" width="420" height="50"/><rect class="cover" x="0" y="150" width="300" height="60"/><rect class="cover" x="330" y="150" width="90" height="60"/><text class="txt" x="14" y="110">calle</text><circle class="en" cx="316" cy="168" r="7"/><g><circle class="op2" cx="0" cy="0" r="7"/><animateMotion dur="10.0s" repeatCount="indefinite" path="M120 100 L240 100" keyTimes="0;0.000;0.400;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g><circle class="op2" cx="0" cy="0" r="7"/><animateMotion dur="10.0s" repeatCount="indefinite" path="M100 126 L222 126" keyTimes="0;0.020;0.420;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g><rect class="op" x="-24" y="-12" width="48" height="24" rx="4"/><line class="gun" x1="10" y1="0" x2="40" y2="0"/><animateMotion dur="10s" repeatCount="indefinite" path="M40 112 L130 112" keyTimes="0;0.05;0.45;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g opacity="0"><circle class="ping" cx="316" cy="168" r="14"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.380;0.420;0.600;0.640;1"/></g><g opacity="0"><line class="fire" x1="172" y1="112" x2="310" y2="164"><animate attributeName="stroke-dashoffset" from="10" to="0" dur="0.5s" repeatCount="indefinite"/></line><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.580;0.620;0.900;0.940;1"/></g><g opacity="0"><path class="hit" d="M306 158 l20 20 M326 158 l-20 20"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.760;0.800;1"/></g><g opacity="0"><text class="step" x="14" y="238">1. La infantería avanza y descubre el anti-tanque</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.000;0.000;0.600;0.620;1"/></g><g opacity="0"><text class="step" x="14" y="238">2. El blindado lo elimina desde atrás</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.580;0.600;1"/></g><circle class="op" cx="14" cy="258" r="5"/><text class="leg" x="23" y="258">blindado</text><circle class="op2" cx="76.8" cy="258" r="5"/><text class="leg" x="85.8" y="258">infantería</text><circle class="en" cx="150.8" cy="258" r="5"/><text class="leg" x="159.8" y="258">anti-tanque</text></svg><figcaption>En la ciudad el blindado va detrás de la infantería, no adelante: la infantería descubre al anti-tanque escondido en la esquina y avisa, y el blindado lo elimina con HE desde una distancia segura.</figcaption></figure>
+<ul>
+    <li>En la ciudad y en el bosque el blindado va <strong>detrás</strong> de la infantería: ella descubre los anti-tanques escondidos y él los elimina desde lejos.</li>
+    <li>En campo abierto es al revés: el blindado adelante, en casco oculto, y la infantería lo sigue para cubrirlo de cerca.</li>
+    <li>Reportá los blindados por su nombre (AAVP, BMP-2, T-72): le dice a todos qué armamento y cuántos asientos tiene.</li>
+    <li>Un blindado detenido mucho tiempo en el mismo lugar es un blindado perdido.</li>
+</ul>
+
+<h2>Helicópteros y aviones</h2>
+<h3>Helicópteros</h3>
+<ul>
+    <li>Al arrancar, mantené el acelerador en mínimo al menos <strong>30 segundos</strong>: con demasiado empuje mientras gira el rotor, se estrella.</li>
+    <li>A poca velocidad gira con los pedales; a alta velocidad, inclinándose.</li>
+    <li>En los de ataque, el piloto dispara los cohetes y el artillero el cañón y los misiles: <strong>LG</strong> (guiado manual, para blancos que se mueven) o <strong>LT</strong> (disparar y olvidar sobre un láser marcado por la infantería; te expone menos).</li>
+    <li>Las <strong>bengalas</strong> (<kbd>X</kbd>) son pocas y hay que rearmar al gastarlas. Para soltar cajas, bajá a menos de 30 m o se rompen.</li>
+    <li>Los helicópteros se reparan y rearman aterrizando en el helipuerto.</li>
+</ul>
+<figure class="g-fig"><svg viewBox="0 0 420 240" role="img" aria-label="Helicóptero de transporte animado: vuela por detrás de las lomas, lejos del objetivo, aterriza en una zona oculta y la escuadra baja y avanza a pie." data-end="10.0"><path class="ground" d="M150 60 Q210 20 270 60 Z"/><path class="ground" d="M150 150 Q230 110 300 150 Z"/><circle class="danger" cx="360" cy="80" r="44"/><text class="txt" x="330" y="140">objetivo</text><path class="path" d="M20 200 Q120 190 200 180"/><g><path class="heli" d="M-16 -6 H16 V6 H-16 Z M-26 -10 H26"/><animateMotion dur="10s" repeatCount="indefinite" path="M20 200 Q120 190 200 180 L200 180 Q120 210 10 220" keyTimes="0;0.05;0.4;0.55;0.85;1" keyPoints="0;0;0.55;0.55;1;1" calcMode="linear"/></g><g opacity="0"><text class="txt" x="176" y="200">LZ</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.000;0.000;1"/></g><g><circle class="op" cx="0" cy="0" r="6"/><animateMotion dur="10.0s" repeatCount="indefinite" path="M200 176 L200 176 Q270 140 320 100" keyTimes="0;0.450;0.950;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g><circle class="op" cx="0" cy="0" r="6"/><animateMotion dur="10.0s" repeatCount="indefinite" path="M212 182 L212 182 Q280 150 330 112" keyTimes="0;0.480;0.980;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g opacity="0"><text class="step" x="14" y="22">1. Entra bajo, por detrás de las lomas</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.000;0.000;0.400;0.420;1"/></g><g opacity="0"><text class="step" x="14" y="22">2. Baja a la escuadra y se va enseguida</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.380;0.400;0.700;0.720;1"/></g><g opacity="0"><text class="step" x="14" y="22">3. El último tramo, a pie</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.680;0.700;1"/></g><circle class="op" cx="14" cy="228" r="5"/><text class="leg" x="23" y="228">escuadra</text><circle class="en" cx="76.8" cy="228" r="5"/><text class="leg" x="85.8" y="228">zona enemiga</text></svg><figcaption>La zona de aterrizaje (LZ) va fuera de la vista del objetivo, detrás de una loma o un bosque. El helicóptero entra bajo, baja a la escuadra sin quedarse y se va; la escuadra recorre el último tramo a pie.</figcaption></figure>
+<h3>Aviones</h3>
+<ul>
+    <li>30 segundos de calentamiento antes de despegar. Despegue: acelerador a fondo y tirar hacia atrás a dos tercios de la pista.</li>
+    <li>Para atacar con armas guiadas necesitan que alguien en el suelo marque el blanco con el <strong>designador láser</strong> (Oficial u Observador).</li>
+    <li>Detectan que los fijaron 0,5 segundos después: las bengalas sirven sobre todo en la pasada de ataque.</li>
+    <li>Eyección con <kbd>E</kbd>; el paracaídas se abre solo por debajo de los 750 m.</li>
+</ul>
+
+<h2>Logística</h2>
+<figure class="g-fig"><svg viewBox="0 0 420 180" role="img" aria-label="Cadena logística animada: el camión logístico sale de la base, recorre un camino alternativo, deja dos cajas pesadas y la escuadra construye el FOB." data-end="10.0"><rect class="cover" x="14" y="80" width="70" height="60" rx="6"/><text class="ph-t" x="49" y="110">BASE</text><path class="path2" d="M84 110 Q170 40 300 100"/><path class="road" d="M84 120 H330"/><text class="txt" x="150" y="140">ruta principal: emboscadas</text><g><rect class="op2" x="-14" y="-8" width="28" height="16" rx="3"/><animateMotion dur="10s" repeatCount="indefinite" path="M84 110 Q170 40 300 100" keyTimes="0;0.05;0.45;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g opacity="0"><rect class="crate" x="310" y="104" width="14" height="12"/><rect class="crate" x="328" y="104" width="14" height="12"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.430;0.470;1"/></g><g opacity="0"><rect class="cover" x="330" y="60" width="64" height="36" rx="6"/><text class="ph-t" x="362" y="78">FOB</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.660;0.700;1"/></g><g opacity="0"><text class="step" x="14" y="22">1. El camión carga en la base</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.000;0.000;0.150;0.170;1"/></g><g opacity="0"><text class="step" x="14" y="22">2. Va por un camino alternativo</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.130;0.150;0.470;0.490;1"/></g><g opacity="0"><text class="step" x="14" y="22">3. Suelta 2 cajas pesadas</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.450;0.470;0.700;0.720;1"/></g><g opacity="0"><text class="step" x="14" y="22">4. La escuadra arma el FOB</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.680;0.700;1"/></g><circle class="op2" cx="14" cy="168" r="5"/><text class="leg" x="23" y="168">camión logístico</text></svg><figcaption>La cadena logística: el camión logístico carga en la base, va por un camino que no sea el obvio, suelta las cajas cerca del lugar elegido y la escuadra arma el FOB. Sin camiones no hay FOB, ni emplazamientos, ni rearme.</figcaption></figure>
+<ul>
+    <li>El <strong>camión de transporte</strong> suelta una caja chica; el <strong>logístico</strong>, dos cajas pesadas y una estación de reparación para arreglar vehículos en el terreno.</li>
+    <li>Un FOB necesita una caja pesada (o dos livianas) a menos de 50 m, y los emplazamientos, dos cajas pesadas más. Está todo en la <a href="#/guias/lider">guía de líder de escuadra</a>.</li>
+    <li>Los vehículos se reparan y rearman en el <strong>depósito de suministros</strong> de la base o en la estación de reparación.</li>
+    <li>Evitá la ruta principal: es donde esperan las emboscadas y las minas. Si no hay otra, asegurá antes los puentes y los pasos estrechos.</li>
+    <li>No construyas el FOB en un camino, en campo abierto ni encima de la bandera.</li>
+</ul>
+<h3>Convoy logístico</h3>
+<p>Cuando la escuadra sale a armar un FOB lejos, conviene un convoy: el camión logístico con el líder y un ingeniero (repara y ayuda a construir), y uno o dos vehículos de escolta con médico, fusileros (cubren y rearman los emplazamientos) y, si hace falta, un breacher.</p>
+
+<h2>Emplazamientos</h2>
+<ul>
+    <li><img class="g-veh" src="web/img/vehicles/stw_tripodmg.png" alt="" width="32" height="32"> <strong>Ametralladora pesada (HMG):</strong> la que más mata de todos los assets en nuestras demos. Frena infantería y vehículos livianos; contra un tanque o un APC pesado no sirve.</li>
+    <li><img class="g-veh" src="web/img/vehicles/stw_atgm.png" alt="" width="32" height="32"> <strong>Anti-tanque (TOW/ATGM):</strong> visor térmico, recarga de 15 s; destruye cualquier vehículo en uno a tres impactos. Se guía con el centro de la mira mientras mantenés el clic.</li>
+    <li><img class="g-veh" src="web/img/vehicles/stw_aa_light.png" alt="" width="32" height="32"> <strong>Antiaéreo:</strong> misiles contra aeronaves; las bengalas los desvían. Los bandos irregulares tienen una DShK.</li>
+    <li><strong>SPG-9</strong> (irregulares): cañón sin retroceso con munición HEAT contra blindados y HE-FRAG contra infantería y vehículos sin blindaje. Recarga de 10 s.</li>
+</ul>
+<p>Ponelos lejos del FOB, donde sean difíciles de encontrar, y solo si vas a usarlos: un emplazamiento sin nadie solo delata el FOB. Se rearman tirando bolsas de munición al lado.</p>
+
+<h2>Morteros</h2>
+<figure class="g-fig"><svg viewBox="0 0 420 210" role="img" aria-label="Misión de mortero animada: el líder marca el blanco con los binoculares, el mortero calcula dirección y ángulo, dispara y la granada cae unos segundos después." data-end="10.0"><path class="ground" d="M0 190 H420"/><circle class="op2" cx="70" cy="178" r="9"/><text class="lbl" x="70" y="178">M</text><line class="gun" x1="70" y1="174" x2="86" y2="150"/><circle class="op" cx="250" cy="150" r="10"/><text class="lbl" x="250" y="150">SL</text><g opacity="0"><line class="laser" x1="260" y1="150" x2="380" y2="176"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.010;0.050;0.400;0.440;1"/></g><circle class="en" cx="384" cy="180" r="7"/><path class="arc" d="M86 150 Q230 -30 382 176"/><g><circle class="shell" r="4"/><animateMotion dur="10s" repeatCount="indefinite" path="M86 150 Q230 -30 382 176" keyTimes="0;0.45;0.85;1" keyPoints="0;0;1;1" calcMode="linear"/></g><g opacity="0"><circle class="boom" cx="384" cy="178" r="22"/><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.810;0.850;0.980;1.000;1"/></g><g opacity="0"><text class="step" x="14" y="20">1. El líder marca blanco y distancia</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.000;0.000;0.250;0.270;1"/></g><g opacity="0"><text class="step" x="14" y="20">2. El mortero ajusta dirección y ángulo</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;0.230;0.250;0.450;0.470;1"/></g><g opacity="0"><text class="step" x="14" y="20">3. Dispara: unos 17 s de vuelo</text><animate attributeName="opacity" dur="10.0s" repeatCount="indefinite" values="0;0;1;1" keyTimes="0;0.430;0.450;1"/></g><circle class="op" cx="14" cy="198" r="5"/><text class="leg" x="23" y="198">líder que marca</text><circle class="op2" cx="116.0" cy="198" r="5"/><text class="leg" x="125.0" y="198">mortero</text><circle class="en" cx="173.2" cy="198" r="5"/><text class="leg" x="182.2" y="198">blanco</text></svg><figcaption>Una misión de fuego: el líder marca el blanco y la distancia desde los binoculares, el que opera el mortero ajusta dirección y elevación con la tabla, dispara y la granada vuela unos 17 segundos antes de caer.</figcaption></figure>
+<h3>Armar la posición</h3>
+<ul>
+    <li>Solo en mapas de 2 km o más. Dos por equipo, a menos de 50 m entre sí y a 200 m de un FOB, con dos cajas pesadas cerca.</li>
+    <li>Alcance de hasta <strong>1.500 m</strong> (y unos 75 m como mínimo). Antes de construir, el líder puede marcar puntos en el mapa desde el lugar elegido para ver la distancia a cada objetivo.</li>
+    <li>Escondelos: el UAV del comandante tiene visión térmica. Entre árboles o dentro de un recinto, lejos de construcciones que reciban el contrafuego.</li>
+</ul>
+<h3>Munición</h3>
+<ul>
+    <li><strong>HE</strong> (explosiva): contra construcciones y posiciones; todos los bandos la tienen.</li>
+    <li><strong>Airburst</strong> (explota en el aire): la más efectiva contra infantería al descubierto. Fuerzas convencionales y milicias.</li>
+    <li><strong>Humo:</strong> para cubrir un avance o cegar una posición.</li>
+</ul>
+<h3>Hacer un tiro</h3>
+<ol>
+    <li>El líder marca el blanco con los binoculares (distancia y misión de fuego en el menú) o lo canta por radio con la grilla: <em>"Charlie 12, keypad 4"</em>.</li>
+    <li>El que opera el mortero alinea la dirección (con <kbd>A</kbd> y <kbd>D</kbd> hasta que coincidan las marcas de la brújula) y carga la distancia en la tabla (<kbd>4</kbd>) para calcular el ángulo de elevación.</li>
+    <li>Dispara. Calcular y disparar la primera granada lleva unos 45 a 60 segundos, y cada granada vuela unos <strong>17 segundos</strong>: avisá antes a la escuadra que está cerca del blanco.</li>
+    <li>Corregí según dónde cayó y seguí.</li>
+</ol>
+<h3>Rearmar</h3>
+<p>Solo el Fusilero lleva bolsa de munición. Se tira al lado del mortero (no adentro) y hacen falta varias para un rearme completo; después se vuelve a la caja por otra.</p>
