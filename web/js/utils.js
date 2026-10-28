@@ -145,6 +145,13 @@ export function assetCategory(code) {
     return weaponVtype(code) || 'infantry';
 }
 
+/** {kit: uso} real de un jugador: kills + muertes con ese kit puesto. `kits_used`
+ *  cuenta también los kits mirados en el menú; solo se usa si falta `kit_activity`. */
+export function kitUsage(p) {
+    const a = p && p.kit_activity;
+    return (a && Object.keys(a).length) ? a : ((p && p.kits_used) || {});
+}
+
 /** Aggregate a {code: count} dict into [[label, count], …] desc, grouping codes
  *  that share a label (e.g. all AK-74M variants). `opts.exclude(code)` skips codes. */
 export function aggregateByLabel(dict, labeler, opts = {}) {

@@ -14,6 +14,7 @@ export const CLAN_AVERAGES_ACTIVE_URL = `${GRAPHS_URL}/clan_averages_active.json
 export const DEMOS_URL         = `${GRAPHS_URL}/demos`;
 export const HISTORY_URL       = `${GRAPHS_URL}/history`;
 export const LEADERBOARDS_URL  = `${DEMOS_URL}/leaderboards`;
+export const ROLE_LEADERBOARDS_URL = `${DEMOS_URL}/role_leaderboards.json`;
 export const ROUNDS_URL        = `${DEMOS_URL}/rounds`;
 export const PLAYER_ROUNDS_URL = `${DEMOS_URL}/player_rounds`;
 export const TIER_CONFIG_URL   = `${GRAPHS_URL}/tier_config.json`;

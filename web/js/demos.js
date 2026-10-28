@@ -7,7 +7,7 @@
 import { state, loadDemoData, loadPlayerRounds, getDemoInfo, loadSynergy } from './data.js';
 import { setupAutocomplete } from './autocomplete.js';
 import {
-    escapeHtml, formatNumber, fmtDuration, aggregateByLabel, findPlayer,
+    escapeHtml, formatNumber, fmtDuration, aggregateByLabel, findPlayer, kitUsage,
     kitLabel, weaponModel, weaponKind, vehicleLabel, mapLabel, gamemodeLabel,
     seatLabel, weaponVehicle, isVehicleKill, assetCategory, vehicleIconHTML, vehicleIconByName,
 } from './utils.js';
@@ -60,7 +60,7 @@ function emptyTab(msg = ACCUM) {
 function tabResumen(p) {
     const kills = p.total_kills || 0, deaths = p.total_deaths || 0;
     const kd = deaths > 0 ? kills / deaths : kills;
-    const kits = aggregateByLabel(p.kits_used, kitLabel);
+    const kits = aggregateByLabel(kitUsage(p), kitLabel);
     const weapons = aggregateByLabel(p.kill_weapons, weaponModel, { exclude: _NON_INFANTRY });
     const favKit = kits.length ? kits[0][0] : '—';
     const favWeapon = weapons.length ? weapons[0][0] : '—';
@@ -159,7 +159,7 @@ function tabAssets(p) {
 }
 
 function tabKitsModos(p) {
-    const kits = aggregateByLabel(p.kits_used, kitLabel);
+    const kits = aggregateByLabel(kitUsage(p), kitLabel);
     // K/D por kit (kit_performance), filtro ≥10 kills
     const perf = Object.entries(p.kit_performance || {})
         .filter(([, d]) => (d.kills || 0) >= 10)

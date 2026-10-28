@@ -8,7 +8,7 @@
 
 import {
     ALL_PLAYERS_URL, CLAN_AVERAGES_URL, CLAN_AVERAGES_ACTIVE_URL, TIER_CONFIG_URL, LOGO_MANIFEST_URL, ALIASES_URL,
-    DEMOS_URL, LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
+    DEMOS_URL, LEADERBOARDS_URL, ROLE_LEADERBOARDS_URL, ROUNDS_URL, PLAYER_ROUNDS_URL, HISTORY_URL,
     SYNERGY_URL, HEATMAPS_URL, PLAYER_HEATMAP_URL, MAP_IMG_MANIFEST_URL, ATLAS_JSON_URL,
     CACHE_TTL, NORM_CAPS,
 } from './config.js';
@@ -24,6 +24,7 @@ export const state = {
     leaderboardCache: {},     // period → leaderboard json
     logoManifest: null,       // logos/manifest.json: {clan: ext} (or null → built-in fallback)
     aliases: null,            // demos/aliases.json: {kits, weapons, vehicles, maps, gamemodes, seats}
+    roleLeaderboards: null,   // demos/role_leaderboards.json (lazy)
     synergy: null,            // demos/synergy.json: {player: {baseline, mates}} (lazy)
     heatmapIndex: null,       // demos/heatmaps/index.json: [{map, file, rounds, kills}]
     heatmapCache: {},         // map → demos/heatmaps/<map>.json
@@ -170,6 +171,14 @@ export async function loadLeaderboard(period) {
         || { players: [], total_rounds: 0 };
     state.leaderboardCache[period] = data;
     return data;
+}
+
+/** Top por rol ({generated_at, min_rounds, periods: {todo, mes}}) o null. */
+export async function loadRoleLeaderboards() {
+    if (state.roleLeaderboards) return state.roleLeaderboards;
+    const data = await cachedFetch(ROLE_LEADERBOARDS_URL, { silent: true });
+    if (data && data.periods) state.roleLeaderboards = data;
+    return state.roleLeaderboards || null;
 }
 
 // ── Recent matches (rounds) ──────────────────────────────────────────────────

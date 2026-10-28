@@ -14,6 +14,7 @@ import { initPlayerSearch } from './player.js';
 import { initComparison } from './comparison.js';
 import { initRankings } from './rankings.js';
 import { initLeaderboards } from './leaderboards.js';
+import { initRoleLeaderboards } from './roles.js';
 import { initPredictor } from './predictor.js';
 import { initTeamAnalysis } from './team.js';
 import { initClanAverages } from './clans.js';
@@ -88,6 +89,7 @@ async function boot() {
 
     // Lazy sections (self-managed IntersectionObserver).
     safe('leaderboards', initLeaderboards);
+    safe('roles', initRoleLeaderboards);
     safe('heatmaps', initHeatmaps);
     safe('matches', initRecentMatches);
 }

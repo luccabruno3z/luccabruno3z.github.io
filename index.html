@@ -244,6 +244,7 @@
             <div class="view-subnav" role="group" aria-label="Secciones de Rankings">
                 <a href="#/rankings/rankings" class="view-chip">Top</a>
                 <a href="#/rankings/leaderboards" class="view-chip">Por período</a>
+                <a href="#/rankings/role-leaderboards" class="view-chip">Por rol</a>
             </div>
         </header>
 
@@ -339,6 +340,32 @@
                 </div>
             </form>
             <div id="leaderboard-results" class="top-results" aria-live="polite"></div>
+        </section>
+
+        <!-- ===== SECTION: TOP POR ROL ===== -->
+        <section class="section" id="role-leaderboards" aria-labelledby="role-leaderboards-title">
+            <h2 class="section-title" id="role-leaderboards-title">Top por rol</h2>
+            <p class="section-subtitle">Los mejores médicos, anti-tanques, tripulantes y demás, según las demos. Cada rol se mide por lo que le toca hacer.</p>
+            <form id="role-form" class="top-players-form" onsubmit="return false">
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="role-board">Rol</label>
+                        <select id="role-board" aria-label="Seleccionar rol"></select>
+                    </div>
+                    <div class="input-group">
+                        <label for="role-period">Período</label>
+                        <select id="role-period" aria-label="Seleccionar período">
+                            <option value="todo" selected>Todo el historial</option>
+                            <option value="mes">Últimos 30 días</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="role-count">Cantidad</label>
+                        <input type="number" id="role-count" min="3" max="30" value="15" aria-label="Cantidad de jugadores">
+                    </div>
+                </div>
+            </form>
+            <div id="role-results" class="top-results" aria-live="polite"></div>
         </section>
         </div>
 

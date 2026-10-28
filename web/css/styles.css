@@ -2986,3 +2986,115 @@ body .cta-button.ghost:hover {
     .compare-entity { font-size: 1.2rem; }
     .compare-row { grid-template-columns: minmax(56px, 1fr) minmax(0, 2fr) minmax(56px, 1fr); gap: 8px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   36. Perfil v2: fuentes, camino al próximo tier, forma reciente, clan,
+       fortalezas, roles y datos de demos (player.js)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.pv-card { display: flex; flex-direction: column; gap: 12px; padding: 22px 24px; min-width: 0; }
+.pv-stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.pv-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; }
+.pv-mono, .pv-table td.n { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.pv-sources { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.pv-source { font-size: 0.74rem; padding: 3px 10px; border-radius: 999px; background: var(--bg-2); border: 1px solid var(--hairline); color: var(--text-muted); }
+.pv-source b { font-family: var(--font-mono); color: var(--accent); }
+#profile-last-seen.pv-source { color: var(--text); }
+
+.pv-src { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--hairline); color: var(--text-dim); vertical-align: 1px; }
+.pv-src.is-demo { color: var(--secondary); border-color: rgba(255, 165, 0, 0.3); }
+.pv-pos { font-size: 0.78rem; font-weight: 700; }
+.pv-pos.is-up { color: var(--success); }
+.pv-pos.is-mid { color: var(--blue); }
+.pv-pos.is-down { color: var(--secondary); }
+.pv-alt { font-size: 0.78rem; color: var(--text-muted); }
+.pv-alt b { font-family: var(--font-mono); color: var(--text); }
+
+/* Camino al próximo tier */
+.pv-path { display: flex; flex-direction: column; gap: 8px; }
+.pv-path-track { position: relative; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(0, 255, 136, 0.35), rgba(255, 215, 0, 0.35)); }
+.pv-path-dot { position: absolute; top: 50%; width: 16px; height: 16px; border-radius: 50%; background: var(--success); border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--success); transform: translate(-50%, -50%); }
+.pv-path-ends { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); }
+.pv-path-ends b, .pv-path-msg b { font-family: var(--font-mono); }
+.pv-path-msg { margin: 0; }
+.pv-path-msg b { color: var(--gold); }
+
+/* Tablas del perfil (componentes y roles) */
+.pv-scroll { overflow-x: auto; }
+.pv-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.pv-table th { text-align: left; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-dim); padding: 0 6px 8px; white-space: nowrap; }
+.pv-table th.n, .pv-table td.n { text-align: right; white-space: nowrap; }
+.pv-table td { padding: 7px 6px; border-top: 1px solid var(--hairline); vertical-align: middle; }
+.pv-table tfoot td { font-weight: 700; border-top: 1px solid var(--border); }
+.pv-name { display: block; font-weight: 500; color: var(--text); }
+.pv-what { display: block; font-size: 0.72rem; color: var(--text-dim); }
+.pv-what.is-warn { color: var(--secondary); }
+.pv-barcell { width: 22%; min-width: 80px; }
+.pv-sub { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
+.pv-table tr.is-lever td { background: rgba(255, 215, 0, 0.05); }
+.pv-table tr.is-lever .pv-room { color: var(--gold); font-weight: 700; }
+.pv-table tr.is-low td { opacity: 0.75; }
+.pv-conf { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.pv-conf.is-alta { color: var(--success); }
+.pv-conf.is-media { color: var(--blue); }
+.pv-conf.is-baja { color: var(--secondary); }
+
+/* Forma reciente */
+.pv-spark { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 5px; align-items: end; height: 96px; }
+.pv-spark-col { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; height: 100%; }
+.pv-spark-k { display: block; min-height: 2px; border-radius: 3px 3px 0 0; background: var(--accent); opacity: 0.85; }
+.pv-spark-r { display: block; height: 4px; border-radius: 2px; }
+.pv-spark-r.is-win { background: var(--success); }
+.pv-spark-r.is-loss { background: var(--danger); }
+.pv-spark-axis { display: flex; justify-content: space-between; gap: 8px; font-size: 0.7rem; color: var(--text-dim); }
+.pv-vs { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px; align-items: baseline; font-size: 0.85rem; }
+.pv-vs b { font-family: var(--font-mono); font-size: 1rem; }
+.pv-delta { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; padding: 1px 6px; border-radius: 3px; color: var(--text-muted); }
+.pv-delta.is-up { color: var(--success); background: rgba(0, 255, 136, 0.1); }
+.pv-delta.is-down { color: var(--danger); background: rgba(255, 68, 102, 0.1); }
+
+/* Dentro del clan */
+.pv-clan-rank { display: flex; align-items: baseline; gap: 10px; }
+.pv-big { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; color: var(--accent); }
+.pv-cmp { display: flex; flex-direction: column; gap: 10px; }
+.pv-cmp-row { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 0.82rem; }
+.pv-cmp-track { position: relative; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.07); }
+.pv-cmp-avg { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-muted); }
+.pv-cmp-me { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; transform: translate(-50%, -50%); }
+.pv-cmp-me.is-up { background: var(--success); }
+.pv-cmp-me.is-down { background: var(--secondary); }
+.pv-cmp-vals { font-family: var(--font-mono); font-size: 0.78rem; white-space: nowrap; }
+.pv-cmp-vals span { color: var(--text-dim); }
+
+/* Fortalezas / a mejorar */
+.pv-sw { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.pv-sw-col h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-family: var(--font-display); font-weight: 400; font-size: 1.15rem; letter-spacing: 1px; }
+.pv-sw-col h5::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pv-sw-col.is-good h5 { color: var(--success); }
+.pv-sw-col.is-bad h5 { color: var(--secondary); }
+.pv-sw-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.pv-sw-col li { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--bg-2); }
+.pv-tip { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Roles */
+.pv-best-role { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 10px; background: rgba(255, 215, 0, 0.06); border: 1px solid rgba(255, 215, 0, 0.25); }
+.pv-best-name { font-family: var(--font-display); font-size: 1.8rem; line-height: 1; color: var(--gold); }
+.pv-best-role b { font-family: var(--font-mono); color: var(--text); }
+
+/* Datos de demos */
+.pv-insights { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.pv-ins { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 12px 14px; border-radius: 10px; background: var(--bg-2); }
+.pv-ins-v { font-family: var(--font-mono); font-weight: 700; font-size: 1.15rem; overflow-wrap: anywhere; }
+.pv-ins-v.is-good { color: var(--success); }
+.pv-ins-v.is-warn { color: var(--secondary); }
+.pv-ins-d { font-size: 0.78rem; color: var(--text-muted); }
+.pv-ins-d b { font-family: var(--font-mono); font-weight: 500; color: var(--text); }
+
+@media (max-width: 900px) {
+    .pv-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pv-sw { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 420px) {
+    .pv-card { padding: 18px 16px; }
+    .pv-table .pv-what { display: none; }
+}
