@@ -8,6 +8,16 @@ Plataforma de analytics para **Project Reality** (BF2). Rastrea +2000 jugadores 
 
 [Ver el sitio](https://luccabruno3z.github.io/) | [Invitar al bot de Discord](https://discord.com/oauth2/authorize?client_id=1344003302859800637&permissions=277025770560&integration_type=0&scope=bot) | [Discord LDH](https://discord.gg/S9ugnuRVsD)
 
+## Documentación
+
+| Documento | Para quién / para qué |
+|---|---|
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Cómo se conectan scraper → `graphs/` → web y bot; Performance, tiers, actividad |
+| [docs/BOT.md](docs/BOT.md) | Comandos del bot, `-menu`, estructura del código, estado persistente |
+| [docs/WEB.md](docs/WEB.md) | Vistas y rutas, módulos compartidos, íconos, estilos |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Deploys, logs y qué hacer cuando algo falla |
+| [.rebuild/CONTRACT.md](.rebuild/CONTRACT.md) | Contrato de formato de los JSON de `graphs/` |
+
 ---
 
 ## Arquitectura
@@ -18,10 +28,12 @@ luccabruno3z.github.io/
 │   ├── css/styles.css         #   Design system (dark/cyan, bento, glassmorphism)
 │   └── js/                    #   Módulos ES: config, data, utils, charts,
 │                              #   autocomplete, main + un módulo por feature
-├── bot/                       # Bot de Discord (discord.py 2.0, 8 cogs)
+├── bot/                       # Bot de Discord (discord.py 2.7, 12 cogs, Components V2)
 ├── scraper/                   # Pipeline de datos (scraping + parser de demos)
+├── docs/                      # Documentación (arquitectura, bot, web, runbook)
 ├── graphs/                    # Datos generados (JSONs, charts Plotly, historial)
 │   ├── history/               #   Historial de Performance Score por jugador
+│   ├── activity/              #   rounds_log.json: actividad real (30 días)
 │   └── demos/                 #   Datos derivados de .PRdemo:
 │       ├── rounds/            #     Rondas particionadas por dia + index.json
 │       ├── leaderboards/      #     Rankings precalculados (dia/semana/mes/todo)
@@ -36,16 +48,20 @@ luccabruno3z.github.io/
 | Componente | Stack | Lineas |
 |---|---|---|
 | **Frontend** | HTML5, CSS3 (dark/cyan, bento, glassmorphism), Vanilla JS (ES modules), Chart.js | ~5,500 |
-| **Bot** | discord.py 2.0, aiohttp, matplotlib | ~8,400 |
+| **Bot** | discord.py 2.7 (Components V2), aiohttp, matplotlib | ~8,400 |
 | **Scraper** | BeautifulSoup, pandas, numpy, plotly, cloudscraper | ~3,400 |
 
 ## Features
 
 ### Web Dashboard
+Organizada en pestañas con rutas por hash (`#/inicio`, `#/jugadores`, `#/rankings`,
+`#/clanes`, `#/partidas`, `#/equipos`, `#/guias`) — ver [docs/WEB.md](docs/WEB.md).
 - **Dashboard bento** con vistazo en vivo (top jugadores, lideres, top clanes, partidas)
 - Busqueda de jugadores con radar chart de 6 ejes y 4 indices de rating
 - Comparacion lado a lado (jugador vs jugador, clan vs clan)
-- Rankings filtrables por clan y metrica
+- Rankings filtrables por clan y metrica, con podio y barras por percentil
+- **Dos rankings de clanes**: histórico (todos los jugadores) y **activos** (top 50
+  jugadores activos en los últimos 30 días), con gráfico que sigue la métrica elegida
 - Predictor de partidas 8v8
 - Analisis de equipo y composicion de squad
 - **Perfil de demos por jugador con pestañas** (Resumen, Combate, Armas & Vehículos,
@@ -70,15 +86,16 @@ luccabruno3z.github.io/
 - **5 tiers dinamicos** por percentil: Elite (~5%), Veterano (~20%), Experimentado (~35%), Soldado (~30%), Recluta (~10%)
 
 ### Bot de Discord
-8 modulos (cogs):
-- `stats` — `-stats`, `-top10`, `-rival`, `-vs`
-- `detailed_stats` — `-demo`, `-kits` (uso + K/D por kit), `-armas`, `-vehiculos` (destruidos + kills tripulando), `-assets` (desglose de kills por tipo: a pie/terrestre/aéreo/naval/emplazamiento), `-combate` (racha/clutch/first blood/vida promedio/disciplina), `-sinergia` (con qué compañeros rendís mejor/peor), `-mapas`, `-winrate` (W/L + K/D/KPR por modo), `-teamwork` (+ cohesión de escuadra), `-advanced`
-- `compare` — `-compare` (analisis bulk de jugadores/clanes)
-- `charts` — `-graph` (graficos renderizados)
-- `tips` — `-tip` (150+ tips de gameplay)
-- `roles` — Asignacion de roles por guild
-- `automation` — Tareas automatizadas
-- `countdown` — Countdowns
+12 cogs, respuestas con Components V2 y botones persistentes. Lo principal:
+- `-menu` — panel navegable (perfil, rankings, clanes, partidas, equipos)
+- `-perfil` / `-stats` — perfil con pestañas (Resumen, Récords, Perfil, Historial) y barras de color por percentil
+- `-vincular <IGN>` — asocia tu cuenta de Discord a tu jugador
+- `-top` (`-top activos`), `-top_periodo`, `-promedios`, `-promedios_activos`
+- `-compare`, `-prediccion`, `-analizar_equipo`
+- Detalle de demos: `-kits`, `-armas`, `-vehiculos`, `-assets`, `-combate`, `-sinergia`, `-winrate`, `-mapa`
+- Leaderboard automático los lunes (`-set_leaderboard_channel`)
+
+Lista completa y estructura del código en [docs/BOT.md](docs/BOT.md).
 
 ### Pipeline de Datos
 1. **Scraping** de [prstats.realitymod.org](https://prstats.realitymod.org) (26 clanes, siguiendo la paginacion del roster de cada clan — 50 por pagina)
@@ -216,12 +233,17 @@ python -m bot
 ```
 
 ### Frontend
-Abrir `index.html` en un navegador o servir con cualquier servidor estatico.
+Servir la raíz con cualquier servidor estático (los ES modules no cargan desde `file://`):
+```bash
+python -m http.server 8000
+```
 
 ## Deployment
 
 - **Frontend**: GitHub Pages (rama `main`)
-- **Bot**: Heroku / Railway (via `Procfile` o `nixpacks.toml`)
+- **Bot**: Railway (`nixpacks.toml` → `python -m bot`), con volumen en `/data` para el
+  estado persistente. `.dockerignore` deja `graphs/`, `web/` y `scraper/` fuera de la imagen.
+  Operación y fallas comunes: [docs/RUNBOOK.md](docs/RUNBOOK.md)
 - **Scraper**: GitHub Actions (cron programado; GitHub puede espaciar las corridas de
   cron de alta frecuencia), commitea datos actualizados a `main`
 
