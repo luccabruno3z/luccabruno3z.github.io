@@ -39,7 +39,7 @@ async def _thresholds(fetcher):
 
 class MenuButton(discord.ui.DynamicItem[discord.ui.Button],
                  template=r"mn:(?P<action>[a-z]+):(?P<owner>\d+)"):
-    """Botón de navegación del menú. action = una pantalla, 'search', 'help' o 'open'."""
+    """Botón de navegación del menú. action = una pantalla, 'search', 'help', 'open' o 'roles'."""
 
     def __init__(self, action: str, owner: int, label: str, *,
                  style: discord.ButtonStyle = discord.ButtonStyle.secondary):
@@ -65,6 +65,13 @@ class MenuButton(discord.ui.DynamicItem[discord.ui.Button],
         if self.action == "help":
             from bot.ui.help_view import HelpView
             await interaction.response.send_message(view=HelpView(bot), ephemeral=True)
+            return
+        if self.action == "roles":
+            from bot.ui.role_leaderboard_card import RoleLeaderboardView
+            await interaction.response.defer(thinking=True)
+            view = RoleLeaderboardView(bot.data_fetcher, author_id=self.owner)
+            await view.load()
+            view.message = await interaction.followup.send(view=view, wait=True)
             return
         if self.action == "open":
             ign = links.get(self.owner)
@@ -192,9 +199,10 @@ async def _rankings(bot, owner: int):
         ps = p.get("Performance Score", 0) or 0
         lead = rank_medal(i) if i <= 3 else meter(ps, thr, length=LIST_SEGMENTS)
         lines.append(f"{lead} `{i:>2}.` **{p.get('Player')}** · {p.get('Clan', '')} · `{_f2(ps)}`")
-    lines.append(f"-# Mínimo {MIN_ROUNDS} rondas · el ranking completo con filtros: `-top`")
+    lines.append(f"-# Mínimo {MIN_ROUNDS} rondas · el ranking completo con filtros: `-top` · por rol: `-top_rol`")
     return 0xFFD700, [discord.ui.TextDisplay("\n".join(lines)), discord.ui.ActionRow(
         _back(owner),
+        MenuButton("roles", owner, "Top por rol"),
         discord.ui.Button(label="Ver en la web", style=discord.ButtonStyle.link, url=_WEB + "rankings"))]
 
 

@@ -25,7 +25,7 @@ sección.
 |---|---|---|---|
 | Inicio | `#/inicio` | `hero`, `dashboard` | `hero.js`, `dashboard.js` |
 | Jugadores | `#/jugadores` | `player-search-section`, `comparison` | `player.js`, `comparison.js` |
-| Rankings | `#/rankings` | `rankings`, `leaderboards` | `rankings.js`, `leaderboards.js` |
+| Rankings | `#/rankings` | `rankings`, `leaderboards`, `role-leaderboards` | `rankings.js`, `leaderboards.js`, `roles.js` |
 | Clanes | `#/clanes` | `clan-averages`, `charts` | `clans.js`, `charts.js` |
 | Partidas | `#/partidas` | `recent-matches`, `heatmaps`, `demo-stats` | `matches.js`, `heatmaps.js`, `demos.js` |
 | Equipos | `#/equipos` | `match-predictor`, `team-analysis` | `predictor.js`, `team.js`, `chips.js` |
@@ -59,6 +59,13 @@ En Equipos, `chips.js` reemplaza las grillas de 8 campos por un único campo con
 chips. Los campos originales siguen en el DOM, ocultos, y el selector los llena en
 orden. Así `predictor.js` y `team.js` los leen por id sin saber que hay chips.
 
+### Perfil de jugador
+`player.js` arma primero lo que sale de PRStats (cabecera con las fuentes de datos,
+KPIs, camino al próximo tier con los 7 componentes del Performance y contexto de clan)
+y después, cuando llegan las demos, completa forma reciente, fortalezas y a mejorar,
+roles, datos de demos y récords. Cada bloque de demos se oculta si no hay muestra
+suficiente.
+
 ## Estilos
 
 Todo está en `web/css/styles.css`, organizado en secciones numeradas. Las más
@@ -73,6 +80,7 @@ recientes:
 | 33 | Íconos `.ico` |
 | 34 | Chips |
 | 35 | Comparación, demos y guías |
+| 36 | Perfil v2 (fuentes, camino al próximo tier, forma reciente, clan, roles) |
 
 Los colores y espacios salen de variables CSS en `:root`. Usalas en vez de valores
 sueltos.

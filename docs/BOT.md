@@ -60,6 +60,7 @@ Entre corchetes van los alias.
 |---|---|
 | `-top` [`ranking`, `lb`] | Top por Performance. `-top activos` filtra a los activos de los últimos 30 días |
 | `-top_periodo` [`top_dia`, `top_semana`, `top_mes`] | Ranking de demos por período, con selects de período y métrica |
+| `-top_rol <rol>` [`top_medicos`, `top_at`, `top_tripulantes`, `top_pilotos`] | Los mejores de cada rol (médico, AT, tripulante, piloto, fusilero, tirador, oficial…), con selects de rol y período. También desde `-menu` → Rankings |
 | `-ranking_semanal` [`semanal`] | Ranking de la semana |
 | `-mvp` [`mvp_semana`] | Jugador de la semana |
 
@@ -109,7 +110,7 @@ bot/
     ├── theme.py          # tiers, colores, barras de emoji, RANK_CUTS
     ├── player_profile.py # perfil con pestañas
     ├── menu.py           # -menu
-    ├── top_card.py, leaderboard_card.py, versus.py, comparison_card.py, demo_card.py
+    ├── top_card.py, leaderboard_card.py, role_leaderboard_card.py, versus.py, comparison_card.py, demo_card.py
     └── glossary.py, help_view.py
 ```
 

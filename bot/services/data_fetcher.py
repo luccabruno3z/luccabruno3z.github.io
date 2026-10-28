@@ -14,6 +14,7 @@ from bot.config import (
     demo_player_details_url,
     demo_round_history_url,
     demo_leaderboard_url,
+    demo_role_leaderboards_url,
     demo_map_stats_url,
     demo_synergy_url,
     tier_config_url,
@@ -151,6 +152,10 @@ class DataFetcher:
         where each player has kills/deaths/score/rounds/revives/teamwork_score.
         """
         return await self.fetch_json(demo_leaderboard_url(periodo))
+
+    async def fetch_role_leaderboards(self):
+        """Fetch the per-role leaderboards ``{generated_at, min_rounds, periods}``."""
+        return await self.fetch_json(demo_role_leaderboards_url())
 
     async def fetch_map_stats(self):
         """Fetch the map statistics JSON (from demos)."""

@@ -12,7 +12,8 @@ from __future__ import annotations
 import discord
 
 from bot.assets.kit_mapping import (
-    get_kit_emoji, normalize_kits, clean_vehicle_name, weapon_model_name, is_personal_weapon,
+    get_kit_emoji, normalize_kits, weapon_model_name, is_personal_weapon,
+    kit_usage, weapon_vehicle_name, is_vehicle_kill,
 )
 from bot.config import BOT_THUMBNAIL
 from bot.ui.theme import accent_meter, ACCENT, last_seen
@@ -94,14 +95,17 @@ def demo_items(d: dict) -> list[discord.ui.Item]:
         blocks.append(f"**Disciplina** · teamkills `{tkill}` · suicidios `{sui}`")
 
     tops = []
-    kits = sorted(normalize_kits(d.get("kits_used", {})).items(), key=lambda kv: kv[1], reverse=True)[:3]
+    kits = sorted(normalize_kits(kit_usage(d)).items(), key=lambda kv: kv[1], reverse=True)[:3]
     if kits:
         tops.append("**Kits** · " + " · ".join(
             f"{(get_kit_emoji(k) + ' ') if get_kit_emoji(k) else ''}{k} `{c}`" for k, c in kits))
     weapons = _group(d.get("kill_weapons", {}), weapon_model_name, exclude=lambda c: not is_personal_weapon(c))[:3]
     if weapons:
         tops.append("**Armas** · " + " · ".join(f"{w} `{c}`" for w, c in weapons))
-    vehicles = _group(d.get("vehicle_kills", {}), clean_vehicle_name)[:3]
+    # Por el arma que hizo la baja: `vehicle_kills` sumaba kills a pie hechas después
+    # de bajarse (o de morir adentro) del vehículo.
+    vehicles = _group(d.get("kill_weapons", {}), weapon_vehicle_name,
+                      exclude=lambda c: not is_vehicle_kill(c))[:3]
     if vehicles:
         tops.append("**Vehículos** · " + " · ".join(f"{v} `{c}`" for v, c in vehicles))
 

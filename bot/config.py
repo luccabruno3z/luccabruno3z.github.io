@@ -70,6 +70,11 @@ def demo_leaderboard_url(periodo: str) -> str:
     return f"{BASE_URL}/graphs/demos/leaderboards/{periodo}.json"
 
 
+def demo_role_leaderboards_url() -> str:
+    """Return the URL for the per-role leaderboards JSON (from demos)."""
+    return f"{BASE_URL}/graphs/demos/role_leaderboards.json"
+
+
 def demo_map_stats_url() -> str:
     """Return the URL for the map statistics JSON (from demos)."""
     return f"{BASE_URL}/graphs/demos/map_stats.json"

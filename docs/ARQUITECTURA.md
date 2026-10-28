@@ -71,6 +71,7 @@ siguiente corrida; `processed.json` evita repetir demos.
 | `player_details.json` | Agregados por jugador: kits, armas, vehículos, combate, modos | web, bot |
 | `map_stats.json` | Duración, kills y resultados por mapa | web, bot (`-mapa`) |
 | `synergy.json` | Rendimiento con cada compañero de escuadra | web, bot (`-sinergia`) |
+| `role_leaderboards.json` | Top por rol, histórico y últimos 30 días (`scraper/roles.py`) | web (Rankings → Por rol), bot (`-top_rol`) |
 | `heatmaps/<mapa>.json` | Grillas de densidad por gamemode y capa | web (heatmaps) |
 | `aliases.json` | Códigos internos del juego → nombres legibles | web, bot |
 
@@ -82,6 +83,9 @@ contrato de formatos en [.rebuild/CONTRACT.md](../.rebuild/CONTRACT.md).
 ### Performance Score y tiers
 - **Performance Score** (0–1): siete componentes ponderados (Combat, Effectiveness,
   Score, Winrate, Teamwork, Consistency, Experience). Ver `scraper/scoring.py`.
+  Cada jugador trae `ps_components` (el nivel 0–1 de cada uno, `null` si falta demo y
+  cuenta neutro) y `tier_config.json` trae el orden y el peso en `ps_components`; con
+  eso la web arma el desglose sin recalcular percentiles.
 - **Tiers** (Elite, Veterano, Experimentado, Soldado, Recluta): cortes por percentil
   del Performance, recalculados en cada corrida y publicados en `tier_config.json`.
   El tier solo describe el Performance.
@@ -103,6 +107,34 @@ Con eso se arman los dos rankings de clanes:
 - **Histórico** (`clan_averages.json`): todos los jugadores del clan.
 - **Activos** (`clan_averages_active.json`): los 50 mejores jugadores activos de cada
   clan por Performance. El clan necesita al menos 5 activos para aparecer.
+
+### Roles
+El rol de cada kill y cada muerte sale del kit que el jugador tenía puesto en ese
+momento (`kit_kills`, `kit_deaths` y, en rondas nuevas, `kit_alive_ticks`). No se usa
+`kits_used`, porque cuenta también los kits que se miran en el menú antes de reaparecer
+y los que se levantan del piso: con ese dato, la mitad de la comunidad salía médico.
+Para mostrar qué juega alguien está `kit_activity` (kills + muertes con cada kit).
+
+`scraper/roles.py` mide cada rol por lo que le toca hacer: revives por ronda para el
+médico, kills con lanzador para el AT, kills con armas de vehículo para el tripulante,
+kills desde aeronaves para el piloto, victorias para el oficial y K/D para el resto.
+Para que una ronda excepcional no defina a nadie:
+- el valor se **ajusta por muestra**: con pocas rondas o muertes se acerca a la
+  mediana del rol;
+- la **confianza** es alta con 15+ rondas, y baja con menos de 8 o si una sola ronda
+  explica más del 40 % del resultado;
+- al top entran jugadores con 10+ rondas con el rol y confianza media o alta. El
+  "mejor rol" del perfil sigue la misma regla.
+
+Cada jugador de `player_details.json` trae `roles` (actividad, valor, mediana,
+percentil y confianza por rol) y `best_role`.
+
+### Kills en vehículos
+El parser olvida el vehículo de un jugador cuando muere o reaparece. Antes solo lo
+olvidaba al bajarse, así que las kills a pie de la vida siguiente se sumaban al último
+vehículo (por ejemplo, 14 kills "con mortero" hechas con un AK-74M). Las rondas viejas
+mantienen ese error en `vehicle_kills`, así que la web y el bot cuentan las kills con
+vehículos a partir del arma de cada kill (`kill_weapons`).
 
 ### Matching de nombres
 Las demos traen el IGN con el tag del clan (`[LDH] juan*ARG*`) y PRStats lo trae sin

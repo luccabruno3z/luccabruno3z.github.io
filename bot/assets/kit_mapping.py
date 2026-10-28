@@ -149,6 +149,15 @@ def get_kit_display(raw_name: str) -> str:
     return f"{emoji} {readable}" if emoji else readable
 
 
+def kit_usage(player: dict) -> dict[str, int]:
+    """{kit: uso} de un jugador de player_details: kills + muertes con ese kit puesto.
+
+    `kits_used` cuenta también los kits que se miran en el menú antes de reaparecer,
+    así que no sirve para saber qué juega alguien. Se usa solo si falta `kit_activity`
+    (datos generados antes de que existiera)."""
+    return player.get("kit_activity") or player.get("kits_used", {}) or {}
+
+
 def normalize_kits(kits_dict: dict[str, int]) -> dict[str, int]:
     """Normalize a {raw_kit: count} dict by grouping faction variants.
 

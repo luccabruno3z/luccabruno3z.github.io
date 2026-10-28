@@ -11,13 +11,14 @@ from bot.assets.kit_mapping import (
     get_kit_display, get_kit_emoji, classify_kit, normalize_kits, clean_weapon_name,
     clean_map_name, clean_vehicle_name, weapon_model_name, is_personal_weapon,
     clean_gamemode, weapon_vehicle_name, weapon_vclass, is_vehicle_kill,
-    weapon_vtype, weapon_category, clean_seat,
+    weapon_vtype, weapon_category, clean_seat, kit_usage,
 )
 from bot.assets.vehicle_mapping import get_vehicle_emoji, get_vehicle_emoji_by_name
 from bot.ui.player_hub import PlayerHubView
 from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_horizontal_bars, render_multi_comparison, render_top_chart
 from bot.ui.leaderboard_card import LeaderboardView
+from bot.ui.role_leaderboard_card import RoleLeaderboardView, resolve_role
 from bot.utils import format_number, find_player, standard_footer, progress_bar
 from bot.views.explain import ExplainView
 
@@ -129,7 +130,7 @@ class DetailedStats(commands.Cog):
             return
 
         # Normalize faction variants into base kit categories
-        raw_kits = player.get("kits_used", {})
+        raw_kits = kit_usage(player)
         normalized = normalize_kits(raw_kits)
         kits = _top_items(normalized, 10)
         if not kits:
@@ -147,7 +148,7 @@ class DetailedStats(commands.Cog):
 
         embed = discord.Embed(
             title=f"🎖️ Kits de {player['ign']}",
-            description=f"Total de picks: **{total}**",
+            description=f"Kills + muertes con cada kit: **{total}**",
             color=discord.Color.blue(),
         )
         embed.set_image(url="attachment://kits.png")
@@ -539,7 +540,7 @@ class DetailedStats(commands.Cog):
         flags = player.get("total_flags_captured", 0)
 
         # Top kit (normalized from faction variants)
-        raw_kits = player.get("kits_used", {})
+        raw_kits = kit_usage(player)
         normalized_kits = normalize_kits(raw_kits) if raw_kits else {}
         top_kits = _top_items(normalized_kits, 3)
         if top_kits:
@@ -599,7 +600,7 @@ class DetailedStats(commands.Cog):
             return
 
         rounds = player.get("rounds_played", 1)
-        raw_kits = player.get("kits_used", {})
+        raw_kits = kit_usage(player)
         normalized = normalize_kits(raw_kits)
         total_kit_picks = sum(normalized.values()) if normalized else 0
 
@@ -1447,7 +1448,7 @@ class DetailedStats(commands.Cog):
         # Kit distribution (normalized)
         raw_kit_totals: dict[str, int] = {}
         for p in clan_players:
-            for kit, count in p.get("kits_used", {}).items():
+            for kit, count in kit_usage(p).items():
                 raw_kit_totals[kit] = raw_kit_totals.get(kit, 0) + count
         kit_totals = normalize_kits(raw_kit_totals)
         total_kit_picks = sum(kit_totals.values()) if kit_totals else 0
@@ -1568,6 +1569,40 @@ class DetailedStats(commands.Cog):
             count=cantidad,
             author_id=ctx.author.id,
         )
+        await view.load()
+        view.message = await ctx.send(view=view)
+
+    # ── -top_rol <rol> [periodo] ───────────────────────────────────────
+
+    @commands.hybrid_command(
+        name="top_rol",
+        aliases=["toprol", "top_medicos", "top_at", "top_tripulantes", "top_pilotos"],
+        description="Los mejores de cada rol: médicos, anti-tanques, tripulantes… (datos de demos)",
+    )
+    @app_commands.describe(rol="Rol: medico, at, tripulante, piloto, fusilero, tirador, oficial…",
+                           periodo="Período: todo o mes (últimos 30 días)")
+    @app_commands.choices(
+        rol=[app_commands.Choice(name=n, value=v) for n, v in [
+            ("Médico", "medico"), ("Anti-tanque", "at"), ("Tripulante", "tripulante"),
+            ("Piloto", "piloto"), ("Fusilero", "fusilero"), ("Tirador", "tirador"),
+            ("Ametrallador", "ametrallador"), ("Apoyo", "apoyo"), ("Asalto", "asalto"),
+            ("Especialista", "especialista"), ("Oficial", "oficial"), ("Observador", "observador"),
+        ]],
+        periodo=[app_commands.Choice(name="Todo el historial", value="todo"),
+                 app_commands.Choice(name="Últimos 30 días", value="mes")],
+    )
+    async def top_rol(self, ctx: commands.Context, rol: str = "medico", periodo: str = "todo"):
+        """Top por rol: cada rol medido por lo que le toca hacer, ajustado por muestra."""
+        if self._check_mode(ctx):
+            await ctx.send("⚠️ Este comando requiere modo **Demos** o **Combinado**.")
+            return
+        invoked = (ctx.invoked_with or "").lower()
+        shortcut = {"top_medicos": "medico", "top_at": "at", "top_tripulantes": "tripulante",
+                    "top_pilotos": "piloto"}.get(invoked)
+        period = "mes" if (periodo or "").lower() in ("mes", "month", "30", "30d") else "todo"
+        await ctx.defer()
+        view = RoleLeaderboardView(self.fetcher, role=shortcut or resolve_role(rol),
+                                   period=period, author_id=ctx.author.id)
         await view.load()
         view.message = await ctx.send(view=view)
 

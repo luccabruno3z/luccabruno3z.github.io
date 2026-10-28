@@ -90,7 +90,7 @@ Organizada en pestañas con rutas por hash (`#/inicio`, `#/jugadores`, `#/rankin
 - `-menu` — panel navegable (perfil, rankings, clanes, partidas, equipos)
 - `-perfil` / `-stats` — perfil con pestañas (Resumen, Récords, Perfil, Historial) y barras de color por percentil
 - `-vincular <IGN>` — asocia tu cuenta de Discord a tu jugador
-- `-top` (`-top activos`), `-top_periodo`, `-promedios`, `-promedios_activos`
+- `-top` (`-top activos`), `-top_periodo`, `-top_rol` (mejores médicos, AT, tripulantes…), `-promedios`, `-promedios_activos`
 - `-compare`, `-prediccion`, `-analizar_equipo`
 - Detalle de demos: `-kits`, `-armas`, `-vehiculos`, `-assets`, `-combate`, `-sinergia`, `-winrate`, `-mapa`
 - Leaderboard automático los lunes (`-set_leaderboard_channel`)

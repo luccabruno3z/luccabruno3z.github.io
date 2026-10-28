@@ -50,7 +50,7 @@ from bot.utils import (
     get_player_radar,
     ratings_display,
 )
-from bot.assets.kit_mapping import get_kit_display
+from bot.assets.kit_mapping import get_kit_display, kit_usage
 from bot.views.stats import StatsView
 from bot.views.demo_details import DemoDetailsView
 
@@ -1197,7 +1197,7 @@ class Stats(commands.Cog):
         if demo_player:
             tw_ratio = demo_player.get("teamwork_ratio", 0)
             medic_rounds = demo_player.get("rounds_as_medic", 0)
-            kits = demo_player.get("kits_used", {})
+            kits = kit_usage(demo_player)
             top_kit_raw = max(kits, key=kits.get) if kits else None
             top_kit_display = get_kit_display(top_kit_raw) if top_kit_raw else None
             is_medic = top_kit_raw and "medic" in top_kit_raw.lower()
