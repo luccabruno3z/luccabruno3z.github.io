@@ -3098,3 +3098,10 @@ body .cta-button.ghost:hover {
     .pv-card { padding: 18px 16px; }
     .pv-table .pv-what { display: none; }
 }
+
+/* Barras de los KPI: mismo grosor en todas. .dbar crece con flex (pensado para filas),
+   y dentro de la tarjeta en columna se estiraba al alto libre: la de K/D, que tiene
+   una línea más, quedaba más fina que las otras. */
+.kpi-card .dbar { flex: 0 0 auto; height: 10px; border-radius: 5px; }
+.kpi-card .dbar-fill { border-radius: 5px; }
+.kpi-card .pv-pos, .kpi-card .kpi-note { margin-top: auto; }
