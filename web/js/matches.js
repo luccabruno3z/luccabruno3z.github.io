@@ -5,14 +5,15 @@
 
 import { loadRecentMatches } from './data.js';
 import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel } from './utils.js';
+import { tableHTML } from './ui.js';
 
-/** Winner cell from numeric winner code (1=blufor, 2=opfor, -1=none). */
+/** Ganador como chip (1=blufor, 2=opfor, otro=empate), igual que en el Inicio. */
 function winnerLabel(round) {
     const blufor = round.blufor_team ? escapeHtml(round.blufor_team) : 'BLUFOR';
     const opfor = round.opfor_team ? escapeHtml(round.opfor_team) : 'OPFOR';
-    if (round.winner === 1) return `<span class="round-win">${blufor}</span>`;
-    if (round.winner === 2) return `<span class="round-win">${opfor}</span>`;
-    return '<span class="round-draw">Empate</span>';
+    if (round.winner === 1) return `<span class="dtable-chip is-win">${blufor}</span>`;
+    if (round.winner === 2) return `<span class="dtable-chip is-win">${opfor}</span>`;
+    return '<span class="dtable-chip">Empate</span>';
 }
 
 async function renderRecentMatches() {
@@ -34,20 +35,24 @@ async function renderRecentMatches() {
         return false;
     }
 
-    const rows = matches.map((r) => `
-        <tr>
-            <td>${matchDateLabel(r.filename) || 'N/A'}</td>
-            <td>${escapeHtml(mapLabel(r.map_name))}</td>
-            <td>${escapeHtml(gamemodeLabel(r.gamemode))}</td>
-            <td>${winnerLabel(r)}</td>
-            <td>${formatNumber(r.total_kills || 0)}</td>
-        </tr>`).join('');
-
-    results.innerHTML = `
-        <table class="data-table recent-matches-table">
-            <thead><tr><th>Fecha</th><th>Mapa</th><th>Modo</th><th>Ganador</th><th>Kills</th></tr></thead>
-            <tbody>${rows}</tbody>
-        </table>`;
+    // Tabla compartida (ui.js): columnas alineadas y scroll horizontal propio en celular.
+    results.innerHTML = tableHTML(
+        [
+            { label: 'Fecha', width: '120px' },
+            { label: 'Mapa', width: 'minmax(0,2fr)' },
+            { label: 'Modo', width: 'minmax(0,1fr)' },
+            { label: 'Ganador', width: 'minmax(0,1fr)' },
+            { label: 'Kills', width: '80px', align: 'end' },
+        ],
+        matches.map((r) => [
+            `<span class="dtable-muted">${escapeHtml(matchDateLabel(r.filename) || '—')}</span>`,
+            `<span class="dtable-name">${escapeHtml(mapLabel(r.map_name))}</span>`,
+            `<span class="dtable-chip">${escapeHtml(gamemodeLabel(r.gamemode) || '—')}</span>`,
+            winnerLabel(r),
+            formatNumber(r.total_kills || 0),
+        ]),
+        { minWidth: 600, caption: 'Partidas recientes' },
+    );
     return true;
 }
 

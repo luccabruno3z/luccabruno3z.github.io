@@ -2672,3 +2672,114 @@ footer a:hover {
    cambia con ellos. */
 .clan-averages-container > .clan-toolbar { width: 100%; margin-bottom: 0; }
 .clan-controls { width: 100%; }
+
+/* ----------------------------------------------------------------------------
+   31. Un solo nivel de título por vista
+   Cada vista ya tiene su título grande (.view-title). Los títulos de sección
+   centrados, en cian y con subrayado competían con él y sumaban aire: pasan a
+   subtítulos alineados a la izquierda, en blanco, más chicos.
+---------------------------------------------------------------------------- */
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    font-size: clamp(1.5rem, 2.6vw, 1.9rem);
+    letter-spacing: 1.5px;
+    color: var(--text);
+    text-shadow: none;
+    margin-bottom: 4px;
+}
+.section-title::after { display: none; }
+.section-subtitle {
+    text-align: left;
+    max-width: none;
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+}
+.view .section { padding-top: 40px; padding-bottom: 40px; }
+.view-head + .section { padding-top: 28px; }
+@media (max-width: 768px) {
+    .view .section { padding: 28px 16px; }
+    .view-head + .section { padding-top: 20px; }
+}
+
+/* ----------------------------------------------------------------------------
+   32. Botones: dos tipos en toda la web
+   Había 6 variantes (radio 6/8/12 px, alto 36-54 px, distintos pesos).
+   Primario = relleno cian; secundario (.ghost) = borde. 44 px de alto, radio 10.
+   El "body" adelante solo sube la especificidad sobre las reglas viejas.
+---------------------------------------------------------------------------- */
+body .cta-button,
+body form button[type="submit"],
+body .search-input-wrapper button,
+body .search-form button,
+body .prediction-form button,
+body .prediction-form > button[type="submit"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    height: auto;
+    padding: 0 22px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--accent);
+    background-image: none;
+    color: #04121a;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    box-shadow: none;
+    transform: none;
+    cursor: pointer;
+    transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast);
+}
+body .cta-button:hover,
+body form button[type="submit"]:hover,
+body .search-input-wrapper button:hover,
+body .search-form button:hover,
+body .prediction-form button:hover {
+    background: #7ffcfc;
+    box-shadow: none;
+    transform: none;
+}
+body .cta-button.ghost {
+    background: transparent;
+    color: var(--accent);
+    border-color: var(--border-strong);
+}
+body .cta-button.ghost:hover {
+    background: var(--accent-dim);
+    color: var(--accent);
+}
+/* Links de las tarjetas del Inicio: área de toque de 44 px */
+.tile-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 4px; }
+
+/* ----------------------------------------------------------------------------
+   33. Íconos SVG (web/js/icons.js) en lugar de emojis
+---------------------------------------------------------------------------- */
+.ico {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: -0.18em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.section-title .ico, .tile-head .ico, .view-title .ico { color: var(--accent); }
+.ico-gold { color: var(--tier-c-elite); }
+.ico-silver { color: var(--silver); }
+.ico-bronze { color: var(--bronze); }
+.ico-green { color: var(--tier-c-veterano); }
+.ico-blue { color: var(--tier-c-experimentado); }
+.ico-orange { color: var(--tier-c-soldado); }
+.ico-red { color: var(--tier-c-recluta); }
+.ico-yellow { color: #FFD24D; }
