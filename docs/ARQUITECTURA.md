@@ -115,6 +115,23 @@ momento (`kit_kills`, `kit_deaths` y, en rondas nuevas, `kit_alive_ticks`). No s
 y los que se levantan del piso: con ese dato, la mitad de la comunidad salía médico.
 Para mostrar qué juega alguien está `kit_activity` (kills + muertes con cada kit).
 
+Los nombres de los kits siguen el [manual oficial de PR](https://www.realitymod.org/manual/en/kits.html)
+(`scraper/aliases.py`, `KIT_ROLES`). Algunos códigos internos no dicen el kit; se
+comprobaron con las armas con que matan los jugadores de cada uno:
+
+| Código | Kit (manual) | En el sitio |
+|---|---|---|
+| `support` | Automatic Rifleman | Fusilero automático |
+| `assault` | Grenadier | Granadero |
+| `specialist` | Breacher | Breacher |
+| `riflemanat` | Light Anti-Tank (LAT) | Anti-tanque ligero |
+| `at` | Heavy Anti-Tank (HAT) | Anti-tanque pesado |
+| `engineer` | Combat Engineer | Ingeniero de combate |
+
+Los arquetipos (`scraper/scoring.py`) no son kits: Médico, Oficial, Tripulante y
+Anti-tanque se asignan por el kit que más juega alguien, y Preciso, Asesino,
+Superviviente, Dominante, Todoterreno e Infante por su perfil de estadísticas.
+
 `scraper/roles.py` mide cada rol por lo que le toca hacer: revives por ronda para el
 médico, kills con lanzador para el AT, kills con armas de vehículo para el tripulante,
 kills desde aeronaves para el piloto, victorias para el oficial y K/D para el resto.

@@ -197,7 +197,7 @@ def relative_time(timestamp_str: str) -> str:
 def classify_playstyle(kd: float, kills_per_round: float, deaths_per_round: float, rounds: int) -> tuple[str, str]:
     """Classify player's style based on stats. Returns (emoji, name)."""
     if kd >= 2.0 and kills_per_round < 3.0:
-        return ("🎯", "Francotirador")
+        return ("🎯", "Preciso")
     elif kills_per_round >= 5.0 and deaths_per_round >= 4.0:
         return ("🗡️", "Asesino")
     elif deaths_per_round < 2.5 and kd >= 1.2:
@@ -205,7 +205,7 @@ def classify_playstyle(kd: float, kills_per_round: float, deaths_per_round: floa
     elif rounds >= 500 and 0.8 <= kd <= 1.8:
         return ("🧭", "Todoterreno")
     elif kills_per_round >= 4.0 and rounds >= 200:
-        return ("🏋️", "Tanque")
+        return ("🏋️", "Dominante")
     elif rounds < 50:
         return ("🌱", "Novato")
     else:

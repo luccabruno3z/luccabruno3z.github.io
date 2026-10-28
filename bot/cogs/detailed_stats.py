@@ -626,14 +626,20 @@ class DetailedStats(commands.Cog):
         # Revives/ronda-de-médico (como en demo_details): dividir por TODAS las rondas
         # diluía la métrica de los que alternan kits. Fallback a rounds si el campo
         # no está (player_details viejo).
-        medic_count = normalized.get("Medico", 0)
+        # Las claves son los nombres legibles de los alias ("Médico", "Anti-tanque
+        # ligero"…); antes se buscaban "Medico" y "HAT"/"LAT" y nunca coincidían.
+        def _count(*names):
+            low = tuple(n.casefold() for n in names)
+            return sum(c for k, c in normalized.items()
+                       if k.casefold().replace("é", "e").startswith(low))
+        medic_count = _count("medico")
         if medic_count > 0:
             revives_given = player.get("total_revives_given", 0)
             medic_rounds = player.get("rounds_as_medic", 0) or rounds
             lines.append(f"💉 **Medic** — Revives/ronda de médico: **{revives_given / medic_rounds:.2f}**")
 
         # Vehicles destroyed/round if AT/crewman
-        at_count = sum(normalized.get(k, 0) for k in ("HAT", "LAT", "Anti-Tanque", "Tripulante"))
+        at_count = _count("anti-tanque", "hat", "lat", "tripulante")
         if at_count > 0:
             vehs = player.get("total_vehicles_destroyed", 0)
             lines.append(f"💥 **AT/Tripulante** — Vehículos destruidos/ronda: **{vehs / rounds:.2f}**")
@@ -1579,14 +1585,15 @@ class DetailedStats(commands.Cog):
         aliases=["toprol", "top_medicos", "top_at", "top_tripulantes", "top_pilotos"],
         description="Los mejores de cada rol: médicos, anti-tanques, tripulantes… (datos de demos)",
     )
-    @app_commands.describe(rol="Rol: medico, at, tripulante, piloto, fusilero, tirador, oficial…",
+    @app_commands.describe(rol="Rol: medico, at, aa, tripulante, piloto, fusilero, granadero, oficial…",
                            periodo="Período: todo o mes (últimos 30 días)")
     @app_commands.choices(
         rol=[app_commands.Choice(name=n, value=v) for n, v in [
-            ("Médico", "medico"), ("Anti-tanque", "at"), ("Tripulante", "tripulante"),
-            ("Piloto", "piloto"), ("Fusilero", "fusilero"), ("Tirador", "tirador"),
-            ("Ametrallador", "ametrallador"), ("Apoyo", "apoyo"), ("Asalto", "asalto"),
-            ("Especialista", "especialista"), ("Oficial", "oficial"), ("Observador", "observador"),
+            ("Médico", "medico"), ("Anti-tanque (LAT/HAT)", "at"), ("Antiaéreo", "aa"),
+            ("Tripulante", "tripulante"), ("Piloto", "piloto"), ("Fusilero", "fusilero"),
+            ("Fusilero automático", "ar"), ("Ametrallador", "ametrallador"),
+            ("Tirador", "tirador"), ("Granadero", "granadero"), ("Breacher", "breacher"),
+            ("Ingeniero de combate", "ingeniero"), ("Oficial", "oficial"), ("Observador", "observador"),
         ]],
         periodo=[app_commands.Choice(name="Todo el historial", value="todo"),
                  app_commands.Choice(name="Últimos 30 días", value="mes")],

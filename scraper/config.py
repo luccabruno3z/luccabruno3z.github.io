@@ -36,10 +36,11 @@ CLAN_URLS = {
 SCORING_VERSION = "v3"
 
 # Kit names for archetype detection (must match demo kit names)
-MEDIC_KITS = ["Medico"]
+# Roles (nombres de aliases.resolve_kit) que definen los arquetipos por kit.
+MEDIC_KITS = ["Médico"]
 OFFICER_KITS = ["Oficial"]
-ARMOR_KITS = ["Tripulante", "Piloto"]
-AT_KITS = ["HAT", "LAT", "Anti-Tanque", "Ingeniero", "Ing. Combate"]
+ARMOR_KITS = ["Tripulante de vehículo", "Piloto"]
+AT_KITS = ["Anti-tanque ligero", "Anti-tanque pesado"]
 
 # Fixed normalization caps (for stable historical scores)
 NORM_CAPS = {

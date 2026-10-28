@@ -47,11 +47,14 @@ KIT_CATEGORIES = [
     ("aa", "Antiaéreo", "pr_aa", "kit_AA.png"),
     ("hat", "HAT", "pr_at", "kit_AT.png"),
     ("lat", "LAT", "pr_at", "kit_AT.png"),
-    ("anti-tank", "Anti-Tanque", "pr_at", "kit_AT.png"),
-    ("at", "Anti-Tanque", "pr_at", "kit_AT.png"),
+    ("riflemanat", "LAT", "pr_at", "kit_AT.png"),
+    ("anti-tank", "HAT", "pr_at", "kit_AT.png"),
+    ("at", "HAT", "pr_at", "kit_AT.png"),
     ("rifleman_ap", "Fusilero AP", "pr_rifle", "kit_Rifle.png"),
     ("automatic_rifle", "Fus. Automático", "pr_mg", "kit_MG.png"),
-    ("assault", "Asalto", "pr_assault", "kit_Light_Assault.png"),
+    ("assault", "Granadero", "pr_grenadier", "kit_Grenadier.png"),  # `assault` es el Grenadier
+    ("specialist", "Breacher", "pr_engineer", "kit_Engineer.png"),  # `specialist` es el Breacher
+    ("support", "Fus. Automático", "pr_mg", "kit_MG.png"),  # `support` es el Automatic Rifleman
     ("rifleman", "Fusilero", "pr_rifle", "kit_Rifle.png"),
     ("rifle", "Fusilero", "pr_rifle", "kit_Rifle.png"),
     ("unarmed", "Desarmado", "pr_rifle", "kit_Rifle.png"),

@@ -20,14 +20,17 @@ _ACCENT = 0xFFA500  # naranja, como el top por rol de la web
 ROLE_ALIASES = {
     "medico": "medico", "médico": "medico", "medic": "medico", "medicos": "medico", "médicos": "medico",
     "at": "at", "antitanque": "at", "anti-tanque": "at", "lat": "at", "hat": "at",
+    "aa": "aa", "antiaereo": "aa", "antiaéreo": "aa",
     "tripulante": "tripulante", "tanquista": "tripulante", "crewman": "tripulante", "tanque": "tripulante",
     "piloto": "piloto", "pilot": "piloto",
     "fusilero": "fusilero", "rifleman": "fusilero",
     "tirador": "tirador", "francotirador": "tirador", "sniper": "tirador", "marksman": "tirador",
     "ametrallador": "ametrallador", "mg": "ametrallador",
-    "apoyo": "apoyo", "support": "apoyo",
-    "asalto": "asalto", "assault": "asalto",
-    "especialista": "especialista", "ingeniero": "especialista",
+    # Los nombres viejos (apoyo, asalto, especialista) eran alias mal puestos de estos kits.
+    "ar": "ar", "automatico": "ar", "automático": "ar", "support": "ar", "apoyo": "ar",
+    "granadero": "granadero", "grenadier": "granadero", "assault": "granadero", "asalto": "granadero",
+    "breacher": "breacher", "specialist": "breacher", "especialista": "breacher",
+    "ingeniero": "ingeniero", "engineer": "ingeniero", "zapador": "ingeniero",
     "oficial": "oficial", "officer": "oficial", "sl": "oficial",
     "observador": "observador", "spotter": "observador",
 }

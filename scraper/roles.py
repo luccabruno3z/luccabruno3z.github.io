@@ -36,25 +36,28 @@ ROLE_LEADERBOARDS_PATH = os.path.join(DEMOS_DIR, "role_leaderboards.json")
 ROLE_BOARDS = [
     {"key": "medico", "label": "Médico", "roles": {"Médico"},
      "metric": "rate", "num": "revives", "metric_label": "Revives por ronda"},
-    {"key": "at", "label": "Anti-tanque",
-     "roles": {"Fusilero AT", "Anti-tanque", "Anti-tanque ligero", "Anti-tanque pesado"},
+    {"key": "at", "label": "Anti-tanque (LAT/HAT)",
+     "roles": {"Anti-tanque ligero", "Anti-tanque pesado"},
      "metric": "rate", "num": "at_kills", "metric_label": "Kills con lanzador AT por ronda"},
     {"key": "tripulante", "label": "Tripulante", "roles": {"Tripulante de vehículo"},
      "metric": "rate", "num": "ground_vehicle_kills", "metric_label": "Kills con armas de vehículo por ronda"},
     {"key": "piloto", "label": "Piloto", "roles": {"Piloto"},
      "metric": "rate", "num": "air_kills", "metric_label": "Kills desde aeronaves por ronda"},
-    {"key": "fusilero", "label": "Fusilero", "roles": {"Fusilero", "Fusilero automático", "Fusil"},
+    {"key": "aa", "label": "Antiaéreo", "roles": {"Antiaéreo"},
+     "metric": "rate", "num": "aa_kills", "metric_label": "Kills con lanzador AA por ronda"},
+    {"key": "fusilero", "label": "Fusilero", "roles": {"Fusilero", "Fusil"},
      "metric": "kd", "metric_label": "K/D con el rol"},
     {"key": "tirador", "label": "Tirador", "roles": {"Francotirador", "Tirador designado"},
      "metric": "kd", "metric_label": "K/D con el rol"},
     {"key": "ametrallador", "label": "Ametrallador", "roles": {"Ametrallador"},
      "metric": "kd", "metric_label": "K/D con el rol"},
-    {"key": "apoyo", "label": "Apoyo", "roles": {"Apoyo"},
+    {"key": "ar", "label": "Fusilero automático", "roles": {"Fusilero automático"},
      "metric": "kd", "metric_label": "K/D con el rol"},
-    {"key": "asalto", "label": "Asalto", "roles": {"Asalto", "Granadero", "Lanzagranadas"},
+    {"key": "granadero", "label": "Granadero", "roles": {"Granadero", "Lanzagranadas"},
      "metric": "kd", "metric_label": "K/D con el rol"},
-    {"key": "especialista", "label": "Especialista",
-     "roles": {"Especialista", "Ingeniero", "Ingeniero de combate", "Zapador"},
+    {"key": "breacher", "label": "Breacher", "roles": {"Breacher"},
+     "metric": "kd", "metric_label": "K/D con el rol"},
+    {"key": "ingeniero", "label": "Ingeniero de combate", "roles": {"Ingeniero de combate", "Zapador"},
      "metric": "kd", "metric_label": "K/D con el rol"},
     {"key": "oficial", "label": "Oficial", "roles": {"Oficial"},
      "metric": "winrate", "metric_label": "Victorias con el rol"},
@@ -80,10 +83,12 @@ def _board_of_kit(kit: str):
 
 @lru_cache(maxsize=None)
 def _weapon_class(code: str) -> str:
-    """'at', 'ground', 'air' o '' según el arma que hizo la baja."""
+    """'at', 'aa', 'ground', 'air' o '' según el arma que hizo la baja."""
     w = resolve_weapon(code)
     if w.get("kind") == "AT":
         return "at"
+    if w.get("kind") == "AA":
+        return "aa"
     if w.get("kind") == "vehicle" and w.get("vclass") == "vehicle":
         return "air" if w.get("vtype") == "air" else "ground"
     return ""
@@ -133,12 +138,12 @@ def _accumulate(rounds: list[dict], matcher: ClanMatcher, cutoff=None) -> dict:
                 continue
             revives = pdata.get("revives_given", 0) or 0
 
-            wclass = {"at": 0, "ground": 0, "air": 0}
+            wclass = {"at": 0, "aa": 0, "ground": 0, "air": 0}
             for w, c in (pdata.get("kill_weapons") or {}).items():
                 k = _weapon_class(w)
                 if k:
                     wclass[k] += c
-            nums = {"revives": revives, "at_kills": wclass["at"],
+            nums = {"revives": revives, "at_kills": wclass["at"], "aa_kills": wclass["aa"],
                     "ground_vehicle_kills": wclass["ground"], "air_kills": wclass["air"]}
             team = pdata.get("team", -1)
             decided = winner in (1, 2) and team in (1, 2)

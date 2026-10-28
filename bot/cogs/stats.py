@@ -1377,15 +1377,15 @@ class Stats(commands.Cog):
 
         # Priority order for archetypes
         archetype_priority = [
-            "Médico", "Oficial", "Tanquista", "Demoledor", "Francotirador",
+            "Médico", "Oficial", "Tripulante", "Anti-tanque", "Preciso",
             "Estratega", "Explorador", "Soldado",
         ]
         archetype_emojis = {
             "Médico": "💉",
             "Oficial": "📡",
-            "Tanquista": "🛡️",
-            "Demoledor": "💣",
-            "Francotirador": "🎯",
+            "Tripulante": "🛡️",
+            "Anti-tanque": "💣",
+            "Preciso": "🎯",
             "Estratega": "🧠",
             "Explorador": "🔭",
             "Soldado": "⚔️",

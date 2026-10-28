@@ -22,6 +22,7 @@ import os
 
 import pandas as pd
 
+from .aliases import resolve_kit
 from .config import (
     DEMOS_DIR,
     NORM_CAPS,
@@ -123,12 +124,30 @@ def _hhi(kits_used: dict) -> float:
     return sum(s ** 2 for s in shares)
 
 
-def _main_role(kits_used: dict, role_kits: list, threshold: float = 0.25) -> bool:
-    """Check if a player mainly uses kits from a given role."""
-    total = sum(kits_used.values())
+def _role_usage(demo: dict) -> dict:
+    """{rol legible: uso} de un jugador de player_details.
+
+    Usa `kit_activity` (kills + muertes con cada kit puesto); `kits_used` incluye los
+    kits que se miran en el menú antes de reaparecer, y solo se usa si falta el otro.
+    Agrupa por rol (aliases): las variantes por facción (`ru_medic`, `us_medic_alt`…)
+    cuentan como el mismo rol."""
+    raw = demo.get("kit_activity") or demo.get("kits_used") or {}
+    roles: dict[str, int] = {}
+    for code, count in raw.items():
+        role = resolve_kit(code)
+        roles[role] = roles.get(role, 0) + count
+    return roles
+
+
+def _main_role(roles: dict, role_kits: list, threshold: float = 0.25) -> bool:
+    """¿La parte de esos roles en el uso del jugador llega al umbral?
+
+    Antes se comparaban los nombres legibles contra códigos crudos de kit y nunca
+    coincidían: ningún jugador salía Médico, Oficial, Tripulante ni Anti-tanque."""
+    total = sum(roles.values())
     if total == 0:
         return False
-    role_count = sum(kits_used.get(k, 0) for k in role_kits)
+    role_count = sum(c for r, c in roles.items() if r in role_kits)
     return (role_count / total) >= threshold
 
 
@@ -269,8 +288,9 @@ def _compute_radar(
         sig_rounds = 1.0 / (1.0 + math.exp(-((rounds - 50) / 15)))
         consistencia = (cons / 100.0) * 0.7 + sig_rounds * 0.3
 
-        # Versatilidad
-        kits = demo.get("kits_used", {})
+        # Versatilidad: variedad de roles que realmente juega (no de códigos de kit,
+        # que separan cada facción y contaban los kits mirados en el menú).
+        kits = _role_usage(demo)
         versatilidad = 1 - _hhi(kits) if kits else 0.0
     else:
         teamwork = 0.3
@@ -381,7 +401,7 @@ def _classify_archetype(radar: dict, demo: dict | None, rounds: int) -> dict:
 
     # Priority 1 — Kit-based (from demo data)
     if demo and demo.get("rounds_played", 0) >= 5:
-        kits = demo.get("kits_used", {})
+        kits = _role_usage(demo)
         tw = radar.get("teamwork", 0)
         imp = radar.get("impacto", 0)
 
@@ -390,9 +410,9 @@ def _classify_archetype(radar: dict, demo: dict | None, rounds: int) -> dict:
         if _main_role(kits, OFFICER_KITS, 0.20) and tw > 0.5 and imp > 0.5:
             return {"name": "Oficial", "emoji": "\U0001f4e1", "desc": "Liderazgo y coordinación táctica"}
         if _main_role(kits, ARMOR_KITS, 0.25):
-            return {"name": "Tanquista", "emoji": "\U0001f6e1\ufe0f", "desc": "Especialista en vehículos blindados"}
+            return {"name": "Tripulante", "emoji": "\U0001f6e1\ufe0f", "desc": "Juega sobre todo en vehículos blindados y aeronaves"}
         if _main_role(kits, AT_KITS, 0.25):
-            return {"name": "Demoledor", "emoji": "\U0001f4a5", "desc": "Anti-tanque y demolición"}
+            return {"name": "Anti-tanque", "emoji": "\U0001f4a5", "desc": "Juega sobre todo de LAT o HAT"}
 
     # Priority 2 — Stat patterns
     let_ = radar.get("letalidad", 0)
@@ -403,13 +423,13 @@ def _classify_archetype(radar: dict, demo: dict | None, rounds: int) -> dict:
     ver = radar.get("versatilidad", 0)
 
     if let_ > 0.6 and sup > 0.7 and (tw == 0 or let_ / max(tw, 0.01) > 2.0):
-        return {"name": "Francotirador", "emoji": "\U0001f3af", "desc": "Precisión letal desde la distancia"}
+        return {"name": "Preciso", "emoji": "\U0001f3af", "desc": "Mata mucho y muere poco"}
     if let_ > 0.75 and sup < 0.6:
         return {"name": "Asesino", "emoji": "\U0001f5e1\ufe0f", "desc": "Altamente letal pero arriesgado"}
     if sup > 0.8 and let_ < 0.5:
         return {"name": "Superviviente", "emoji": "\U0001f6e1\ufe0f", "desc": "Difícil de eliminar, juega seguro"}
     if let_ > 0.7 and imp > 0.7 and con > 0.5:
-        return {"name": "Tanque", "emoji": "\U0001f3cb\ufe0f", "desc": "Domina el combate con consistencia"}
+        return {"name": "Dominante", "emoji": "\U0001f3cb\ufe0f", "desc": "Domina el combate con consistencia"}
     if con > 0.7 and all(radar.get(a, 0) >= 0.4 for a in ("letalidad", "supervivencia", "teamwork", "impacto")) and ver > 0.5:
         return {"name": "Todoterreno", "emoji": "\U0001f9ed", "desc": "Rendimiento sólido y versátil"}
 

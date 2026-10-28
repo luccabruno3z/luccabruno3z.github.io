@@ -54,7 +54,7 @@ GLOSSARY: dict[str, tuple[str, list[tuple[str, str]]]] = {
     ]),
     "arquetipos": ("🎭 Arquetipos", [
         ("Qué son", "Etiqueta automática del estilo de juego, según el perfil del radar + los kits usados."),
-        ("Ejemplos", "🏋️ Tanque (domina con consistencia), 🎯 Francotirador (preciso a distancia), "
+        ("Ejemplos", "🏋️ Dominante (domina con consistencia), 🎯 Preciso (mata mucho y muere poco), "
             "🗡️ Asesino (muy letal pero arriesgado), 🛡️ Superviviente (juega seguro), y más."),
     ]),
     "otros": ("⚙️ Otros términos", [

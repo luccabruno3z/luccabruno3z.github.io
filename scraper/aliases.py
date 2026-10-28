@@ -104,23 +104,28 @@ KIT_FACTIONS = {
     "global": "Global",
 }
 
+# Nombres de los kits según el manual oficial (realitymod.org/manual/en/kits.html).
+# Los códigos internos no siempre dicen el kit: `support` es el Automatic Rifleman
+# (ametralladora ligera), `assault` el Grenadier (lanzagranadas), `specialist` el
+# Breacher (escopeta, C4, gancho), `riflemanat` el Light Anti-Tank y `at` el Heavy
+# Anti-Tank. Verificado con las armas con que matan los jugadores de cada kit.
 KIT_ROLES = {
     "combat_engineer": "Ingeniero de combate", "automatic_rifle": "Fusilero automático",
     "machine_gun": "Ametrallador", "rifleman_ap": "Fusilero AP", "riflemanap": "Fusilero AP",
-    "riflemanat": "Fusilero AT", "anti-tank": "Anti-tanque", "rifleman": "Fusilero",
-    "marksman": "Tirador designado", "specialist": "Especialista",
+    "riflemanat": "Anti-tanque ligero", "anti-tank": "Anti-tanque pesado", "rifleman": "Fusilero",
+    "marksman": "Tirador designado", "specialist": "Breacher",
     "specop": "Fuerzas Especiales", "spotter": "Observador", "sniper": "Francotirador",
-    "grenadier": "Granadero", "breacher": "Asaltante de brechas",
+    "grenadier": "Granadero", "breacher": "Breacher",
     "crewman": "Tripulante de vehículo", "tanker": "Tripulante de vehículo",
-    "engineer": "Ingeniero", "sapper": "Zapador", "recon": "Reconocimiento",
-    "officer": "Oficial", "pilot": "Piloto", "support": "Apoyo", "assault": "Asalto",
+    "engineer": "Ingeniero de combate", "sapper": "Zapador", "recon": "Reconocimiento",
+    "officer": "Oficial", "pilot": "Piloto", "support": "Fusilero automático", "assault": "Granadero",
     "medic": "Médico", "unarmed": "Desarmado", "para": "Paracaidista",
     "makarov": "Pistola Makarov", "shotgun": "Escopeta", "pistol": "Pistola",
     "pickup": "Equipo recogido", "impact": "Granada de impacto", "grenade": "Granadero",
     "knife": "Cuchillo", "m79": "Lanzagranadas M79", "dmr": "Tirador designado",
     "smg": "Subfusil", "auto": "Fusilero automático", "bolt": "Fusil de cerrojo",
     "semi": "Fusil semiautomático", "insurgent": "Insurgente", "hat": "Anti-tanque pesado",
-    "lat": "Anti-tanque ligero", "at": "Anti-tanque", "aa": "Antiaéreo",
+    "lat": "Anti-tanque ligero", "at": "Anti-tanque pesado", "aa": "Antiaéreo",
     "mg": "Ametrallador", "gl": "Lanzagranadas", "rifle": "Fusil", "rif": "Fusil",
 }
 # Match longest role key first (so riflemanat beats rifleman beats rifle, etc.)
