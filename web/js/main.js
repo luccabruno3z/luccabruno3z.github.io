@@ -6,6 +6,7 @@
 import { loadData, loadTierConfig, loadLogoManifest, loadAliases, loadAtlas } from './data.js';
 import { initRouter } from './router.js';
 import { initIcons } from './icons.js';
+import { initTeamChips } from './chips.js';
 
 import { initHero } from './hero.js';
 import { initDashboard } from './dashboard.js';
@@ -82,6 +83,7 @@ async function boot() {
     safe('rankings', initRankings);
     safe('predictor', initPredictor);
     safe('team', initTeamAnalysis);
+    safe('chips', initTeamChips);  // después: usa los campos que arman predictor/team
     safe('demos', initDemoStats);
 
     // Lazy sections (self-managed IntersectionObserver).

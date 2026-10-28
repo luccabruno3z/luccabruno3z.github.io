@@ -33,6 +33,20 @@ export function rankBarHTML(below) {
     return barHTML(b * 100, cls);
 }
 
+/**
+ * Barra "versus" dividida: izquierda cian (entidad 1), derecha naranja (entidad 2),
+ * repartida según la proporción de cada lado. En métricas donde menos es mejor, el que
+ * tiene MENOS se lleva la parte grande. Mismos colores que la comparación del bot.
+ */
+export function versusBarHTML(v1, v2, higherIsBetter = true) {
+    if (v1 == null || v2 == null) return '';
+    let a = Math.abs(Number(v1) || 0), b = Math.abs(Number(v2) || 0);
+    if (!higherIsBetter) [a, b] = [b, a];
+    const left = a + b ? (a / (a + b)) * 100 : 50;
+    return `<span class="vbar" aria-hidden="true"><span class="vbar-l" style="width:${left.toFixed(1)}%"></span>`
+        + `<span class="vbar-r" style="width:${(100 - left).toFixed(1)}%"></span></span>`;
+}
+
 /** Chip de tier (texto, sin emoji). */
 export function tierChipHTML(score) {
     const t = tierBadge(score || 0);

@@ -8,6 +8,7 @@ import {
     escapeHtml, formatNumber, findPlayer, highlightWinner, advantagePct, clanLogoHTML, teamAverage,
 } from './utils.js';
 import { setupAutocomplete } from './autocomplete.js';
+import { versusBarHTML } from './ui.js';
 
 /** Tally per-metric wins and build the verdict line, shared by both comparisons.
  *  `metrics` rows are [label, v1, v2, higherBetter]. */
@@ -41,7 +42,7 @@ function metricRow(label, v1, v2, fmt, higherBetter = true) {
     const { class1, class2 } = highlightWinner(v1, v2, higherBetter);
     return `<div class="compare-row">
         <span class="compare-cell ${class1}">${fmt(v1)}</span>
-        <span class="compare-metric">${escapeHtml(label)}</span>
+        <span class="compare-metric">${escapeHtml(label)}${versusBarHTML(v1, v2, higherBetter)}</span>
         <span class="compare-cell ${class2}">${fmt(v2)}</span>
     </div>`;
 }
@@ -56,7 +57,7 @@ function renderPlayerComparison(p1, p2) {
         ['Kills por Ronda', p1['Kills per Round'] || 0, p2['Kills per Round'] || 0, true],
         ['Deaths por Ronda', p1['Deaths per Round'] || 0, p2['Deaths per Round'] || 0, false],
         ['Score por Ronda', p1['Score per Round'] || 0, p2['Score per Round'] || 0, true],
-        ['Índice de Actividad', p1['Activity Index'] || 0, p2['Activity Index'] || 0, true],
+        ['Participación', p1['Activity Index'] || 0, p2['Activity Index'] || 0, true],
         ['Rondas', p1['Rounds'] || 0, p2['Rounds'] || 0, true],
         ['Total Kills', p1['Total Kills'] || 0, p2['Total Kills'] || 0, true],
         ['Total Score', p1['Total Score'] || 0, p2['Total Score'] || 0, true],
@@ -66,7 +67,7 @@ function renderPlayerComparison(p1, p2) {
         const { class1, class2 } = highlightWinner(v1, v2, hb);
         return `<div class="compare-row">
             <span class="compare-cell ${class1}">${num(v1)}</span>
-            <span class="compare-metric">${escapeHtml(label)} <small class="compare-adv">${escapeHtml(advantagePct(v1, v2))}</small></span>
+            <span class="compare-metric">${escapeHtml(label)} <small class="compare-adv">${escapeHtml(advantagePct(v1, v2))}</small>${versusBarHTML(v1, v2, hb)}</span>
             <span class="compare-cell ${class2}">${num(v2)}</span>
         </div>`;
     }).join('');
@@ -75,13 +76,13 @@ function renderPlayerComparison(p1, p2) {
 
     return `<div class="card compare-card">
         <div class="compare-header">
-            <span class="compare-entity">${p1.Clan ? clanLogoHTML(p1.Clan, 20) : ''} ${escapeHtml(p1.Player)}</span>
+            <span class="compare-entity side-1">${p1.Clan ? clanLogoHTML(p1.Clan, 20) : ''} ${escapeHtml(p1.Player)}</span>
             <span class="compare-vs">VS</span>
-            <span class="compare-entity">${p2.Clan ? clanLogoHTML(p2.Clan, 20) : ''} ${escapeHtml(p2.Player)}</span>
+            <span class="compare-entity side-2">${p2.Clan ? clanLogoHTML(p2.Clan, 20) : ''} ${escapeHtml(p2.Player)}</span>
         </div>
+        <div class="compare-verdict">${verdict}</div>
         <div class="compare-table">${rows}</div>
         ${demoMetricsBlock(p1, p2)}
-        <div class="compare-verdict">${verdict}</div>
     </div>`;
 }
 
@@ -108,7 +109,7 @@ function demoMetricsBlock(p1, p2) {
         const { class1, class2 } = (v1 == null || v2 == null) ? { class1: '', class2: '' } : highlightWinner(v1, v2, hb);
         return `<div class="compare-row">
             <span class="compare-cell ${class1}">${fmt(v1)}${sub1 ? ` <small class="compare-sub">${escapeHtml(sub1)}</small>` : ''}</span>
-            <span class="compare-metric">${escapeHtml(label)}</span>
+            <span class="compare-metric">${escapeHtml(label)}${versusBarHTML(v1, v2, hb)}</span>
             <span class="compare-cell ${class2}">${fmt(v2)}${sub2 ? ` <small class="compare-sub">${escapeHtml(sub2)}</small>` : ''}</span>
         </div>`;
     }).join('');
@@ -158,12 +159,12 @@ function renderClanComparison(name1, members1, name2, members2) {
 
     return `<div class="card compare-card">
         <div class="compare-header">
-            <span class="compare-entity">${clanLogoHTML(name1, 24)} ${escapeHtml(name1)}</span>
+            <span class="compare-entity side-1">${clanLogoHTML(name1, 24)} ${escapeHtml(name1)}</span>
             <span class="compare-vs">VS</span>
-            <span class="compare-entity">${clanLogoHTML(name2, 24)} ${escapeHtml(name2)}</span>
+            <span class="compare-entity side-2">${clanLogoHTML(name2, 24)} ${escapeHtml(name2)}</span>
         </div>
-        <div class="compare-table">${rows}</div>
         <div class="compare-verdict">${verdict}</div>
+        <div class="compare-table">${rows}</div>
     </div>`;
 }
 

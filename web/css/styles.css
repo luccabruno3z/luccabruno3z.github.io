@@ -2783,3 +2783,206 @@ body .cta-button.ghost:hover {
 .ico-orange { color: var(--tier-c-soldado); }
 .ico-red { color: var(--tier-c-recluta); }
 .ico-yellow { color: #FFD24D; }
+
+/* ----------------------------------------------------------------------------
+   34. Selector de jugadores con chips (web/js/chips.js)
+---------------------------------------------------------------------------- */
+.chip-hidden { display: none !important; }
+.chip-picker { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 16px; }
+.chip-picker-head { display: flex; justify-content: space-between; align-items: baseline; }
+.chip-picker-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.chip-picker-count { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); }
+.chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chip-list:empty { display: none; }
+.chip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    height: 34px;
+    padding: 0 4px 0 12px;
+    border-radius: 999px;
+    background: var(--accent-dim);
+    border: 1px solid var(--border-medium);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+.predictor-team-box[data-team="B"] .chip-item { background: rgba(255, 165, 0, 0.1); border-color: rgba(255, 165, 0, 0.35); }
+.chip-remove {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.chip-remove:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+.chip-input-wrap { position: relative; }
+.chip-input {
+    width: 100%;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px dashed var(--border-strong);
+    background: rgba(10, 10, 18, 0.8);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+}
+.chip-input:focus { outline: none; border-style: solid; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.chip-input:disabled { opacity: 0.6; cursor: default; }
+
+/* ----------------------------------------------------------------------------
+   35. Comparar, Demos y Guías con los componentes nuevos
+---------------------------------------------------------------------------- */
+/* Comparar: veredicto arriba, lado 1 cian / lado 2 naranja (como el bot) y
+   cada métrica con su barra versus. */
+.compare-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px 24px;
+    background: var(--surface-solid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+}
+.compare-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+}
+.compare-entity {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: 1px;
+    overflow-wrap: anywhere;
+}
+.compare-entity.side-1 { color: var(--accent); }
+.compare-entity.side-2 { color: var(--secondary); justify-content: flex-end; text-align: right; }
+.compare-vs { font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); }
+.compare-verdict {
+    padding: 10px 14px;
+    border-radius: var(--r-md);
+    background: rgba(255, 215, 0, 0.07);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: var(--text);
+    text-align: center;
+    font-size: 1rem;
+}
+.compare-table { display: flex; flex-direction: column; }
+.compare-row {
+    display: grid;
+    grid-template-columns: minmax(70px, 1fr) minmax(0, 2.4fr) minmax(70px, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px solid var(--hairline);
+}
+.compare-row:first-child { border-top: none; }
+.compare-cell { font-family: var(--font-mono); font-size: 1rem; color: var(--text-muted); }
+.compare-row .compare-cell:first-child { text-align: left; }
+.compare-row .compare-cell:last-child { text-align: right; }
+.compare-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text);
+    text-align: center;
+}
+.compare-adv { color: var(--text-muted); font-size: 0.75rem; }
+.compare-row .compare-winner { font-weight: 700; }
+.compare-row .compare-cell:first-child.compare-winner { color: var(--accent); }
+.compare-row .compare-cell:last-child.compare-winner { color: var(--secondary); }
+.vbar { display: flex; width: 100%; height: 8px; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, 0.06); }
+.vbar-l { background: var(--accent); }
+.vbar-r { background: var(--secondary); }
+.compare-demo-section { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid var(--hairline); }
+.compare-demo-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-weight: 700; color: var(--text); }
+.compare-demo-title small { font-weight: 400; color: var(--text-muted); }
+
+/* Demos: cajas con la superficie de tarjeta y pestañas como selector segmentado */
+.demo-player-search,
+.demo-map-stats,
+.demo-result-box,
+.demo-map-box {
+    background: var(--surface-solid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    box-shadow: none;
+}
+.demo-player-search > h3,
+.demo-map-stats > h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.45rem;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-align: left;
+}
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--r-md);
+    background: rgba(10, 10, 18, 0.8);
+    border: 1px solid var(--hairline);
+}
+.tab {
+    min-height: 40px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+}
+.tab.active { background: var(--accent-dim); color: var(--accent); font-weight: 700; box-shadow: none; }
+
+/* Guías: tarjetas como el resto, con ícono y "Abrir guía" */
+.guide-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 22px;
+    background: var(--surface-solid);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-lg);
+    box-shadow: none;
+    text-align: left;
+}
+.guide-card::after { display: none; }
+.guide-card:hover { border-color: var(--border-strong); transform: none; box-shadow: none; }
+.guide-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.45rem;
+    letter-spacing: 1px;
+    color: var(--text);
+}
+.guide-card h3 .ico { color: var(--accent); }
+.guide-card p { margin: 0; color: var(--text-muted); }
+.guide-open { margin-top: auto; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+
+@media (max-width: 560px) {
+    .compare-entity { font-size: 1.2rem; }
+    .compare-row { grid-template-columns: minmax(56px, 1fr) minmax(0, 2fr) minmax(56px, 1fr); gap: 8px; }
+}

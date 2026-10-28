@@ -340,7 +340,7 @@ export function advantagePct(v1, v2) {
     if (v2 === 0) return v1 > 0 ? '+∞%' : '0%';
     const diff = ((v1 - v2) / Math.abs(v2)) * 100;
     const sign = diff >= 0 ? '+' : '';
-    return `${sign}${diff.toFixed(1)}%`;
+    return `${sign}${diff.toFixed(1).replace('.', ',')}%`;  // coma decimal, como el resto
 }
 
 // ── Lookup ───────────────────────────────────────────────────────────────────
