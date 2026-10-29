@@ -67,12 +67,12 @@ siguiente corrida; `processed.json` evita repetir demos.
 |---|---|---|
 | `rounds/<fecha>.json` + `index.json` | Rondas particionadas por día (los días pasados no se reescriben) | web (partidas, heatmap por ronda) |
 | `leaderboards/{dia,semana,mes,todo}.json` | Rankings precalculados por período | web, bot (`-top_periodo`, leaderboard semanal) |
-| `player_rounds/` | Timeline de rondas por jugador | web (perfil), bot (historial, última ronda) |
+| `player_rounds/` | Timeline de rondas por jugador: fecha y hora, mapa, modo, servidor, bando, kit, K, D, score, revives y resultado | web (perfil: forma reciente e historial), bot (historial, última ronda) |
 | `player_details.json` | Agregados por jugador: kits, armas, vehículos, combate, modos | web, bot |
 | `map_stats.json` | Duración, kills y resultados por mapa | web, bot (`-mapa`) |
 | `synergy.json` | Rendimiento con cada compañero de escuadra | web, bot (`-sinergia`) |
 | `role_leaderboards.json` | Top por rol, histórico y últimos 30 días (`scraper/roles.py`) | web (Rankings → Por rol), bot (`-top_rol`) |
-| `heatmaps/<mapa>.json` | Grillas de densidad por gamemode y capa | web (heatmaps) |
+| `heatmaps/<mapa>.json` | Grillas de densidad por modo y capa del mapa (`gpm_cq_64`, `gpm_cq_16`…) | web (heatmaps) |
 | `aliases.json` | Códigos internos del juego → nombres legibles | web, bot |
 
 El detalle de cada campo está en el [README](../README.md#pipeline-de-datos) y el

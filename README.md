@@ -122,7 +122,11 @@ El matching de IGN de demo → cuenta de prstats es **case-sensitive de dos nive
 Sobre esas rondas se precalculan:
 - **Leaderboards** por periodo (`leaderboards/{dia,semana,mes,todo}.json`) — el bot y la
   web leen un archivo de pocos KB en vez de procesar todo el historial.
-- **player_rounds/** — timeline por jugador (escritura por diff, sin churn).
+- **player_rounds/** — timeline por jugador (escritura por diff, sin churn). Cada ronda:
+  `date`, `time`, `map`, `gamemode`, `server` (nombre corto, `server_label()`),
+  `faction`, `kit` (el más usado de la ronda), `kills`, `deaths`, `score`, `revives`,
+  `won`. Las rondas guardadas antes de octubre de 2026 no traen `kit`; `server`, `time` y
+  `faction` aparecen al reconstruirse con la próxima corrida.
 - **player_details.json** y **map_stats.json** — agregados por jugador y por mapa.
 
 ### Humanizacion de assets (aliases)
@@ -158,9 +162,11 @@ desde las rondas nuevas):
   no solo el conteo. Se ve en `-vehiculos`.
 - **seat_kills**: kills segun el asiento del vehiculo (artillero/conductor/piloto…),
   humanizado via `aliases.json["seats"]`. Se ve en `-vehiculos`.
-- **squad** (por jugador) + **squad_names** (por ronda): escuadra predominante; el bot
-  deriva el **% de rondas jugadas en escuadra** (`-teamwork`), con denominador propio
-  (solo rondas con dato de escuadra).
+- **squad** (por jugador) + **squad_names** (por ronda): escuadra predominante. El byte
+  de escuadra trae el bit `0x80` para el **líder** (129 = SL de la escuadra 1, 128 =
+  comandante): el parser lo enmascara (`& 0x7F`) para que el SL cuente dentro de su
+  escuadra. `rounds_in_squad` / `rounds_with_squad_data` se siguen publicando pero no se
+  muestran: por reglamento todos juegan en una escuadra (~95 % para cualquiera).
 - **kill_positions** (por ronda): posicion `[x, z, equipo]` de cada muerte — se captura
   ya (las demos se borran tras procesarse) para un **heatmap por mapa** a futuro en la web.
 - **Logger de mensajes desconocidos**: el decoder cuenta los `msg_type` que el protocolo
@@ -174,15 +180,29 @@ Más señales por jugador, todas acumuladas desde las rondas nuevas:
 - **Vida promedio** y **kills/min con vida**: de las transiciones `is_alive`. (`-combate`)
 - **Mejor racha** (kills sin morir), **first blood**, **kills clutch** (con el equipo a
   ≤25 tickets), **teamkills/suicidios por jugador**. (`-combate`)
-- **Cohesión de escuadra**: distancia media de cada jugador al centroide de su squad,
-  muestreada cada ~10s (menor = más unidos). (`-teamwork`)
+- **Juego con la escuadra** (`-teamwork`, perfil, escuadras de clan): lo que importa es
+  si el jugador va con su escuadra o juega solo.
+  - `near_hits` / `near_samples`: cada ~10 s, con el jugador **vivo**, si tiene un
+    compañero de escuadra vivo a **≤ 50 m** (`SQUAD_NEAR_M`). El que está solo en su
+    escuadra cuenta como lejos; si sus compañeros están todos muertos no se mide. Se
+    muestra con 600+ muestras (~3 rondas vivo). Solo rondas desde octubre de 2026.
+  - `cohesion_sum` / `cohesion_samples`: distancia media al centro de su escuadra. Tiene
+    historial pero es más gruesa (cuenta muertos, castiga a la escuadra partida en dos
+    equipos de fuego y, antes de la máscara del líder, dejaba al SL afuera). Se usa
+    mientras no hay muestra de la otra. Cuartiles de la comunidad: ~205 / 255 / 315 m.
+- **Tiempos validados**: algunos demos traen el encabezado del servidor corrupto (p. ej.
+  35 millones de segundos por tick). `round_time_per_tick()` y `round_duration()`
+  (`scraper/rounds_store.py`) descartan valores fuera de rango (> 2 s por tick, > 8 h
+  por ronda) al sumar `alive_seconds`, `played_seconds` y la duración por mapa; el parser
+  también lo filtra al leer `ServerDetails`.
 
 ### Sinergia de dúo (`synergy.json`, `-sinergia`)
 Por jugador, su rendimiento jugando en la **misma escuadra** que cada compañero
 frecuente: dos jugadores son compañeros en una ronda si comparten `(equipo, escuadra>0)`.
 Se acumulan las stats del jugador en las rondas con cada compañero y se comparan contra
 su baseline (rondas sin ese compañero) → impacto en KPR + winrate juntos. Mínimo 3
-rondas compartidas para mostrarse. Se reconstruye desde todas las rondas con dato de squad.
+rondas compartidas para mostrarse. Se reconstruye desde todas las rondas con dato de squad
+(con la máscara del líder, así el SL cuenta con su escuadra también en las rondas viejas).
 
 ### Heatmaps por mapa (`graphs/demos/heatmaps/` + `web/img/maps/`)
 Grilla de densidad de muertes por mapa a partir de `kill_positions`. El origen del
@@ -196,11 +216,15 @@ y la densidad comparten la misma normalización centrada al mapa, así que se al
 recalibrar (BF2 invierte el eje Z → `FLIP_Y`). Los minimapas (`web/img/maps/`, 4096px JPEG)
 los baja `scraper/fetch_minimaps.py` del Map Gallery oficial.
 
-Cada `heatmaps/<mapa>.json` separa las capas **por gamemode** (`gamemodes: {gpm_cq, …}`)
-para no mezclar Skirmish (zona chica) con AAS/Insurgencia, y lista sus rondas
-(`rounds: [{filename,date,gamemode}]`) para el selector de ronda (la web carga esa ronda
-de `rounds/<fecha>.json` y la agrega en cliente). Cada gamemode tiene **4 capas** (radio
-en la web), acumuladas de todas sus rondas, filtrables por equipo:
+Cada `heatmaps/<mapa>.json` separa las capas **por modo y capa del mapa**
+(`gamemodes: {gpm_cq_64, gpm_cq_16, gpm_skirmish_16, …}`, de `_mode_layer()`): el mismo
+modo se juega con zonas y banderas distintas según la capa (AAS 16 es la de infantería,
+parecida a Skirmish; AAS 64 la estándar), así que no se mezclan. La web los muestra como
+"AAS · Estándar (64)" (`modeLayerLabel`). Lista sus rondas
+(`rounds: [{filename,date,gamemode}]`, con `gamemode` = esa misma clave) para el selector
+de ronda (la web carga esa ronda de `rounds/<fecha>.json` y la agrega en cliente). Cada
+modo y capa tiene **4 capas de datos** (radio en la web), acumuladas de todas sus rondas,
+filtrables por equipo:
 - **deaths**: dónde muere cada equipo (`kill_positions` víctima).
 - **movement**: rutas más transitadas por equipo (densidad de paso — se cuenta al entrar
   a una celda nueva, así traza recorridos y no campeo; muestreada cada ~10s).

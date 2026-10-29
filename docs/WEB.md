@@ -42,9 +42,10 @@ los traduce a la ruta nueva. El bot y algunos links externos todavía los usan.
 | `data.js` | Carga y caché de los JSON (`state.playersData`, tier config, alias, logos) |
 | `config.js` | URLs de datos y constantes (`MIN_ROUNDS_FOR_RANKING`, `NORM_CAPS`) |
 | `ui.js` | Componentes HTML reutilizables: `barHTML`, `tierBarHTML`, `rankBarHTML` (por percentil), `versusBarHTML`, `tierChipHTML`, `podiumHTML`, `tableHTML`, `posHTML` |
-| `utils.js` | Formato, nombres legibles de assets (`kitLabel`, `weaponLabel`…), tiers, `clanLogoHTML`, `escapeHtml` |
+| `utils.js` | Formato, nombres legibles de assets (`kitLabel`, `weaponLabel`…), `serverLabel`, `modeLayerLabel`, `avgLife`, juego con la escuadra (`squadNear`, `squadDistance`), tiers, `clanLogoHTML`, `escapeHtml` |
 | `icons.js` | Reemplaza emojis por íconos SVG (ver abajo) |
 | `chips.js` | Selector de jugadores con chips para Equipos |
+| `squads.js` | Estadísticas de un grupo de jugadores (`buildSquad`), su plantilla (`rosterHTML`) y la comparación A vs B (`versusHTML`). Lo usan las escuadras de clan, el predictor y la composición |
 | `autocomplete.js` | Autocompletado de jugadores y clanes |
 
 ### Íconos: emojis → SVG
@@ -58,6 +59,22 @@ se muestra tal cual.
 En Equipos, `chips.js` reemplaza las grillas de 8 campos por un único campo con
 chips. Los campos originales siguen en el DOM, ocultos, y el selector los llena en
 orden. Así `predictor.js` y `team.js` los leen por id sin saber que hay chips.
+
+### Escuadras de clan y Equipos
+Rankings → Escuadras de clan arma, por clan, una escuadra con los 8 jugadores de más
+Performance (50+ rondas; opcional solo activos 30 días) y la rankea por la fuerza del
+predictor. Las estadísticas (`buildSquad` en `squads.js`) son las de PRStats, las de demos
+(winrate, revives, teamwork, juego con la escuadra, vida, teamkills cada 100 kills,
+clutch), los roles que cubre (oficial, médico, AR/MG y AT: alguien con ese rol `eligible`)
+y la sinergia (pares que compartieron escuadra en 3+ rondas). El predictor y la
+composición de Equipos usan las mismas funciones con los jugadores elegidos. La
+probabilidad es siempre el composite del predictor (Performance, K/D y kills por ronda
+con `predictor_weights`); las demás filas no entran en ella. Una fila sin dato en
+ninguno de los dos lados no se muestra.
+
+### Partidas recientes
+Muestran el servidor con un nombre corto (`serverLabel`: sin la versión ni dominios o
+links de Discord); el nombre completo queda en el `title`.
 
 ### Guías
 Cada guía es un fragmento HTML en `web/guides/<slug>.html` (`kits`, `infanteria`, `lider`,
@@ -74,8 +91,17 @@ el archivo en `web/guides/`, una entrada en `GUIDES` de `guides.js` y su tarjeta
 `player.js` arma primero lo que sale de PRStats (cabecera con las fuentes de datos,
 KPIs, camino al próximo tier con los 7 componentes del Performance y contexto de clan)
 y después, cuando llegan las demos, completa forma reciente, fortalezas y a mejorar,
-roles, datos de demos y récords. Cada bloque de demos se oculta si no hay muestra
-suficiente.
+roles, datos de demos, historial de partidas y récords. Cada bloque de demos se oculta
+si no hay muestra suficiente.
+
+- **Cómo sumar**: debajo de la tabla del Performance, un consejo de juego para los dos
+  componentes con más margen (`COMP_HOW`).
+- **Fortalezas y a mejorar** (`GLANCE`): cada métrica contra los jugadores con 10+ rondas
+  con demo; una métrica con menos de 20 jugadores con dato no se muestra (así entran
+  solas las métricas nuevas cuando se acumulan). El juego con la escuadra usa "junto a la
+  escuadra" si hay muestra y, si no, la distancia al centro; nunca las dos.
+- **Historial de partidas**: de `player_rounds/`, de a 15 con "Ver más"; se saltean las
+  rondas sin kills, muertes ni score (entró y se fue).
 
 ## Estilos
 
@@ -93,6 +119,7 @@ recientes:
 | 35 | Comparación, demos y guías |
 | 36 | Perfil v2 (fuentes, camino al próximo tier, forma reciente, clan, roles) |
 | 37 | Lector de guías y diagramas |
+| 38 | Escuadras de clan (y al final: historial y "Cómo sumar" del perfil) |
 
 Los colores y espacios salen de variables CSS en `:root`. Usalas en vez de valores
 sueltos.

@@ -52,6 +52,14 @@ Llega un aviso al webhook de Discord con el link al run.
 Los hosts inestables se postergan solos y se reintentan con backoff. Para sacar uno de
 forma permanente, quitalo de las fuentes en `scraper/config.py`.
 
+### Aparecen tiempos absurdos (vida promedio de millones de minutos)
+Algún demo trajo el encabezado del servidor corrupto. Los valores fuera de rango
+(> 2 s por tick o > 8 h por ronda) se descartan en `round_time_per_tick()` /
+`round_duration()` de `scraper/rounds_store.py`, y la web (`avgLife`) y el bot
+(`_clean_times` en `bot/services/data_fetcher.py`) los ignoran por las dudas. Si vuelve
+a pasar con otro patrón, buscá la ronda en `rounds/<fecha>.json` mirando
+`demo_time_per_tick` y `duration_seconds`, y ajustá esos límites.
+
 ---
 
 ## Bot en Railway

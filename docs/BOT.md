@@ -52,7 +52,7 @@ Entre corchetes van los alias.
 | `-plan_mejora` [`mejora`, `goals`] | Qué mejorar para subir de tier |
 | `-rivales` [`rivals`, `similares`] | Jugadores de nivel parecido |
 | `-perfil_demo`, `-kits`, `-armas`, `-vehiculos`, `-assets`, `-revives`, `-rol` | Detalle de demos: kits, armas, vehículos y tipos de medio |
-| `-combate` [`ritmo`] · `-teamwork` [`tw`] · `-sinergia` [`duo`] · `-consistencia` | Racha, clutch, cohesión de escuadra, mejores compañeros |
+| `-combate` [`ritmo`] · `-teamwork` [`tw`] · `-sinergia` [`duo`] · `-consistencia` | Racha, clutch, juego con la escuadra (junto a ella o distancia al centro), mejores compañeros |
 | `-winrate` [`wr`] · `-mapa` · `-mapa_perfil` [`mapas`] | Resultados por modo y por mapa |
 
 ### Rankings
