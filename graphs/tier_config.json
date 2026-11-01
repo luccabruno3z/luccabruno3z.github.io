@@ -1,6 +1,6 @@
 {
   "version": "v3",
-  "generated_at": "2026-10-31 22:30:48",
+  "generated_at": "2026-11-01 04:57:19",
   "thresholds": {
     "elite": 0.81082,
     "veterano": 0.7,
@@ -73,7 +73,7 @@
   ],
   "ps_stats": {
     "mean": 0.4246,
-    "median": 0.4884,
+    "median": 0.4883,
     "p95": 0.7832,
     "max": 0.9272
   }
