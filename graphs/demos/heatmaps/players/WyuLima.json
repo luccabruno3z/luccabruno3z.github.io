@@ -1,1 +1,1 @@
-{"player": "WyuLima", "grid_size": 128, "maps": {"kokan": {"kills": [[78, 61, 1]], "deaths": [[66, 57, 1]]}, "vadso_city": {"kills": [[68, 56, 3]], "deaths": [[68, 56, 1]]}, "black_gold": {"kills": [], "deaths": [[42, 93, 1], [39, 95, 1], [41, 78, 1], [42, 81, 1]]}}}
+{"player": "WyuLima", "grid_size": 128, "maps": {"kokan": {"kills": [[78, 61, 1]], "deaths": [[66, 57, 1]]}, "black_gold": {"kills": [], "deaths": [[42, 93, 1], [39, 95, 1], [41, 78, 1], [42, 81, 1]]}, "vadso_city": {"kills": [[68, 56, 3]], "deaths": [[68, 56, 1]]}}}
