@@ -50,29 +50,40 @@ function metricRow(label, v1, v2, fmt, higherBetter = true) {
 /** Player vs player: 9 metrics (mismas que el bot) + win count + verdict. */
 function renderPlayerComparison(p1, p2) {
     const num = formatNumber;
-    // Las mismas 9 categorías que el bot (-comparar), para que el marcador coincida.
+    // El veredicto sale solo de las métricas de nivel (por ronda). Las de volumen
+    // (rondas, totales, participación) dicen cuánto jugó cada uno, no qué tan bien:
+    // se muestran aparte y no cuentan.
+    const ps3 = v => Number(v || 0).toFixed(3).replace('.', ',');
     const metrics = [
-        ['Performance Score', p1['Performance Score'] || 0, p2['Performance Score'] || 0, true],
-        ['K/D Ratio', p1['K/D Ratio'] || 0, p2['K/D Ratio'] || 0, true],
-        ['Kills por Ronda', p1['Kills per Round'] || 0, p2['Kills per Round'] || 0, true],
-        ['Deaths por Ronda', p1['Deaths per Round'] || 0, p2['Deaths per Round'] || 0, false],
-        ['Score por Ronda', p1['Score per Round'] || 0, p2['Score per Round'] || 0, true],
-        ['Participación', p1['Activity Index'] || 0, p2['Activity Index'] || 0, true],
-        ['Rondas', p1['Rounds'] || 0, p2['Rounds'] || 0, true],
-        ['Total Kills', p1['Total Kills'] || 0, p2['Total Kills'] || 0, true],
-        ['Total Score', p1['Total Score'] || 0, p2['Total Score'] || 0, true],
+        ['Performance (de 0 a 1)', p1['Performance Score'] || 0, p2['Performance Score'] || 0, true, ps3],
+        ['K/D', p1['K/D Ratio'] || 0, p2['K/D Ratio'] || 0, true],
+        ['Kills por ronda', p1['Kills per Round'] || 0, p2['Kills per Round'] || 0, true],
+        ['Muertes por ronda', p1['Deaths per Round'] || 0, p2['Deaths per Round'] || 0, false],
+        ['Score por ronda', p1['Score per Round'] || 0, p2['Score per Round'] || 0, true],
     ];
-
-    const rows = metrics.map(([label, v1, v2, hb]) => {
-        const { class1, class2 } = highlightWinner(v1, v2, hb);
+    const volume = [
+        ['Participación (índice de actividad, 0–100)', p1['Activity Index'] || 0, p2['Activity Index'] || 0, true],
+        ['Rondas', p1['Rounds'] || 0, p2['Rounds'] || 0, true],
+        ['Kills totales', p1['Total Kills'] || 0, p2['Total Kills'] || 0, true],
+        ['Score total', p1['Total Score'] || 0, p2['Total Score'] || 0, true],
+    ];
+    // Empate si se ve igual (0,780 contra 0,780 ya no pinta un ganador).
+    const fmtOf = (m) => m[4] || num;
+    const same = (m) => fmtOf(m)(m[1]) === fmtOf(m)(m[2]);
+    const row = (m, showAdv) => {
+        const [label, v1, v2, hb] = m, fmt = fmtOf(m);
+        const { class1, class2 } = same(m) ? { class1: '', class2: '' } : highlightWinner(v1, v2, hb);
         return `<div class="compare-row">
-            <span class="compare-cell ${class1}">${num(v1)}</span>
-            <span class="compare-metric">${escapeHtml(label)} <small class="compare-adv">${escapeHtml(advantagePct(v1, v2))}</small>${versusBarHTML(v1, v2, hb)}</span>
-            <span class="compare-cell ${class2}">${num(v2)}</span>
+            <span class="compare-cell ${class1}">${fmt(v1)}</span>
+            <span class="compare-metric">${escapeHtml(label)}${showAdv && !same(m) ? ` <small class="compare-adv" title="Diferencia de ${escapeHtml(p1.Player)} respecto de ${escapeHtml(p2.Player)}">${escapeHtml(advantagePct(v1, v2))}</small>` : ''}${versusBarHTML(v1, v2, hb)}</span>
+            <span class="compare-cell ${class2}">${fmt(v2)}</span>
         </div>`;
-    }).join('');
+    };
+    const rows = metrics.map(m => row(m, true)).join('')
+        + `<div class="sq-vs-sec"><b>Volumen</b><span class="sq-sub">cuánto jugó cada uno: no cuenta en el resultado</span></div>`
+        + volume.map(m => row(m, false)).join('');
 
-    const verdict = comparisonVerdict(metrics, p1.Player, p2.Player);
+    const verdict = comparisonVerdict(metrics.filter(m => !same(m)), p1.Player, p2.Player);
 
     return `<div class="card compare-card">
         <div class="compare-header">
@@ -98,12 +109,12 @@ function demoMetricsBlock(p1, p2) {
     };
     const games = d => (d.wins || 0) + (d.losses || 0);
     const rowsData = [
-        ['Winrate', wr(d1), wr(d2), true, v => v == null ? '—' : `${v.toFixed(1)}%`,
-            `${games(d1)} part.`, `${games(d2)} part.`],
+        ['Winrate', wr(d1), wr(d2), true, v => v == null ? '—' : `${v.toFixed(1).replace('.', ',')} %`,
+            `${games(d1)} partidas ganadas o perdidas`, `${games(d2)} partidas ganadas o perdidas`],
         ['Teamwork', (d1.teamwork_ratio || 0) * 100, (d2.teamwork_ratio || 0) * 100, true,
-            v => `${v.toFixed(0)}%`, '', ''],
+            v => `${v.toFixed(0)} %`, 'de su score', 'de su score'],
         ['Consistencia', d1.consistency_score ?? null, d2.consistency_score ?? null, true,
-            v => v == null ? '—' : `${Math.round(v)}`, '', ''],
+            v => v == null ? '—' : `${Math.round(v)}`, 'de 100', 'de 100'],
     ];
     const rows = rowsData.map(([label, v1, v2, hb, fmt, sub1, sub2]) => {
         const { class1, class2 } = (v1 == null || v2 == null) ? { class1: '', class2: '' } : highlightWinner(v1, v2, hb);

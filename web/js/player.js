@@ -33,11 +33,16 @@ function rankOf(value, values) {
 /** "Top 16 %" en la mitad de arriba; abajo, "Debajo de la media · mejor que el 26 %"
  *  (un "top 74 %" se leía como algo bueno). */
 function posNote(below) {
-    if (below >= 0.5) return { text: `Top ${Math.max(1, Math.round((1 - below) * 100))} %`, cls: below >= 0.75 ? 'up' : 'mid' };
-    return { text: `Debajo de la media · mejor que el ${Math.round(below * 100)} %`, cls: 'down' };
+    const txt = `Mejor que el ${Math.round(below * 100)} %`;
+    if (below >= 0.5) return { text: txt, cls: below >= 0.75 ? 'up' : 'mid' };
+    return { text: `${txt} · debajo de la media`, cls: 'down' };
 }
 
-const srcTag = (src) => `<span class="pv-src ${src === 'demos' ? 'is-demo' : ''}">${src === 'demos' ? 'Demos' : 'PRStats'}</span>`;
+const SRC_TIP = {
+    prstats: 'PRStats: los totales oficiales del perfil, de todas sus rondas',
+    demos: 'Demos: solo las partidas grabadas en los servidores que seguimos, con detalle por evento. Por eso sus números pueden diferir de PRStats',
+};
+const srcTag = (src) => `<span class="pv-src ${src === 'demos' ? 'is-demo' : ''}" title="${SRC_TIP[src === 'demos' ? 'demos' : 'prstats']}">${src === 'demos' ? 'Demos' : 'PRStats'}</span>`;
 
 /** Tarjeta de KPI: etiqueta, valor grande, barra, posición y una línea extra opcional. */
 function kpiHTML(label, value, bar, note, { src = '', extra = '' } = {}) {
@@ -72,6 +77,7 @@ const COMP_HOW = {
     teamwork: ['Más teamwork', 'El score de teamwork sale de revivir y curar, reabastecer con la bolsa de munición, reparar vehículos, construir con la pala en el FOB y llevar a tu escuadra en vehículo. Tomá el kit de médico o fusilero de vez en cuando y ayudá a armar el FOB.'],
     consistency: ['Más parejo', 'Las rondas malas pesan: buscá una escuadra con líder y comunicación, y evitá las rondas en solitario o en kits que no dominás.'],
     experience: ['Más rondas', 'Se completa jugando: cuenta cada ronda, hasta el máximo de experiencia.'],
+    sample: ['Jugar más rondas', 'Con pocas rondas el Performance se recorta para que unas partidas buenas no lo pongan arriba de todo. El recorte desaparece solo, jugando.'],
 };
 
 function levelClass(v) {
@@ -113,26 +119,33 @@ function performanceHTML(player) {
     const lv = levels.map(v => (v == null ? 0.5 : v));
     const raw = defs.reduce((s, d, i) => s + lv[i] * d.weight, 0) || 1;
     const penalty = ps / raw;
+    // "Puede sumar" es sin la penalización por pocas rondas: esa va en su propia
+    // fila, así la columna suma todo lo que falta hasta 1 (antes, con pocas rondas,
+    // faltaban 0,318 para el tier y la columna sumaba 0,062).
     const rows = defs.map((d, i) => ({
         ...d, level: lv[i], missing: levels[i] == null,
-        gives: lv[i] * d.weight * penalty, room: (1 - lv[i]) * d.weight * penalty,
+        gives: lv[i] * d.weight * penalty, room: (1 - lv[i]) * d.weight,
     }));
+    const lost = raw - ps;
+    if (lost > 0.005) {
+        rows.push({ key: 'sample', label: 'Pocas rondas', source: 'prstats', level: penalty, missing: false, gives: -lost, room: lost, isPenalty: true });
+    }
     const levers = [...rows].sort((a, b) => b.room - a.room).slice(0, 2);
     const isLever = (r) => levers.includes(r);
     const n3 = (v) => v.toFixed(3).replace('.', ',');
     const table = `<div class="pv-scroll"><table class="pv-table">
         <thead><tr><th>Componente</th><th>Nivel</th><th class="n">Peso</th><th class="n">Aporta</th><th class="n">Puede sumar</th></tr></thead>
         <tbody>${rows.map(r => `<tr class="${isLever(r) ? 'is-lever' : ''}">
-            <td><span class="pv-name">${escapeHtml(r.label)} ${srcTag(r.source)}</span>
-                <span class="pv-what">${escapeHtml(r.missing ? 'Sin demos: cuenta como neutro' : COMP_WHAT[r.key]?.(player) || '')}</span></td>
-            <td class="pv-barcell">${barHTML(r.level * 100, levelClass(r.level))}</td>
-            <td class="n">${Math.round(r.weight * 100)} %</td>
-            <td class="n">${n3(r.gives)}</td>
+            <td><span class="pv-name">${escapeHtml(r.label)} ${r.isPenalty ? '' : srcTag(r.source)}</span>
+                <span class="pv-what">${escapeHtml(r.isPenalty ? `Con ${formatNumber(player.Rounds || 0)} rondas el puntaje cuenta al ${Math.round(r.level * 100)} %; se recupera jugando (95 % con unas 55 rondas)` : r.missing ? 'Sin demos: cuenta como neutro' : COMP_WHAT[r.key]?.(player) || '')}</span></td>
+            <td class="pv-barcell">${barHTML(r.level * 100, r.isPenalty ? 'orange' : levelClass(r.level))}</td>
+            <td class="n">${r.isPenalty ? '—' : `${Math.round(r.weight * 100)} %`}</td>
+            <td class="n">${r.gives < 0 ? '−' + n3(-r.gives) : n3(r.gives)}</td>
             <td class="n pv-room">+${n3(r.room)}</td>
         </tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="3">Total</td><td class="n">${n3(ps)}</td><td></td></tr></tfoot>
     </table></div>
-    <p class="profile-muted">"Puede sumar" es lo que le falta a cada componente para llegar al máximo, por su peso. Las filas marcadas son las dos con más margen.</p>`;
+    <p class="profile-muted">"Puede sumar" es lo que le falta a cada componente para llegar al máximo, por su peso; la columna suma todo lo que falta hasta 1. Las filas marcadas son las dos con más margen.</p>`;
     const how = levers.filter(r => COMP_HOW[r.key] && r.room > 0.005).map(r => `<li><b>${escapeHtml(COMP_HOW[r.key][0])}</b> (+${n3(r.room)}): ${escapeHtml(COMP_HOW[r.key][1])}</li>`);
     const howHTML = how.length ? `<div class="pv-how"><h5>Cómo sumar</h5><ul>${how.join('')}</ul></div>` : '';
     return { title, html: path + table + howHTML, levers };
@@ -268,7 +281,7 @@ async function renderPlayerProfile(player) {
 
     const leversEl = document.getElementById('pv-levers');
     if (leversEl && perf.levers.length) {
-        leversEl.textContent = ` Donde más puede sumar: ${perf.levers.map(l => l.label).join(' y ')}.`;
+        leversEl.textContent = ` Donde más puede sumar: ${perf.levers.map(l => (l.isPenalty ? 'jugando más rondas' : l.label)).join(' y ')}.`;
     }
 
     // Radar vs clan average.
@@ -355,8 +368,9 @@ const HISTORY_PAGE = 15;
  *  servidor, hora, bando ni kit: esas celdas quedan con "—". */
 function historyHTML(pr, shown = HISTORY_PAGE) {
     // Sin kills, muertes ni score: entró y se fue (o se quedó en el menú), no la jugó.
-    const all = (pr && Array.isArray(pr.rounds) ? pr.rounds : [])
-        .filter(r => r.kills || r.deaths || r.score).reverse();
+    const raw = pr && Array.isArray(pr.rounds) ? pr.rounds : [];
+    const all = raw.filter(r => r.kills || r.deaths || r.score).reverse();
+    const skipped = raw.length - all.length;
     if (!all.length) return '';
     const dash = '<span class="pv-sub">—</span>';
     const rows = all.slice(0, shown).map((r) => {
@@ -375,7 +389,7 @@ function historyHTML(pr, shown = HISTORY_PAGE) {
     const more = all.length > shown
         ? `<button type="button" class="sq-open pv-history-more" data-shown="${shown}">Ver ${Math.min(HISTORY_PAGE, all.length - shown)} más</button>` : '';
     return `<div class="pv-head"><h4 class="profile-subtitle">Historial de partidas</h4>
-            <span class="profile-muted">${formatNumber(all.length)} rondas con demo · mostrando ${Math.min(shown, all.length)}</span></div>
+            <span class="profile-muted">${formatNumber(all.length)} rondas jugadas · mostrando ${Math.min(shown, all.length)}${skipped ? ` · no se muestran ${skipped} en las que entró sin jugar (0 kills, 0 muertes, 0 puntos)` : ''}</span></div>
         <div class="pv-scroll"><table class="pv-table">
             <thead><tr><th>Fecha</th><th>Mapa y modo</th><th>Servidor</th><th>Kit y bando</th><th class="n">K–D</th><th class="n">Score</th><th class="n">Revives</th><th>Resultado</th></tr></thead>
             <tbody>${rows}</tbody>
@@ -510,7 +524,10 @@ function readingText(d, g, trend, player) {
     if (tg?.elite) ctx.push('en Elite');
     else if (tg && tg.gap <= 0.1) ctx.push(`a ${tg.gap.toFixed(3).replace('.', ',')} de ${tg.next}`);
 
-    const form = trend == null ? '' : trend >= 1.1 ? 'Viene en racha' : trend <= 0.9 ? 'Viene en baja' : 'Estable en las últimas rondas';
+    // Corto plazo (últimas 10 rondas contra su promedio). La tendencia de largo plazo
+    // la da el gráfico de evolución; acá se dice cuál es cuál para que no choquen.
+    const form = trend == null ? '' : trend >= 1.1 ? 'En sus últimas 10 rondas rinde por encima de su promedio'
+        : trend <= 0.9 ? 'En sus últimas 10 rondas rinde por debajo de su promedio' : 'En sus últimas 10 rondas juega a su nivel habitual';
     if (form) parts.push(`${form}.`);
     if (ctx.length) parts.push(`${cap(ctx.join(', '))}.`);
     return parts.join(' ');
@@ -565,13 +582,18 @@ async function insightsHTML(d) {
     else if (dist != null) tile('Distancia a su escuadra', `${Math.round(dist)} m`, `al centro de su escuadra en promedio: ${squadDistanceLabel(dist)}`);
     const weapons = aggregateByLabel(d.kill_weapons, weaponModel, { exclude: c => c === '?' || ['vehicle', 'unknown'].includes(weaponKind(c)) });
     if (weapons.length) tile('Arma principal', weapons[0][0], `<b>${formatNumber(weapons[0][1])}</b> kills`);
-    const maps = Object.entries(d.per_map_stats || {}).filter(([, s]) => (s.rounds || 0) >= 3 && (s.wins || 0) + (s.losses || 0) > 0)
-        .map(([m, s]) => [m, s, s.wins / (s.wins + s.losses)]);
+    // 5+ partidas decididas; se ordena por winrate ajustado ((V+2)/(P+4)) para que un
+    // 2–0 no le gane a un 7–0, y el mapa difícil tiene que ser uno que pierde.
+    const MIN_MAP_GAMES = 5;
+    const maps = Object.entries(d.per_map_stats || {})
+        .map(([m, s]) => [m, s, (s.wins || 0) + (s.losses || 0)])
+        .filter(([, , g]) => g >= MIN_MAP_GAMES)
+        .map(([m, s, g]) => [m, s, ((s.wins || 0) + 2) / (g + 4), (s.wins || 0) / g]);
     if (maps.length >= 2) {
         maps.sort((a, b) => b[2] - a[2] || (b[1].avg_kpr || 0) - (a[1].avg_kpr || 0));
-        const [bm, bs] = maps[0], [wm, ws] = maps[maps.length - 1];
-        tile('Mejor mapa', mapLabel(bm), `<b>${bs.wins}–${bs.losses}</b> · ${f2(bs.avg_kpr)} kills por ronda`, 'is-good');
-        if (wm !== bm) tile('Mapa difícil', mapLabel(wm), `<b>${ws.wins}–${ws.losses}</b> en ${ws.rounds} rondas`, 'is-warn');
+        const [bm, bs, , bwr] = maps[0], [wm, ws, , wwr] = maps[maps.length - 1];
+        if (bwr > 0.5) tile('Mejor mapa', mapLabel(bm), `<b>${bs.wins}–${bs.losses}</b> (${pctTxt(bwr)}) · ${f2(bs.avg_kpr)} kills por ronda · entre mapas con ${MIN_MAP_GAMES}+ partidas`, 'is-good');
+        if (wm !== bm && wwr < 0.5) tile('Mapa difícil', mapLabel(wm), `<b>${ws.wins}–${ws.losses}</b> (${pctTxt(wwr)}) · entre mapas con ${MIN_MAP_GAMES}+ partidas`, 'is-warn');
     }
     try {
         const syn = (await loadSynergy())?.[d.ign];
@@ -607,7 +629,7 @@ function mapsTableHTML(d) {
     const body = rows.map(([m, s]) => {
         const g = (s.wins || 0) + (s.losses || 0);
         const wr = g >= 3 ? s.wins / g : null;
-        const kd = (s.avg_kpr || 0) / Math.max(s.avg_dpr || 0, 0.01);
+        const kd = s.avg_dpr > 0 ? (s.avg_kpr || 0) / s.avg_dpr : null;   // sin muertes no hay K/D
         return `<tr>
             <td>${escapeHtml(mapLabel(m))}</td>
             <td class="n">${formatNumber(s.rounds)}</td>
@@ -615,7 +637,7 @@ function mapsTableHTML(d) {
             <td class="pv-barcell">${wr == null ? '<span class="pv-sub">pocas partidas</span>' : `${barHTML(wr * 100, wr >= 0.5 ? 'tier-veterano' : 'orange')}<span class="pv-sub">${pctTxt(wr)}</span>`}</td>
             <td class="n">${f2(s.avg_kpr)}</td>
             <td class="n">${f2(s.avg_dpr)}</td>
-            <td class="n ${kd < 1 ? 'pv-bad' : ''}">${f2(kd)}</td>
+            <td class="n ${kd != null && kd < 1 ? 'pv-bad' : ''}">${kd == null ? '<span class="pv-sub">sin muertes</span>' : f2(kd)}</td>
         </tr>`;
     }).join('');
     return `<details class="pv-maps">
@@ -630,17 +652,18 @@ function mapsTableHTML(d) {
 
 function recordsHTML(d) {
     const best = d.best_round && d.best_round.kills > 0 ? d.best_round : null;
-    const items = [];
-    const add = (label, value) => { if (value) items.push([label, value]); };
-    add('Racha de kills', d.best_killstreak);
-    add('Racha de victorias', d.longest_win_streak);
-    add('Clutch kills', d.total_clutch_kills);
-    add('First bloods', d.total_first_bloods);
-    add('Vehículos destruidos', d.total_vehicles_destroyed);
-    add('Revives dados', d.total_revives_given);
+    const marks = [], totals = [];
+    const add = (to, label, value, tip) => { if (value) to.push([label, value, tip]); };
+    add(marks, 'Racha de kills', d.best_killstreak && `${d.best_killstreak} kills`, 'Más kills seguidas sin morir');
+    add(marks, 'Racha de victorias', d.longest_win_streak && `${d.longest_win_streak} rondas`, 'Más rondas ganadas seguidas');
+    add(totals, 'Clutch kills', d.total_clutch_kills, 'Kills con su equipo a 25 tickets o menos');
+    add(totals, 'First bloods', d.total_first_bloods, 'Rondas en las que hizo la primera kill');
+    add(totals, 'Vehículos destruidos', d.total_vehicles_destroyed);
+    add(totals, 'Revives dados', d.total_revives_given);
     const maps = Object.entries(d.maps_played || {}).sort((a, b) => b[1] - a[1]);
-    if (maps.length) items.push(['Mapa más jugado', `${mapLabel(maps[0][0])} (${maps[0][1]})`]);
-    if ((d.played_seconds || 0) >= 3600) items.push(['Tiempo registrado', `${Math.round(d.played_seconds / 3600)} h`]);
+    if (maps.length) totals.push(['Mapa más jugado', `${mapLabel(maps[0][0])} (${maps[0][1]} rondas)`]);
+    if ((d.played_seconds || 0) >= 3600) totals.push(['Tiempo registrado', `${Math.round(d.played_seconds / 3600)} h`]);
+    const grid = (list) => `<div class="record-grid">${list.map(([k, v, tip]) => `<div class="record-item"${tip ? ` title="${escapeHtml(tip)}"` : ''}><b>${escapeHtml(String(v))}</b><span>${escapeHtml(k)}</span></div>`).join('')}</div>`;
     return `
         <div class="profile-records-head">
             <h4 class="profile-subtitle">Récords</h4>
@@ -648,7 +671,7 @@ function recordsHTML(d) {
         </div>
         ${best ? `<div class="best-round">
             <div class="best-round-where">
-                <span class="best-round-label">Mejor ronda</span>
+                <span class="best-round-label">Mejor ronda (la de más kills)</span>
                 <span class="best-round-map">${escapeHtml(roundWhere(best).split(' · ')[0])}</span>
                 <span class="profile-muted">${escapeHtml(roundWhere(best).split(' · ').slice(1).join(' · '))}</span>
             </div>
@@ -658,9 +681,8 @@ function recordsHTML(d) {
                 <div><b>${formatNumber(best.score || 0)}</b><span>puntos</span></div>
             </div>
         </div>` : ''}
-        <div class="record-grid">
-            ${items.map(([k, v]) => `<div class="record-item"><b>${escapeHtml(String(v))}</b><span>${escapeHtml(k)}</span></div>`).join('')}
-        </div>`;
+        ${marks.length ? `<h5 class="pv-rec-sub">Mejores marcas</h5>${grid(marks)}` : ''}
+        ${totals.length ? `<h5 class="pv-rec-sub">Totales en las ${formatNumber(d.rounds_played)} rondas</h5>${grid(totals)}` : ''}`;
 }
 
 /** Completa el perfil con los datos de demos (si el jugador tiene). */

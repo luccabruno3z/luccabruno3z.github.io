@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { state } from './data.js';
-import { p95, teamAverage } from './utils.js';
+import { p95, teamAverage, escapeHtml as escapeLabel } from './utils.js';
 import { COLORS } from './config.js';
 
 const RADAR_LABELS = ['Letalidad', 'Supervivencia', 'Teamwork', 'Impacto', 'Consistencia', 'Versatilidad'];
@@ -140,6 +140,15 @@ export function renderHistoryChart(historyData, canvas) {
 
     const pointRadius = n > 60 ? 0 : (n > 30 ? 2 : 3);
 
+    // Cortes de tier como líneas de referencia (solo los que caen cerca de la curva).
+    const t = state.tierConfigData?.thresholds || {};
+    const lo = Math.min(...scores) - 0.05, hi = Math.max(...scores) + 0.05;
+    const TIER_LINES = [['elite', 'Corte Elite', '255,215,0'], ['veterano', 'Corte Veterano', '0,255,136'], ['experimentado', 'Corte Experimentado', '0,170,255'], ['soldado', 'Corte Soldado', '255,170,0']];
+    const tierSets = TIER_LINES.filter(([k]) => t[k] != null && t[k] >= lo && t[k] <= hi).map(([k, label, rgb]) => ({
+        label, data: scores.map(() => t[k]), borderColor: `rgba(${rgb},0.55)`, borderDash: [2, 4],
+        borderWidth: 1, pointRadius: 0, fill: false,
+    }));
+
     canvas.style.display = 'block';
     historyChartInstance = new Chart(canvas, {
         type: 'line',
@@ -165,14 +174,17 @@ export function renderHistoryChart(historyData, canvas) {
                     fill: false,
                     borderWidth: 1.5,
                 },
+                ...tierSets,
             ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
             scales: {
-                y: { beginAtZero: false, grid: { color: COLORS.grid }, ticks: { color: '#ffffff' } },
-                x: { grid: { color: COLORS.gridDim }, ticks: { color: '#ffffff', maxRotation: 45, maxTicksLimit: 10 } },
+                y: { beginAtZero: false, grid: { color: COLORS.grid }, ticks: { color: '#ffffff' },
+                    title: { display: true, text: 'Performance (de 0 a 1)', color: '#a0a0b0' } },
+                x: { grid: { color: COLORS.gridDim }, ticks: { color: '#ffffff', maxRotation: 45, maxTicksLimit: 10 },
+                    title: { display: true, text: 'Fecha (los tramos planos son días sin partidas nuevas)', color: '#a0a0b0' } },
             },
             plugins: {
                 legend: whiteLegend,
@@ -190,10 +202,13 @@ export function renderHistoryChart(historyData, canvas) {
             info.className = 'trend-info';
             parent.appendChild(info);
         }
-        const up = slope > 0.0005, down = slope < -0.0005;
+        // La misma recta del gráfico, dicha en números: cuánto cambió de punta a punta.
+        const delta = trend[n - 1] - trend[0];
+        const up = delta >= 0.02, down = delta <= -0.02;
         const emoji = up ? '📈' : down ? '📉' : '➡️';
-        const text = up ? 'Tendencia en alza' : down ? 'Tendencia a la baja' : 'Rendimiento estable';
-        info.innerHTML = `<span class="trend-emoji">${emoji}</span> ${text}`;
+        const word = up ? 'en alza' : down ? 'a la baja' : 'estable';
+        const num = `${delta >= 0 ? '+' : '−'}${Math.abs(delta).toFixed(2).replace('.', ',')}`;
+        info.innerHTML = `<span class="trend-emoji">${emoji}</span> Tendencia de largo plazo: ${word} (${num} desde ${escapeLabel(labels[0])})`;
     }
 }
 
