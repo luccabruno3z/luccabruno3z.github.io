@@ -71,6 +71,11 @@ export function serverLabel(name) {
     return parts.filter((x, i) => i === 0 || !link(x)).join(' · ');
 }
 
+/** Link al glosario, para poner al lado de los números que necesitan explicación. */
+export function glossaryLinkHTML(text = '¿Qué significa cada número?') {
+    return `<a class="gloss-link" href="#/guias/glosario">${text}</a>`;
+}
+
 /** Escape a string for safe innerHTML insertion. */
 export function escapeHtml(value) {
     return String(value ?? '')

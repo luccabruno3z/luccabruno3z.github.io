@@ -7,7 +7,7 @@ import { state, loadDemoData, loadSynergy } from './data.js';
 import { buildSquad, versusHTML, rosterHTML, balanceTeams, winProb } from './squads.js';
 import { setChipNames } from './chips.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
-import { findPlayer, escapeHtml } from './utils.js';
+import { findPlayer, escapeHtml, glossaryLinkHTML } from './utils.js';
 
 /** Jugadores de un equipo (A|B), hasta 8; `missing` = nombres que no se encontraron. */
 function collectTeam(side) {
@@ -56,7 +56,7 @@ async function performPrediction() {
         ${versusHTML(a, b, true)}
         ${canBalance ? '<div class="pred-balance"><button type="button" class="sq-open" id="pred-balance-btn">Proponer equipos parejos con estos jugadores</button><div id="pred-balance-out"></div></div>' : ''}
         <div class="prediction-teams-summary">${rosterHTML(a, false)}${rosterHTML(b, false)}</div>
-        <p class="rankings-excluded">Probabilidad: Performance, K/D y kills por ronda de cada jugador con los pesos del modelo. Con menos de 50 rondas un jugador cuenta cerca del promedio de la comunidad, y un equipo con menos jugadores suma menos. Las otras filas no entran en la probabilidad: muestran dónde gana cada uno.</p>`;
+        <p class="rankings-excluded">Probabilidad: Performance, K/D y kills por ronda de cada jugador con los pesos del modelo. Con menos de 50 rondas un jugador cuenta cerca del promedio de la comunidad, y un equipo con menos jugadores suma menos. Las otras filas no entran en la probabilidad: muestran dónde gana cada uno. ${glossaryLinkHTML()}</p>`;
 }
 
 /** Busca la división más pareja de los jugadores cargados y la ofrece. */

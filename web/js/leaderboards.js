@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadLeaderboard } from './data.js';
-import { escapeHtml, formatNumber, playerLinkHTML } from './utils.js';
+import { escapeHtml, formatNumber, playerLinkHTML, glossaryLinkHTML } from './utils.js';
 import { barHTML, tableHTML, posHTML } from './ui.js';
 
 const LB_METRIC_LABELS = {
@@ -97,7 +97,7 @@ async function renderLeaderboard() {
     results.innerHTML = `
         <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${escapeHtml(PERIOD_TXT[period] || period)} · ${formatNumber(data.total_rounds || 0)} rondas grabadas</div>
         ${tableHTML(cols, rows, { minWidth: 640, caption: `Leaderboard por ${label}` })}
-        <p class="rankings-excluded">Sale solo de las partidas grabadas (demos) de ese período, no del historial completo de PRStats que usa el Top. ${metric === 'kd' ? `El K/D pide ${minKd}+ rondas en el período; ` : ''}Kills, score, revives y teamwork son totales: suma más quien más jugó.</p>`;
+        <p class="rankings-excluded">Sale solo de las partidas grabadas (demos) de ese período, no del historial completo de PRStats que usa el Top. ${metric === 'kd' ? `El K/D pide ${minKd}+ rondas en el período; ` : ''}Kills, score, revives y teamwork son totales: suma más quien más jugó. ${glossaryLinkHTML()}</p>`;
     return true;
 }
 

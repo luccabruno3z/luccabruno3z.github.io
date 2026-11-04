@@ -14,7 +14,7 @@ import {
     escapeHtml, formatNumber, findPlayer, tierBadge, getPlayerArchetype,
     experienceBadge, sampleReliability, fmtDuration, aggregateByLabel, weaponModel,
     weaponKind, sigmoidPenalty, clanLogoHTML, mapLabel, gamemodeLabel,
-    avgLife, squadNear, squadDistance, squadDistanceLabel,
+    avgLife, squadNear, squadDistance, squadDistanceLabel, glossaryLinkHTML,
 } from './utils.js';
 import { barHTML, tierBarHTML, rankBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
@@ -232,10 +232,11 @@ async function renderPlayerProfile(player) {
                         <span class="profile-rank" title="Puesto por Performance entre todos los jugadores">#${rank} de ${formatNumber(players.length)} por Performance${player.Clan ? ` · #${clanPos} en ${escapeHtml(player.Clan)}` : ''}</span>
                     </div>
                     <div class="profile-badges">
-                        ${tierChipHTML(ps)}
-                        <span class="profile-tag">${arch.emoji} ${escapeHtml(arch.name)}</span>
-                        <span class="profile-tag">${exp.emoji} ${escapeHtml(exp.name)}</span>
-                        <span class="profile-tag ${rel.cssClass}">${rel.emoji} ${escapeHtml(rel.text)}</span>
+                        <span title="Tier: lo da el Performance. Los cortes salen de la comunidad (Elite es más o menos el 5 % de arriba)">${tierChipHTML(ps)}</span>
+                        ${arch.name === exp.name ? '' : `<span class="profile-tag" title="Estilo según sus estadísticas${arch.desc ? `: ${escapeHtml(arch.desc)}` : ''}">${arch.emoji} ${escapeHtml(arch.name)}</span>`}
+                        <span class="profile-tag" title="Experiencia por rondas: Novato 10+, Regular 50+, Constante 200+, Asiduo 500+, Leyenda 1.000+">${exp.emoji} ${escapeHtml(exp.name)}</span>
+                        <span class="profile-tag ${rel.cssClass}" title="Cuánto se puede confiar en sus números: alta con 200+ rondas, media con 50+, baja con menos">${rel.emoji} ${escapeHtml(rel.text)}</span>
+                        ${glossaryLinkHTML('¿Qué es cada cosa?')}
                     </div>
                     <p class="profile-desc" id="pv-reading">${escapeHtml(arch.desc || '')}</p>
                     <div class="pv-sources">

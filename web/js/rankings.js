@@ -5,7 +5,7 @@
 
 import { state } from './data.js';
 import { MIN_ROUNDS_FOR_RANKING } from './config.js';
-import { escapeHtml, clanLogoHTML, formatNumber, playerHref, playerLinkHTML } from './utils.js';
+import { escapeHtml, clanLogoHTML, formatNumber, playerHref, playerLinkHTML, glossaryLinkHTML } from './utils.js';
 import { barHTML, tierBarHTML, tierChipHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 // Metric value → the raw player field it reads, plus whether higher is better.
@@ -105,7 +105,7 @@ function renderRankings() {
         { minWidth: 680, caption: headerBits.join(' · ') },
     ) : '';
 
-    const excludedNote = `<p class="rankings-excluded">Sale de PRStats (todo el historial de cada jugador). Entran ${formatNumber(qualified.length)} jugadores con ${minRounds}+ rondas${excluded > 0 ? `; ${formatNumber(excluded)} quedan afuera por tener menos` : ''}. "Por período" usa solo las partidas grabadas de ese período.</p>`;
+    const excludedNote = `<p class="rankings-excluded">Sale de PRStats (todo el historial de cada jugador). Entran ${formatNumber(qualified.length)} jugadores con ${minRounds}+ rondas${excluded > 0 ? `; ${formatNumber(excluded)} quedan afuera por tener menos` : ''}. "Por período" usa solo las partidas grabadas de ese período. ${glossaryLinkHTML()}</p>`;
 
     results.innerHTML = `
         <div class="rankings-header">${headerBits.join(' · ')}</div>

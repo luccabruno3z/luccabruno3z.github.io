@@ -8,7 +8,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRoleLeaderboards } from './data.js';
-import { escapeHtml, formatNumber, clanLogoHTML, playerHref, playerLinkHTML } from './utils.js';
+import { escapeHtml, formatNumber, clanLogoHTML, playerHref, playerLinkHTML, glossaryLinkHTML } from './utils.js';
 import { barHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 const CONF = { alta: 'Alta', media: 'Media', baja: 'Baja' };
@@ -89,7 +89,7 @@ async function renderRoleBoard() {
 
     results.innerHTML = `
         <div class="rankings-header">Top ${players.length} · ${escapeHtml(board.label)} · ${escapeHtml(board.metric_label)} · mediana del rol ${fmtValue(board, board.median)}</div>
-        <p class="rankings-lead">El orden usa el valor <b>ajustado por muestra</b> (el número grande): con pocas rondas con el rol se acerca a la mediana, así que alguien con un valor sin ajustar más alto pero pocas rondas puede quedar abajo. Entran jugadores con ${data.min_rounds || 10}+ rondas con el rol y confianza media o alta (ninguna ronda explica más del 40 % del resultado).</p>
+        <p class="rankings-lead">El orden usa el valor <b>ajustado por muestra</b> (el número grande): con pocas rondas con el rol se acerca a la mediana, así que alguien con un valor sin ajustar más alto pero pocas rondas puede quedar abajo. Entran jugadores con ${data.min_rounds || 10}+ rondas con el rol y confianza media o alta (ninguna ronda explica más del 40 % del resultado). ${glossaryLinkHTML()}</p>
         ${podium}${table}`;
     return true;
 }

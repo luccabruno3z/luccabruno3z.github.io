@@ -18,6 +18,7 @@ export const GUIDES = [
     { slug: 'cqb', title: 'CQB: combate en espacios cerrados', short: 'CQB' },
     { slug: 'mapas', title: 'Guía de mapas', short: 'Mapas' },
     { slug: 'assets', title: 'Assets: vehículos, emplazamientos y logística', short: 'Assets' },
+    { slug: 'glosario', title: 'Glosario: qué significa cada número', short: 'Glosario' },
 ];
 
 const SITE_TITLE = 'Legión de Hierro — Stats Tracker';

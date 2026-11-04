@@ -12,7 +12,7 @@
 
 import { state, loadDemoData, getDemoInfo, loadSynergy } from './data.js';
 import { NORM_CAPS } from './config.js';
-import { escapeHtml, formatNumber, clanLogoHTML, playerLinkHTML, fmtDuration, avgLife, NEAR_MIN_SAMPLES, COHESION_MIN_SAMPLES } from './utils.js';
+import { escapeHtml, formatNumber, clanLogoHTML, playerLinkHTML, fmtDuration, avgLife, NEAR_MIN_SAMPLES, COHESION_MIN_SAMPLES, glossaryLinkHTML } from './utils.js';
 import { barHTML, versusBarHTML, tierChipHTML, posHTML } from './ui.js';
 
 const SIZE = 8;
@@ -189,7 +189,7 @@ const SORTS = {
     ps: ['Performance', sq => sq.ps],
     kd: ['K/D', sq => sq.kd],
     winrate: ['Winrate', sq => sq.winrate ?? -1],
-    chem: ['Sinergia', sq => sq.chem.share],
+    chem: ['Pares que jugaron juntos', sq => sq.chem.share],
 };
 
 function rolesHTML(sq) {
@@ -225,10 +225,10 @@ function rankingHTML(squads, sortKey) {
         </tr>`).join('');
     return `<div class="rankings-header">${list.length} escuadras · ordenadas por ${escapeHtml(label)}</div>
         <div class="pv-scroll"><table class="pv-table sq-table">
-            <thead><tr><th>#</th><th>Clan</th><th>Fuerza</th><th class="n">Performance</th><th class="n">K/D</th><th class="n">Kills/ronda</th><th class="n">Winrate</th><th class="n">Pares que jugaron juntos</th><th></th></tr></thead>
+            <thead><tr><th>#</th><th>Clan</th><th>Fuerza (de 100)</th><th class="n">Performance</th><th class="n">K/D</th><th class="n">Kills/ronda</th><th class="n">Winrate</th><th class="n">Pares que jugaron juntos</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
         </table></div>
-        <p class="rankings-excluded">Escuadra = los ${SIZE} jugadores con más Performance de cada clan (${MIN_ROUNDS}+ rondas). Fuerza (de 100) = el cálculo del predictor de Equipos: Performance, K/D y kills por ronda de cada jugador, ajustados por muestra. Pares que jugaron juntos: de los 28 pares posibles, cuántos compartieron escuadra en ${MIN_PAIR_ROUNDS}+ rondas con demo.</p>`;
+        <p class="rankings-excluded">Escuadra = los ${SIZE} jugadores con más Performance de cada clan (${MIN_ROUNDS}+ rondas). Fuerza (de 100) = el cálculo del predictor de Equipos: Performance, K/D y kills por ronda de cada jugador, ajustados por muestra. Pares que jugaron juntos: de los 28 pares posibles, cuántos compartieron escuadra en ${MIN_PAIR_ROUNDS}+ rondas con demo. ${glossaryLinkHTML()}</p>`;
 }
 
 const logo = (sq, size) => (sq.isClan ? clanLogoHTML(sq.clan, size) : '');
@@ -256,9 +256,9 @@ export function rosterHTML(sq, closable = true) {
             ${closable ? '<button type="button" class="sq-close">Cerrar</button>' : ''}</div>
         <div class="sq-stats">
             ${stat('Performance', f2(sq.ps))}${stat('K/D', f2(sq.kd))}${stat('Kills/ronda', f2(sq.kpr))}${stat('Score/ronda', formatNumber(Math.round(sq.spr)))}
-            ${stat('Winrate (demos)', `${pct(sq.winrate)}<small> ${sq.record[0]}–${sq.record[1]}</small>`)}${stat('Revives/ronda', sq.revives == null ? '—' : f2(sq.revives))}
+            ${stat('Winrate (demos)', `${pct(sq.winrate)}<small> ${sq.record[0]} ganadas, ${sq.record[1]} perdidas</small>`)}${stat('Revives/ronda', sq.revives == null ? '—' : f2(sq.revives))}
             ${sq.near == null ? '' : stat('Junto a su escuadra', pct(sq.near))}${stat('Distancia a su escuadra', sq.dist == null ? '—' : `${Math.round(sq.dist)} m`)}${stat('Vida promedio', sq.life ? fmtDuration(sq.life) : '—')}
-            ${stat('Teamkills c/100 kills', sq.tk == null ? '—' : sq.tk.toFixed(1).replace('.', ','))}${stat('Mejor racha', sq.streak ?? '—')}
+            ${stat('Teamkills c/100 kills', sq.tk == null ? '—' : sq.tk.toFixed(1).replace('.', ','))}${stat('Mejor racha', sq.streak == null ? '—' : `${sq.streak} kills`)}
             ${stat('Pares que jugaron juntos', `${sq.chem.pairs} de ${sq.chem.possible}`)}${stat('Winrate juntos', pct(sq.chem.winrate))}
         </div>
         <div class="sq-roles">${rolesHTML(sq)}</div>

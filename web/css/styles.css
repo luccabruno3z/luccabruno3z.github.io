@@ -3380,3 +3380,10 @@ body form .chip-picker .chip-remove:hover { background: rgba(255, 255, 255, 0.08
 .hk-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 4px; vertical-align: -1px; }
 .hk-flag { display: inline-block; width: 9px; height: 9px; background: var(--c); transform: rotate(45deg); border: 1px solid #fff; margin: 0 4px 0 6px; vertical-align: 0; }
 .heatmap-legend[hidden] { display: none !important; }
+
+.gloss-link { font-size: .82rem; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.profile-badges .gloss-link { align-self: center; margin-left: 4px; }
+.pred-balance .sq-open { white-space: normal; text-align: left; }
+@media (max-width: 640px) {
+    .sq-vs-roles { grid-template-columns: 1fr; }
+}

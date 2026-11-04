@@ -78,12 +78,23 @@ Rankings → Escuadras de clan arma, por clan, una escuadra con los 8 jugadores 
 Performance (50+ rondas; opcional solo activos 30 días) y la rankea por la fuerza del
 predictor. Las estadísticas (`buildSquad` en `squads.js`) son las de PRStats, las de demos
 (winrate, revives, teamwork, juego con la escuadra, vida, teamkills cada 100 kills,
-clutch), los roles que cubre (oficial, médico, AR/MG y AT: alguien con ese rol `eligible`)
-y la sinergia (pares que compartieron escuadra en 3+ rondas). El predictor y la
-composición de Equipos usan las mismas funciones con los jugadores elegidos. La
-probabilidad es siempre el composite del predictor (Performance, K/D y kills por ronda
-con `predictor_weights`); las demás filas no entran en ella. Una fila sin dato en
-ninguno de los dos lados no se muestra.
+clutch), los roles ("Juega de" = mejor rol de cada uno; "Puede cubrir" = cuántos jugaron
+oficial, médico, AR/MG y AT con el rol `eligible` y 10 %+ de su actividad) y los pares que
+compartieron escuadra en 3+ rondas. El predictor y la composición de Equipos usan las
+mismas funciones con los jugadores elegidos.
+
+**Modelo de fuerza y probabilidad** (`squads.js`):
+- Fuerza de un jugador (`strength`) = Performance, K/D y kills por ronda con
+  `predictor_weights`, cada uno ajustado por muestra hacia la mediana de la comunidad
+  (`n / (n + 50)` rondas). La del equipo es el promedio.
+- Probabilidad (`winProb`) = curva logística sobre la diferencia de fuerza
+  (`PROB_K = 6`); en el predictor el equipo más chico suma menos. Lectura: hasta 55 %
+  parejo, 55–65 % ventaja leve, 65–80 % clara, más de 80 % muy desbalanceado.
+- La comparación va en tres grupos: lo que usa la probabilidad (los valores ajustados),
+  otras métricas (se cuentan, con empates) y contexto (rondas y actividad: no se cuentan).
+- "Proponer equipos parejos" (`balanceTeams`) prueba todas las divisiones de hasta 16
+  jugadores y las carga en los chips (`setChipNames` de `chips.js`).
+- El selector de chips guarda el nombre real del jugador y rechaza los que no existen.
 
 ### Partidas recientes
 Muestran el servidor con un nombre corto (`serverLabel`: sin la versión ni dominios o
@@ -91,7 +102,8 @@ links de Discord); el nombre completo queda en el `title`.
 
 ### Guías
 Cada guía es un fragmento HTML en `web/guides/<slug>.html` (`kits`, `infanteria`, `lider`,
-`urbano`, `cqb`, `mapas`) y se abre en `#/guias/<slug>`. `guides.js` lo baja, arma el
+`urbano`, `cqb`, `mapas`, `assets` y `glosario`, que explica cada número del sitio y se
+linkea con `glossaryLinkHTML()` desde las notas de rankings, escuadras, predictor y perfil) y se abre en `#/guias/<slug>`. `guides.js` lo baja, arma el
 índice con los `h2` (botones, no `#anchors`, para no pelear con el router) y oculta la
 grilla. Los datos de mecánica salen del [manual oficial de PR](https://www.realitymod.org/manual/en/);
 las cifras por mapa, de las demos (octubre de 2026). Los diagramas son SVG inline con las

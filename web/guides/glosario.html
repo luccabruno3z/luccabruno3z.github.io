@@ -1,0 +1,73 @@
+<header>
+    <h1>Glosario: qué significa cada número</h1>
+    <p class="guide-lead">Todas las métricas del sitio, qué miden, de dónde salen y cómo leerlas. Si un número no dice si es bueno o malo, acá está la referencia.</p>
+    <p class="guide-src">Las fórmulas están en el código del sitio (<code>scraper/scoring.py</code>, <code>scraper/roles.py</code> y <code>web/js/squads.js</code>). Los cortes y pesos se recalculan con cada actualización de datos.</p>
+</header>
+
+<h2>De dónde salen los datos</h2>
+<div class="g-table-wrap"><table class="g-table">
+    <thead><tr><th>Fuente</th><th>Qué tiene</th><th>Dónde se usa</th></tr></thead>
+    <tbody>
+        <tr><td><b>PRStats</b></td><td>Los totales oficiales del perfil de cada jugador: kills, muertes, score y rondas de toda su historia.</td><td>Performance, Top, K/D y kills por ronda del perfil, Clanes.</td></tr>
+        <tr><td><b>Demos</b></td><td>Las partidas grabadas en los servidores que seguimos (sobre todo LATAM y Brasil, más algunos europeos), con cada evento: quién mató a quién, con qué kit, dónde, revives, banderas y resultado.</td><td>Winrate, roles, teamwork, juego con la escuadra, heatmaps, Por período, Por rol, historial.</td></tr>
+    </tbody>
+</table></div>
+<p>Como las demos son solo una parte de las partidas de cada uno, sus números no coinciden con los de PRStats: un K/D de demos de 2,34 al lado de un 1,99 de PRStats no es un error.</p>
+
+<h2>Performance y tiers</h2>
+<ul>
+    <li><b>Performance (de 0 a 1):</b> el puntaje general. Suma 7 componentes con su peso: combate (K/D, 20 %), efectividad (kills por ronda, 15 %), puntuación (score por ronda, 10 %), winrate (20 %), teamwork (15 %), consistencia (10 %) y experiencia (10 %). Los de PRStats se miden contra el resto de los jugadores (percentil).</li>
+    <li><b>Penalización por pocas rondas:</b> con pocas rondas el Performance se multiplica por un factor que sube con la cantidad de rondas: a las 10 rondas vale 18 %, a las 25 el 50 % y desde unas 55 rondas el 95 %. Así unas partidas buenas no ponen a nadie arriba de todo. En el perfil aparece como la fila "Pocas rondas".</li>
+    <li><b>Tiers:</b> Recluta, Soldado, Experimentado, Veterano y Elite. Los cortes salen de la comunidad (Elite es más o menos el 5 % de arriba) y se recalculan con cada actualización: en el perfil, "Camino a…" dice cuánto le falta a cada uno.</li>
+    <li><b>Puesto:</b> "#141 de 2.589 por Performance" es el lugar entre todos los jugadores. Para entrar al Top hacen falta 50 rondas.</li>
+    <li><b>Estilo (arquetipo):</b> una etiqueta según el perfil de estadísticas (por ejemplo "Anti-tanque" o "Altamente letal pero arriesgado"). No es lo mismo que el mejor rol, que sale de los kits que usó en las partidas.</li>
+    <li><b>Experiencia y confiabilidad:</b> Novato (10+ rondas), Regular (50+), Constante (200+), Asiduo (500+) y Leyenda (1.000+). La confiabilidad dice cuánto se puede confiar en los números: alta con 200+ rondas, media con 50+, baja con menos.</li>
+</ul>
+
+<h2>Métricas por ronda</h2>
+<ul>
+    <li><b>K/D:</b> kills dividido muertes. 1 es matar tanto como morir.</li>
+    <li><b>Kills por ronda (KPR):</b> kills promedio en cada ronda jugada.</li>
+    <li><b>Score por ronda (SPR):</b> puntos del juego por ronda; incluye kills, banderas, revives, construcción y teamwork.</li>
+    <li><b>Muertes por ronda:</b> menos es mejor.</li>
+    <li><b>"Mejor que el X %":</b> el porcentaje de jugadores que tienen un valor más bajo. "Mejor que el 90 %" es estar en el 10 % de arriba.</li>
+</ul>
+
+<h2>Partidas grabadas (demos)</h2>
+<ul>
+    <li><b>Winrate:</b> rondas ganadas sobre rondas ganadas o perdidas. Las rondas sin ganador registrado (empates, rondas cortadas) no cuentan.</li>
+    <li><b>Teamwork (parte del score):</b> qué parte de sus puntos son de trabajo en equipo (revivir, curar, reabastecer, reparar, construir, transportar).</li>
+    <li><b>Revives por ronda:</b> compañeros levantados por ronda; para médicos, por ronda jugada como médico.</li>
+    <li><b>Vida promedio:</b> cuánto dura vivo desde que aparece hasta que muere.</li>
+    <li><b>Teamkills cada 100 kills:</b> fuego amigo en proporción a lo que mata (por ronda castigaba al que más mata).</li>
+    <li><b>Clutch kills:</b> kills hechas con su equipo a 25 tickets o menos. <b>First blood:</b> rondas en las que hizo la primera kill.</li>
+    <li><b>Junto a su escuadra:</b> parte del tiempo vivo con un compañero de escuadra vivo a 50 m o menos. Es la medida de jugar con la escuadra o solo (todos están en una escuadra por reglamento). Se mide desde octubre de 2026.</li>
+    <li><b>Distancia a su escuadra:</b> metros promedio al centro de su escuadra. Tiene historial pero es más gruesa; la mitad de los jugadores está entre 205 y 315 m.</li>
+    <li><b>Forma reciente:</b> sus últimas 10 rondas contra su propio promedio. No es la tendencia de largo plazo, que está en el gráfico de evolución.</li>
+</ul>
+
+<h2>Rankings</h2>
+<ul>
+    <li><b>Top:</b> por PRStats, todo el historial, con 50+ rondas.</li>
+    <li><b>Por período:</b> solo las partidas grabadas de las últimas 24 horas, 7 días, 30 días o todo. Kills, score, revives y teamwork son totales (suma más quien más jugó); el K/D pide un mínimo de rondas en el período.</li>
+    <li><b>Por rol:</b> cada rol se mide por lo suyo: médico por revives, anti-tanque por kills con lanzador, tripulante y piloto por kills desde el vehículo, oficial por winrate y el resto por K/D con el rol. El rol es el kit que tenía puesto al matar, morir o estar vivo.</li>
+    <li><b>Valor ajustado:</b> el valor real se acerca a la mediana del rol cuando hay pocas rondas (se suman rondas o muertes "a la mediana"). Por eso alguien con un valor sin ajustar más alto pero pocas rondas puede quedar abajo.</li>
+    <li><b>Confianza:</b> alta con 15+ rondas con el rol; baja con menos de 8 o si una sola ronda explica más del 40 % del resultado. Con confianza baja no se entra al top ni se es el "mejor rol".</li>
+</ul>
+
+<h2>Equipos y escuadras de clan</h2>
+<ul>
+    <li><b>Fuerza (de 100):</b> Performance, K/D y kills por ronda de cada jugador con los pesos del modelo (Performance pesa más), ajustados por muestra: con menos de 50 rondas un jugador cuenta cerca del promedio de la comunidad.</li>
+    <li><b>Probabilidad:</b> sale de la diferencia de fuerza entre los dos equipos; en el predictor, el equipo más chico suma menos. Se lee así: hasta 55 % es parejo, 55–65 % ventaja leve, 65–80 % ventaja clara y más de 80 % muy desbalanceado. Es una estimación: no ve mapa, modo ni comunicación.</li>
+    <li><b>Otras métricas:</b> las filas debajo de "Lo que usa la probabilidad" no entran en el cálculo; muestran dónde gana cada equipo.</li>
+    <li><b>Juega de / Puede cubrir:</b> "Juega de" es el mejor rol de cada jugador; "Puede cubrir" cuenta cuántos jugaron ese rol de verdad (10+ rondas con confianza media o alta y al menos el 10 % de su actividad). Una escuadra de infantería necesita oficial, médico, AR o MG y anti-tanque.</li>
+    <li><b>Pares que jugaron juntos:</b> de todos los pares posibles del equipo (28 en una escuadra de 8), cuántos compartieron escuadra en 3+ rondas grabadas. <b>Winrate jugando juntos:</b> cómo les fue en esas rondas.</li>
+</ul>
+
+<h2>Mapas y heatmaps</h2>
+<ul>
+    <li><b>BLUFOR y OPFOR:</b> los dos bandos de cada ronda; qué facción es cada uno depende del mapa y la capa (los botones lo dicen cuando hay datos).</li>
+    <li><b>Capas del mapa:</b> el mismo modo se juega en capas distintas, con zonas y banderas propias: Infantería (16), Alternativa (32), Estándar (64) y Grande (128). Los heatmaps no las mezclan.</li>
+    <li><b>Capas del heatmap:</b> muertes (dónde cae cada bando), recorridos (por dónde pasa: azul y rojo cuando se ven los dos), spawns (dónde aparece), francotiradores (desde dónde se hacen bajas a más de 150 m con arma personal) y líneas de fuego (de dónde a dónde se mata).</li>
+    <li><b>Etapas:</b> cada ronda se divide en seis partes iguales de su duración; "Apertura" es el primer sexto.</li>
+</ul>
