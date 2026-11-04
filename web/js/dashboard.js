@@ -38,7 +38,7 @@ function renderTopPlayers() {
         const ps = p['Performance Score'] || 0;
         const clan = p.Clan ? clanLogoHTML(p.Clan, 20) : '';
         return tileRow(i + 1, `${clan}<span>${playerLinkHTML(p.Player)}</span>`, tierBarHTML(ps),
-            `<span class="dtable-val">${formatNumber(ps)}</span>`);
+            `<span class="dtable-val">${ps.toFixed(3).replace('.', ',')}</span>`);
     }).join('');
 }
 

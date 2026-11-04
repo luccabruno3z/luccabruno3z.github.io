@@ -15,6 +15,11 @@ const LB_METRIC_LABELS = {
     teamwork_score: 'Teamwork',
 };
 
+// El K/D es un cociente: con 1 ronda un 9,50 llegaba al podio. Mínimo de rondas
+// en el período para entrar (los totales no lo necesitan: suman con cada ronda).
+const KD_MIN_ROUNDS = { dia: 2, semana: 5, mes: 10, todo: 20 };
+const PERIOD_TXT = { dia: 'últimas 24 horas', semana: 'últimos 7 días', mes: 'últimos 30 días', todo: 'todo el historial' };
+
 /** Metric value for a leaderboard row (kd computed = kills/deaths). */
 function metricValue(player, metric) {
     if (metric === 'kd') {
@@ -49,7 +54,13 @@ async function renderLeaderboard() {
     }
 
     const label = LB_METRIC_LABELS[metric] || metric;
-    const sorted = [...players].sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
+    const minKd = metric === 'kd' ? (KD_MIN_ROUNDS[period] || 1) : 0;
+    const pool = minKd ? players.filter(p => (p.rounds || 0) >= minKd) : players;
+    if (!pool.length) {
+        results.innerHTML = `<div class="empty-state">Nadie llega a ${minKd} rondas en ${PERIOD_TXT[period] || 'este período'}.</div>`;
+        return true;
+    }
+    const sorted = [...pool].sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
     const shown = sorted.slice(0, count);
 
     const top = metricValue(shown[0], metric) || 1;
@@ -84,8 +95,9 @@ async function renderLeaderboard() {
     });
 
     results.innerHTML = `
-        <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${formatNumber(data.total_rounds || 0)} rondas en total</div>
-        ${tableHTML(cols, rows, { minWidth: 640, caption: `Leaderboard por ${label}` })}`;
+        <div class="rankings-header">Top ${shown.length} por ${escapeHtml(label)} · ${escapeHtml(PERIOD_TXT[period] || period)} · ${formatNumber(data.total_rounds || 0)} rondas grabadas</div>
+        ${tableHTML(cols, rows, { minWidth: 640, caption: `Leaderboard por ${label}` })}
+        <p class="rankings-excluded">Sale solo de las partidas grabadas (demos) de ese período, no del historial completo de PRStats que usa el Top. ${metric === 'kd' ? `El K/D pide ${minKd}+ rondas en el período; ` : ''}Kills, score, revives y teamwork son totales: suma más quien más jugó.</p>`;
     return true;
 }
 

@@ -66,7 +66,7 @@ function renderRankings() {
     const shown = sorted.slice(0, topN);
     const maxValue = shown.reduce((m, p) => Math.max(m, p[metric.key] || 0), 0) || 1;
 
-    const headerBits = [`Top ${shown.length} por ${escapeHtml(metric.label)}`];
+    const headerBits = [`Top ${shown.length} de ${formatNumber(qualified.length)} por ${escapeHtml(metric.label)}${metricKey === 'performance' ? ' (de 0 a 1)' : ''}`];
     if (clanLabel) headerBits.push(`Clan ${escapeHtml(clanLabel)}`);
 
     const fmt = (v) => formatNumber(metricKey === 'kd' || metricKey === 'performance' ? Number((v || 0).toFixed(2)) : v || 0);
@@ -89,25 +89,23 @@ function renderRankings() {
         [
             { label: '#', width: '56px' },
             { label: 'Jugador', width: 'minmax(0,1.6fr)' },
+            { label: metric.label, width: '90px', align: 'end' },
+            { label: '', width: 'minmax(0,1.4fr)' },
             { label: 'Clan', width: 'minmax(0,1fr)' },
             { label: 'Tier', width: '130px' },
-            { label: metric.label, width: 'minmax(0,1.6fr)' },
-            { label: 'Valor', width: '90px', align: 'end' },
         ],
         rest.map((p, i) => [
             posHTML(i + 4),
             `<span class="dtable-name">${playerLinkHTML(p.Player)}</span>`,
+            `<span class="dtable-val">${fmt(p[metric.key])}</span>`,
+            bar(p[metric.key] || 0),
             clanCell(p),
             tierChipHTML(p['Performance Score']),
-            bar(p[metric.key] || 0),
-            `<span class="dtable-val">${fmt(p[metric.key])}</span>`,
         ]),
         { minWidth: 680, caption: headerBits.join(' · ') },
     ) : '';
 
-    const excludedNote = excluded > 0
-        ? `<p class="rankings-excluded">${excluded} jugador${excluded === 1 ? '' : 'es'} excluido${excluded === 1 ? '' : 's'} por tener menos de ${minRounds} rondas.</p>`
-        : '';
+    const excludedNote = `<p class="rankings-excluded">Sale de PRStats (todo el historial de cada jugador). Entran ${formatNumber(qualified.length)} jugadores con ${minRounds}+ rondas${excluded > 0 ? `; ${formatNumber(excluded)} quedan afuera por tener menos` : ''}. "Por período" usa solo las partidas grabadas de ese período.</p>`;
 
     results.innerHTML = `
         <div class="rankings-header">${headerBits.join(' · ')}</div>

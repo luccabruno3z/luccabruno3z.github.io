@@ -12,6 +12,9 @@ import {
 function animateCounter(id, target, duration = 1500) {
     const el = document.getElementById(id);
     if (!el) return;
+    // El valor final queda para lectores de pantalla y si se pide menos movimiento.
+    el.setAttribute('aria-label', target.toLocaleString('es-AR'));
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = target.toLocaleString('es-AR'); return; }
     const start = performance.now();
     function frame(now) {
         const t = Math.min((now - start) / duration, 1);
@@ -61,7 +64,7 @@ function renderFeatured() {
             <div class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</div>
             <div class="badge featured-archetype">${arch.emoji} ${escapeHtml(arch.name)}</div>
             <div class="featured-stats">
-                <div class="stat-row"><span class="stat-label">Performance</span><span class="stat-value">${formatNumber(ps)}</span></div>
+                <div class="stat-row"><span class="stat-label">Performance (de 0 a 1)</span><span class="stat-value">${ps.toFixed(3).replace('.', ',')}</span></div>
                 <div class="stat-row"><span class="stat-label">K/D</span><span class="stat-value">${formatNumber(kd)}</span></div>
             </div>
         </div>`;

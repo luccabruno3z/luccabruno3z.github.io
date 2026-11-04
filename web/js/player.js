@@ -229,7 +229,7 @@ async function renderPlayerProfile(player) {
                 <div class="profile-id">
                     <div class="profile-title">
                         <h3 class="profile-name">${escapeHtml(player.Player)}</h3>
-                        <span class="profile-rank">#${rank} global${player.Clan ? ` · #${clanPos} en ${escapeHtml(player.Clan)}` : ''}</span>
+                        <span class="profile-rank" title="Puesto por Performance entre todos los jugadores">#${rank} de ${formatNumber(players.length)} por Performance${player.Clan ? ` · #${clanPos} en ${escapeHtml(player.Clan)}` : ''}</span>
                     </div>
                     <div class="profile-badges">
                         ${tierChipHTML(ps)}

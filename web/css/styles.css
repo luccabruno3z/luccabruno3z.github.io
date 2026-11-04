@@ -3371,3 +3371,6 @@ body form .chip-picker .chip-remove {
 }
 body form .chip-picker .chip-remove:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); transform: none; }
 .pv-rec-sub { margin: 14px 0 6px; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); }
+
+.rankings-lead { font-size: .86rem; color: var(--text-muted); margin: 0 0 14px; line-height: 1.5; }
+.tile-unit { display: block; font-size: .72rem; font-weight: 400; color: var(--text-muted); text-transform: none; letter-spacing: 0; font-family: var(--font-body, inherit); }

@@ -40,9 +40,13 @@ async function renderRoleBoard() {
     const period = document.getElementById('role-period')?.value || 'todo';
     const count = Math.max(3, Math.min(30, parseInt(document.getElementById('role-count')?.value, 10) || 15));
     const board = data.periods[period]?.[key];
-    const players = (board?.players || []).slice(0, count);
+    const all = board?.players || [];
+    // Un valor real de 0 (p.ej. pilotos sin kills desde aeronaves) no arma podio.
+    const players = all.filter(p => (p.value || 0) > 0).slice(0, count);
     if (!board || !players.length) {
-        results.innerHTML = `<div class="empty-state">Nadie llega a ${data.min_rounds || 10} rondas como ${escapeHtml(board?.label || key)} con confianza suficiente en este período.</div>`;
+        results.innerHTML = all.length
+            ? `<div class="empty-state">Nadie tiene ${escapeHtml(board.metric_label.toLowerCase())} mayor a cero como ${escapeHtml(board.label)} en este período.</div>`
+            : `<div class="empty-state">Nadie llega a ${data.min_rounds || 10} rondas como ${escapeHtml(board?.label || key)} con confianza suficiente en este período.</div>`;
         return true;
     }
 
@@ -54,7 +58,7 @@ async function renderRoleBoard() {
     const podium = podiumHTML(players.slice(0, 3).map(p => ({
         title: p.player,
         href: playerHref(p.player),
-        sub: `${clan(p)} · ${formatNumber(p.rounds)} rondas · real ${fmtValue(board, p.value)}`,
+        sub: `${clan(p)} · ${formatNumber(p.rounds)} rondas de ${escapeHtml(board.label.toLowerCase())} · sin ajustar ${fmtValue(board, p.value)}`,
         value: fmtValue(board, p.adjusted),
         logo: '',
     })));
@@ -63,20 +67,20 @@ async function renderRoleBoard() {
         [
             { label: '#', width: '56px' },
             { label: 'Jugador', width: 'minmax(0,1.5fr)' },
-            { label: 'Clan', width: 'minmax(0,0.9fr)' },
             { label: `${board.metric_label} (ajustado)`, width: 'minmax(0,1.6fr)' },
-            { label: 'Real', width: '80px', align: 'end' },
-            { label: 'Rondas', width: '80px', align: 'end' },
+            { label: 'Sin ajustar', width: '96px', align: 'end' },
+            { label: 'Rondas con el rol', width: '110px', align: 'end' },
+            { label: 'Clan', width: 'minmax(0,0.9fr)' },
             { label: board.metric === 'winrate' ? 'Récord' : 'K/D', width: '90px', align: 'end' },
             { label: 'Confianza', width: '96px' },
         ],
         rest.map((p, i) => [
             posHTML(i + 4),
             `<span class="dtable-name">${playerLinkHTML(p.player)}</span>`,
-            p.clan ? `${clanLogoHTML(p.clan, 20)} <span class="dtable-muted">${escapeHtml(p.clan)}</span>` : '',
             `<span class="dtable-val-o">${fmtValue(board, p.adjusted)}</span>${barHTML((p.adjusted / top) * 100, 'orange')}`,
             `<span class="dtable-muted">${fmtValue(board, p.value)}</span>`,
             formatNumber(p.rounds),
+            p.clan ? `${clanLogoHTML(p.clan, 20)} <span class="dtable-muted">${escapeHtml(p.clan)}</span>` : '',
             record(p),
             `<span class="pv-conf is-${p.confidence}">${CONF[p.confidence] || ''}</span>`,
         ]),
@@ -85,8 +89,8 @@ async function renderRoleBoard() {
 
     results.innerHTML = `
         <div class="rankings-header">Top ${players.length} · ${escapeHtml(board.label)} · ${escapeHtml(board.metric_label)} · mediana del rol ${fmtValue(board, board.median)}</div>
-        ${podium}${table}
-        <p class="rankings-excluded">El número grande es el valor ajustado por muestra (con pocas rondas se acerca a la mediana del rol) y "real" es el valor sin ajustar. Entran jugadores con ${data.min_rounds || 10}+ rondas con el rol y confianza media o alta (ninguna ronda explica más del 40 % del resultado).</p>`;
+        <p class="rankings-lead">El orden usa el valor <b>ajustado por muestra</b> (el número grande): con pocas rondas con el rol se acerca a la mediana, así que alguien con un valor sin ajustar más alto pero pocas rondas puede quedar abajo. Entran jugadores con ${data.min_rounds || 10}+ rondas con el rol y confianza media o alta (ninguna ronda explica más del 40 % del resultado).</p>
+        ${podium}${table}`;
     return true;
 }
 
