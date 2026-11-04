@@ -3374,3 +3374,9 @@ body form .chip-picker .chip-remove:hover { background: rgba(255, 255, 255, 0.08
 
 .rankings-lead { font-size: .86rem; color: var(--text-muted); margin: 0 0 14px; line-height: 1.5; }
 .tile-unit { display: block; font-size: .72rem; font-weight: 400; color: var(--text-muted); text-transform: none; letter-spacing: 0; font-family: var(--font-body, inherit); }
+
+/* Heatmaps: clave de colores por capa (equipos, kills/muertes, banderas) */
+.heatmap-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: .8rem; color: var(--text-muted); margin-top: 6px; }
+.hk-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--c); margin-right: 4px; vertical-align: -1px; }
+.hk-flag { display: inline-block; width: 9px; height: 9px; background: var(--c); transform: rotate(45deg); border: 1px solid #fff; margin: 0 4px 0 6px; vertical-align: 0; }
+.heatmap-legend[hidden] { display: none !important; }

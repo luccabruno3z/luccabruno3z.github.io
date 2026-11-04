@@ -4,13 +4,13 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRecentMatches } from './data.js';
-import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel, serverLabel } from './utils.js';
+import { escapeHtml, formatNumber, matchDateLabel, mapLabel, gamemodeLabel, serverLabel, factionLabel } from './utils.js';
 import { tableHTML } from './ui.js';
 
 /** Ganador como chip (1=blufor, 2=opfor, otro=empate), igual que en el Inicio. */
 function winnerLabel(round) {
-    const blufor = round.blufor_team ? escapeHtml(round.blufor_team) : 'BLUFOR';
-    const opfor = round.opfor_team ? escapeHtml(round.opfor_team) : 'OPFOR';
+    const blufor = round.blufor_team ? escapeHtml(factionLabel(round.blufor_team)) : 'BLUFOR';
+    const opfor = round.opfor_team ? escapeHtml(factionLabel(round.opfor_team)) : 'OPFOR';
     if (round.winner === 1) return `<span class="dtable-chip is-win">${blufor}</span>`;
     if (round.winner === 2) return `<span class="dtable-chip is-win">${opfor}</span>`;
     return '<span class="dtable-chip">Empate</span>';

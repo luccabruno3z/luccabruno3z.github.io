@@ -113,6 +113,22 @@ export function mapLabel(code) {
 export function gamemodeLabel(code) {
     return state.aliases?.gamemodes?.[code] || _rawPretty(code);
 }
+// Facciones de PR (código del juego → nombre). Un código que no está acá se
+// muestra en mayúsculas.
+const FACTIONS = {
+    us: 'EE.UU. (USMC)', usa: 'EE.UU. (Ejército)', usmc: 'EE.UU. (USMC)', gb: 'Reino Unido', ger: 'Alemania',
+    cf: 'Canadá', fr: 'Francia', nl: 'Países Bajos', pl: 'Polonia', idf: 'Israel', mec: 'Coalición de Oriente Medio',
+    ru: 'Rusia', ru90: 'Rusia (años 90)', ch: 'China', chinsurgent: 'Milicia china', arf: 'Fuerza rebelde africana',
+    taliban: 'Talibán', meinsurgent: 'Insurgentes', hamas: 'Hamás', fsa: 'Ejército Libre Sirio', ukr: 'Ucrania',
+    ww2usa: 'EE.UU. (WWII)', ww2ger: 'Alemania (WWII)', ww2gb: 'Reino Unido (WWII)', ww2jp: 'Japón (WWII)',
+    vnusa: 'EE.UU. (Vietnam)', vnusmc: 'EE.UU. (Vietnam, USMC)', vnnva: 'Vietnam del Norte', nva: 'Vietnam del Norte',
+    swe: 'Suecia', aus: 'Australia', dk: 'Dinamarca', no: 'Noruega', ir: 'Irán',
+};
+export function factionLabel(code) {
+    if (!code) return '';
+    return FACTIONS[String(code).toLowerCase()] || String(code).toUpperCase();
+}
+
 /** Capas de PR: el mismo modo se juega con zonas y banderas distintas por capa. */
 const LAYER_LABELS = { 16: 'Infantería (16)', 32: 'Alternativa (32)', 64: 'Estándar (64)', 128: 'Grande (128)' };
 /** 'gpm_cq_64' → 'AAS · Estándar (64)'; sin capa, igual que gamemodeLabel. */

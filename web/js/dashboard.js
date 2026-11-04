@@ -7,6 +7,7 @@
 import { state, loadLeaderboard, loadRecentMatches } from './data.js';
 import {
     escapeHtml, formatNumber, clanLogoHTML, matchDateLabel, mapLabel, gamemodeLabel, playerLinkHTML,
+    factionLabel,
 } from './utils.js';
 import { barHTML, tierBarHTML, tableHTML, posHTML } from './ui.js';
 
@@ -90,8 +91,8 @@ async function renderRecentMatches() {
 
         const rows = matches.map((m) => {
             let winner = 'Sin definir';
-            if (m.winner === 1) winner = m.blufor_team || 'BLUFOR';
-            else if (m.winner === 2) winner = m.opfor_team || 'OPFOR';
+            if (m.winner === 1) winner = m.blufor_team ? factionLabel(m.blufor_team) : 'BLUFOR';
+            else if (m.winner === 2) winner = m.opfor_team ? factionLabel(m.opfor_team) : 'OPFOR';
             const decided = m.winner === 1 || m.winner === 2;
             return [
                 `<span class="dtable-muted">${escapeHtml(matchDateLabel(m.filename) || '—')}</span>`,

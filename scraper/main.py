@@ -838,6 +838,8 @@ def _aggregate_map_stats(rounds: list[dict]) -> list[dict]:
 
     for round_data in rounds:
         map_name = round_data.get("map_name", "unknown")
+        if not _VALID_MAP_RE.match(map_name or ""):
+            continue  # nombre corrupto (demo con el encabezado roto)
         gamemode = round_data.get("gamemode", "unknown")
         key = f"{map_name}_{gamemode}"
 
@@ -960,6 +962,7 @@ SNIPER_MIN_DIST = 150.0  # m: kills "a distancia" para la capa de francotiradore
 _DATE_RE = re.compile(r"tracker_(\d{4})_(\d{2})_(\d{2})_")
 
 
+_VALID_MAP_RE = re.compile(r"^[a-z0-9_]+$", re.I)
 _MODE_LAYER_RE = re.compile(r"_(gpm_[a-z]+)_(\d+)\.PRdemo$", re.I)
 
 
@@ -1020,6 +1023,8 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         if not (kps or mv or sp):
             continue
         mname = rd.get("map_name", "unknown")
+        if not _VALID_MAP_RE.match(mname or ""):
+            continue  # nombre corrupto (demo con el encabezado roto)
         # Modo + capa: AAS 16 (infantería), 32, 64 y 128 se juegan en zonas y con
         # banderas distintas; mezclarlos ponía la pelea de la capa chica (parecida a
         # Skirmish) en el heatmap de AAS 64. Rondas viejas sin capa: del nombre.
@@ -1034,6 +1039,8 @@ def _aggregate_heatmaps(rounds: list[dict], grid_size: int = 128) -> dict:
         mp["rounds_list"].append({"filename": rd.get("filename", ""),
                                   "date": _date_from_filename(rd.get("filename", "")),
                                   "gamemode": gmode,
+                                  "blufor": rd.get("blufor_team", ""),
+                                  "opfor": rd.get("opfor_team", ""),
                                   "demo_url": rd.get("demo_url", "")})
 
         for e in (kps or []):

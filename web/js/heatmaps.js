@@ -10,7 +10,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadHeatmapIndex, loadHeatmap, loadMapImgManifest, loadRoundPositions, loadPlayerHeatmap, state } from './data.js';
-import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, modeLayerLabel, weaponKind } from './utils.js';
+import { mapLabel, formatNumber, escapeHtml, gamemodeLabel, modeLayerLabel, weaponKind, factionLabel, findPlayer } from './utils.js';
 import { MAP_IMG_URL } from './config.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
@@ -370,9 +370,10 @@ export async function initHeatmaps() {
         return;
     }
 
-    const maps = [...index].sort((a, b) => (b.kills || 0) - (a.kills || 0));
+    // Fuera los mapas con nombre corrupto (demos con el encabezado roto).
+    const maps = [...index].filter(e => /^[a-z0-9_]+$/i.test(e.map || '')).sort((a, b) => (b.kills || 0) - (a.kills || 0));
     mapSel.innerHTML = maps.map(e =>
-        `<option value="${escapeHtml(e.map)}">${escapeHtml(mapLabel(e.map))} (${formatNumber(e.kills || 0)})</option>`).join('');
+        `<option value="${escapeHtml(e.map)}">${escapeHtml(mapLabel(e.map))} (${formatNumber(e.kills || 0)} kills)</option>`).join('');
 
     const phaseRow = document.getElementById('heatmap-phase-row');
     const phaseSlider = document.getElementById('heatmap-phase');
@@ -383,6 +384,34 @@ export async function initHeatmaps() {
 
     const playerInput = document.getElementById('heatmap-player');
     const fireLegend = document.getElementById('heatmap-fire-legend');
+    const rampLegend = document.querySelector('.heatmap-legend');
+    const keyLegend = document.getElementById('heatmap-key');
+    const teamBtns = document.querySelectorAll('.heatmap-teams button[data-team]');
+    // Qué significa el color en cada capa (la rampa) y qué filtra el equipo.
+    const RAMP_TXT = {
+        deaths: ['pocas muertes', 'muchas muertes'], movement: ['poco paso', 'mucho paso'],
+        spawns: ['pocos spawns', 'muchos spawns'], sniper: ['pocas bajas lejanas', 'muchas'],
+    };
+    const TEAM_TXT = {
+        deaths: (t) => `muertes de ${t}`, movement: (t) => `por dónde se mueve ${t}`,
+        spawns: (t) => `dónde aparece ${t}`, sniper: (t) => `tiradores de ${t}`, fire: (t) => `disparos de ${t}`,
+    };
+    let sides = { 1: 'BLUFOR', 2: 'OPFOR' };
+    // Facción más común de cada lado en las rondas de ese modo (si el scraper la publica).
+    function updateSides() {
+        const gm = gmSel ? gmSel.value : null;
+        const rs = (Array.isArray(hm?.rounds) ? hm.rounds : []).filter(r => !gm || r.gamemode === gm);
+        const top = (k) => {
+            const c = {}; rs.forEach(r => { if (r[k]) c[r[k]] = (c[r[k]] || 0) + 1; });
+            const best = Object.entries(c).sort((a, b) => b[1] - a[1])[0];
+            return best ? factionLabel(best[0]) : '';
+        };
+        const b = top('blufor'), o = top('opfor');
+        sides = { 1: b ? `BLUFOR · ${b}` : 'BLUFOR', 2: o ? `OPFOR · ${o}` : 'OPFOR' };
+        teamBtns.forEach(btn => { if (sides[btn.dataset.team]) btn.textContent = sides[btn.dataset.team]; });
+    }
+    function setKey(html) { if (keyLegend) { keyLegend.innerHTML = html; keyLegend.hidden = !html; } }
+    const FLAG_KEY = '<span class="hk-flag" style="--c:#4aa3ff"></span>BLUFOR <span class="hk-flag" style="--c:#ff5b5b"></span>OPFOR <span class="hk-flag" style="--c:#e8e8e8"></span>neutral · banderas según su dueño en la última ronda, con el radio de captura'
     let playerCache = { q: null, data: null };
 
     // Re-render con el estado actual (gamemode/round/layer/team/etapa). round='all' → agregado.
@@ -393,7 +422,9 @@ export async function initHeatmaps() {
         // Modo "por jugador": kills (verde) vs muertes (rojo) en el mapa seleccionado.
         const pname = playerInput ? playerInput.value.trim() : '';
         if (fireLegend) fireLegend.hidden = !!pname || layer !== 'fire';
+        if (rampLegend) rampLegend.hidden = !!pname || layer === 'fire' || (layer === 'movement' && team === 'all');
         if (pname) {
+            setKey(`<span class="hk-dot" style="--c:#50ff82"></span>donde mató <span class="hk-dot" style="--c:#ff5050"></span>donde murió${vp.showFlags ? ' · ' + FLAG_KEY : ''}`);
             if (playerCache.q !== pname) playerCache = { q: pname, data: await loadPlayerHeatmap(pname) };
             const phm = playerCache.data;
             const md = phm && phm.maps ? phm.maps[mapSel.value] : null;
@@ -447,20 +478,32 @@ export async function initHeatmaps() {
             if (Number(phaseSlider.value) > phases) phaseSlider.value = '0';
             const v = Number(phaseSlider.value);
             phase = v === 0 ? 'all' : v - 1;
-            if (phaseLbl) phaseLbl.textContent = v === 0 ? 'Todas las etapas' : `${PHASE_NAMES(v - 1)} (${v}/${phases})`;
+            if (phaseLbl) phaseLbl.textContent = v === 0 ? 'Todas las etapas' : `${PHASE_NAMES(v - 1)} · sexto ${v} de ${phases} de la duración de cada ronda`;
         }
 
+        const g = hm.grid_size || 128;
         if (layer === 'fire') {
-            vp.density = buildLines(layers.firelines, team, hm.grid_size || 128);
+            vp.density = buildLines(layers.firelines, team, g);
+        } else if (layer === 'movement' && team === 'all') {
+            // "Todos" mezclaba los dos equipos en un color: cada uno con el suyo.
+            vp.density = buildDensity(layerCells(layers, layer, '1', phase), g, [74, 163, 255]);
+            vp.extra = buildDensity(layerCells(layers, layer, '2', phase), g, [255, 91, 91]);
         } else {
-            const cells = layerCells(layers, layer, team, phase);
-            vp.density = buildDensity(cells, hm.grid_size || 128);
+            vp.density = buildDensity(layerCells(layers, layer, team, phase), g);
         }
+        if (rampLegend && RAMP_TXT[layer]) {
+            const [a, b] = RAMP_TXT[layer];
+            rampLegend.innerHTML = `<span>${a}</span><span class="heatmap-ramp"></span><span>${b}</span>`;
+        }
+        const two = layer === 'movement' && team === 'all'
+            ? `<span class="hk-dot" style="--c:#4aa3ff"></span>${escapeHtml(sides[1])} <span class="hk-dot" style="--c:#ff5b5b"></span>${escapeHtml(sides[2])}` : '';
+        setKey([two, vp.showFlags && vp.flags.length ? FLAG_KEY : ''].filter(Boolean).join(' · '));
         resetView();
         if (meta) {
             const phaseNote = (phases && phase !== 'all') ? ` · etapa ${Number(phaseSlider.value)}/${phases}` : '';
             const empty = vp.density ? '' : ' <span class="muted">· sin datos en esta capa</span>';
-            meta.innerHTML = `${escapeHtml(mapLabel(mapSel.value))} — ${LAYER_LABEL[layer] || ''} · ${ctxNote}${phaseNote}`
+            const who = team === 'all' ? '' : ` · solo ${escapeHtml(TEAM_TXT[layer] ? TEAM_TXT[layer](sides[team]) : sides[team])}`;
+            meta.innerHTML = `${escapeHtml(mapLabel(mapSel.value))} — ${LAYER_LABEL[layer] || ''}${who} · ${ctxNote}${phaseNote}`
                 + (vp.img ? '' : ' <span class="muted">· sin minimapa</span>') + empty
                 + ' <span class="muted">· rueda/pellizco: zoom · arrastrá: mover · doble-click: reset</span>';
         }
@@ -474,8 +517,15 @@ export async function initHeatmaps() {
         // jugador se dibuja al ELEGIR una sugerencia.
         setupAutocomplete(playerInput, playerSug, playerSource(() => state.playersData || []),
             (value) => { playerInput.value = value; render(); });
-        // Al vaciar el campo, volver al modo normal.
+        // Al vaciar el campo, volver al modo normal. Enter busca lo escrito.
         playerInput.addEventListener('input', () => { if (!playerInput.value.trim()) render(); });
+        playerInput.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const p = findPlayer(state.playersData || [], playerInput.value.trim());
+            if (p) playerInput.value = p.Player;
+            render();
+        });
     }
 
     // Cargar un mapa: trae el archivo + minimapa, puebla gamemode/ronda, y renderiza.
@@ -494,19 +544,26 @@ export async function initHeatmaps() {
             gmSel.value = defaultGamemode(hm) || '';
             gmSel.disabled = !gms.length;
         }
-        if (roundSel) {
-            // hm.rounds es un array (v2) o un número (v1); solo iteramos el array.
-            const rs = Array.isArray(hm.rounds) ? hm.rounds.slice(0, 80) : [];
-            roundSel.innerHTML = '<option value="all">Todas las rondas</option>'
-                + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)} · ${escapeHtml(modeLayerLabel(r.gamemode))}</option>`).join('');
-            roundSel.value = 'all';
-            roundSel.disabled = !rs.length;
-        }
+        fillRounds();
         await render();
     }
 
+    // Solo las rondas del modo elegido (antes listaba las de todos los modos).
+    function fillRounds() {
+        if (!roundSel) return;
+        const gm = gmSel ? gmSel.value : null;
+        const allRs = (Array.isArray(hm?.rounds) ? hm.rounds : []).filter(r => !gm || r.gamemode === gm);
+        const rs = allRs.slice(0, 80);
+        const time = (fn) => { const m = /_(\d{2})_(\d{2})_\d{2}_/.exec(fn || ''); return m ? ` ${m[1]}:${m[2]}` : ''; };
+        roundSel.innerHTML = `<option value="all">Todas las rondas de este modo (${formatNumber(allRs.length)})</option>`
+            + rs.map(r => `<option value="${escapeHtml(r.filename)}">${escapeHtml(r.date)}${time(r.filename)}${r.blufor ? ` · ${escapeHtml(factionLabel(r.blufor))} vs ${escapeHtml(factionLabel(r.opfor))}` : ''}</option>`).join('');
+        roundSel.value = 'all';
+        roundSel.disabled = !rs.length;
+        updateSides();
+    }
+
     mapSel.addEventListener('change', selectMap);
-    if (gmSel) gmSel.addEventListener('change', render);
+    if (gmSel) gmSel.addEventListener('change', () => { fillRounds(); render(); });
     if (roundSel) roundSel.addEventListener('change', render);
     const teamGroup = document.querySelector('.heatmap-teams');
     if (teamGroup) teamGroup.addEventListener('click', (e) => {

@@ -325,13 +325,17 @@ function renderDemoMap(name) {
         results.innerHTML = '<div class="error-state">No se pudieron cargar las estadísticas de mapas.</div>';
         return;
     }
-    const lower = name.toLowerCase();
-    const matches = list.filter(m => m.map_name && m.map_name.toLowerCase() === lower);
+    // Sirve el código ("kashan_desert") o el nombre que se ve ("Kashan Desert").
+    const lower = name.toLowerCase().trim();
+    const norm = (v) => String(v || '').toLowerCase().replace(/[\s_-]+/g, ' ').trim();
+    const matches = list.filter(m => m.map_name && (m.map_name.toLowerCase() === lower
+        || norm(m.map_name) === norm(name) || norm(mapLabel(m.map_name)) === norm(name)));
     if (!matches.length) {
         results.innerHTML = `<div class="empty-state">No se encontraron datos para el mapa "${escapeHtml(name)}".</div>`;
         return;
     }
 
+    const pctTxt = (v) => `${v.toFixed(1).replace('.', ',')} %`;
     const boxes = matches.map((m) => {
         const rounds = m.rounds_played || 0;
         const bluforWR = rounds > 0 ? (m.blufor_wins || 0) / rounds * 100 : 0;
@@ -340,17 +344,19 @@ function renderDemoMap(name) {
         const avgKills = rounds > 0 ? (m.total_kills || 0) / rounds : 0;
         const durRow = dur ? `
             ${statRow('Duración promedio', fmtDuration(dur))}
-            ${statRow('Kills/min', (avgKills / (dur / 60)).toFixed(1))}` : '';
+            ${statRow('Kills por minuto', (avgKills / (dur / 60)).toFixed(1).replace('.', ','))}` : '';
         return `
             <div class="card demo-map-card">
                 <h4>${escapeHtml(mapLabel(m.map_name))} · ${escapeHtml(gamemodeLabel(m.gamemode))}</h4>
                 ${statRow('Rondas jugadas', formatNumber(rounds))}
-                ${statRow('Winrate BLUFOR', bluforWR.toFixed(1) + '%')}
-                ${statRow('Winrate OPFOR', opforWR.toFixed(1) + '%')}
+                ${statRow('Gana BLUFOR', pctTxt(bluforWR))}
+                ${statRow('Gana OPFOR', pctTxt(opforWR))}
+                ${100 - bluforWR - opforWR >= 0.5 ? statRow('Sin ganador registrado', `${pctTxt(100 - bluforWR - opforWR)} <small>(empate, ronda cortada o demo incompleta)</small>`) : ''}
                 ${statRow('Kills totales', formatNumber(m.total_kills || 0))}
                 ${durRow}
-                ${statRow('Tickets BLUFOR (prom.)', formatNumber(Number((m.avg_tickets1_final || 0).toFixed(2))))}
-                ${statRow('Tickets OPFOR (prom.)', formatNumber(Number((m.avg_tickets2_final || 0).toFixed(2))))}
+                ${/insurgency/.test(m.gamemode || '') ? '' : `
+                ${statRow('Tickets que le quedan a BLUFOR (prom.)', formatNumber(Math.round(m.avg_tickets1_final || 0)))}
+                ${statRow('Tickets que le quedan a OPFOR (prom.)', formatNumber(Math.round(m.avg_tickets2_final || 0)))}`}
             </div>`;
     }).join('');
 
@@ -393,7 +399,7 @@ export async function initDemoStats() {
             const q = query.toLowerCase();
             const seen = new Set(); const out = [];
             for (const m of (state.demoMapStats || [])) {
-                if (!m.map_name) continue;
+                if (!m.map_name || !/^[a-z0-9_]+$/i.test(m.map_name)) continue;   // nombres corruptos
                 const key = m.map_name.toLowerCase();
                 if (seen.has(key) || !key.includes(q)) continue;
                 seen.add(key);
@@ -403,7 +409,7 @@ export async function initDemoStats() {
             return out;
         };
         setupAutocomplete(mapInput, mapSug, source, (value) => {
-            mapInput.value = value;
+            mapInput.value = mapLabel(value);   // se ve el nombre, no el código interno
             renderDemoMap(value);
         });
     }
