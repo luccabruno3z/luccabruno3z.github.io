@@ -6,7 +6,7 @@
 
 import { state, loadLeaderboard, loadRecentMatches } from './data.js';
 import {
-    escapeHtml, formatNumber, clanLogoHTML, matchDateLabel, mapLabel, gamemodeLabel,
+    escapeHtml, formatNumber, clanLogoHTML, matchDateLabel, mapLabel, gamemodeLabel, playerLinkHTML,
 } from './utils.js';
 import { barHTML, tierBarHTML, tableHTML, posHTML } from './ui.js';
 
@@ -37,7 +37,7 @@ function renderTopPlayers() {
     host.innerHTML = players.map((p, i) => {
         const ps = p['Performance Score'] || 0;
         const clan = p.Clan ? clanLogoHTML(p.Clan, 20) : '';
-        return tileRow(i + 1, `${clan}<span>${escapeHtml(p.Player)}</span>`, tierBarHTML(ps),
+        return tileRow(i + 1, `${clan}<span>${playerLinkHTML(p.Player)}</span>`, tierBarHTML(ps),
             `<span class="dtable-val">${formatNumber(ps)}</span>`);
     }).join('');
 }
@@ -55,7 +55,7 @@ async function renderLeaders() {
         if (!rows.length) { emptyState(host, 'Sin datos de leaderboard.'); return; }
         const top = rows[0].kills || 1;
 
-        host.innerHTML = rows.map((p, i) => tileRow(i + 1, `<span>${escapeHtml(p.ign)}</span>`,
+        host.innerHTML = rows.map((p, i) => tileRow(i + 1, `<span>${playerLinkHTML(p.ign)}</span>`,
             barHTML(((p.kills || 0) / top) * 100, 'orange'),
             `<span class="dtable-val-o">${formatNumber(p.kills || 0)}</span>`)).join('');
     } catch (_) {

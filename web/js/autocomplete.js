@@ -78,6 +78,8 @@ export function setupAutocomplete(input, container, source, onSelect) {
     });
 
     input.addEventListener('blur', () => setTimeout(close, 120));
+    // Al enviar el formulario la lista se cierra (si no, queda tapando el resultado).
+    if (input.form) input.form.addEventListener('submit', () => { clearTimeout(timer); close(); });
 }
 
 /** Convenience: a source that filters a list of player objects by name. */

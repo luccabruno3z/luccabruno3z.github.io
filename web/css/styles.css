@@ -2017,9 +2017,54 @@ footer a:hover {
     }
 }
 
-/* El buscador del header no entra en anchos medianos: la vista Jugadores ya lo tiene */
+/* Botón lupa: solo en anchos donde el buscador no entra en el header */
+.header-search-toggle { display: none; }
+
+/* Anchos medianos y chicos: el buscador se despliega debajo del header con la lupa */
 @media (max-width: 1180px) {
+    .header-search-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: var(--r-md);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: color var(--t), background var(--t), border-color var(--t);
+    }
+    .header-search-toggle svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+    }
+    .header-search-toggle:hover,
+    .header-search-toggle[aria-expanded="true"] {
+        color: var(--accent);
+        background: var(--accent-dim);
+        border-color: var(--border-subtle);
+    }
     .header-search { display: none; }
+    .header-tools.search-open .header-search {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: auto;
+        padding: 10px 16px 12px;
+        background: rgba(10, 10, 16, 0.98);
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.45);
+    }
+    .header-tools.search-open .header-search input { height: 44px; font-size: 1rem; }
+    .header-tools.search-open .header-search .suggestions { left: 16px; right: 16px; }
 }
 
 /* Celular / tablet chica: el menú pasa a barra de pestañas inferior */
@@ -2059,7 +2104,7 @@ footer a:hover {
         padding: 0 2px;
         border: none;
         border-radius: 0;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         letter-spacing: 0;
         text-transform: none;
     }
@@ -2321,6 +2366,7 @@ footer a:hover {
     display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
     margin: 8px 0 2px; font-size: 0.84rem; color: var(--text-muted);
 }
+.heatmap-fire-legend[hidden] { display: none; }
 .heatmap-fire-legend .fl-swatch {
     display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 4px;
 }
@@ -3001,7 +3047,7 @@ body .cta-button.ghost:hover {
 .pv-source b { font-family: var(--font-mono); color: var(--accent); }
 #profile-last-seen.pv-source { color: var(--text); }
 
-.pv-src { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--hairline); color: var(--text-dim); vertical-align: 1px; }
+.pv-src { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; border: 1px solid var(--hairline); color: var(--text-dim); vertical-align: 1px; }
 .pv-src.is-demo { color: var(--secondary); border-color: rgba(255, 165, 0, 0.3); }
 .pv-pos { font-size: 0.78rem; font-weight: 700; }
 .pv-pos.is-up { color: var(--success); }
@@ -3022,12 +3068,12 @@ body .cta-button.ghost:hover {
 /* Tablas del perfil (componentes y roles) */
 .pv-scroll { overflow-x: auto; }
 .pv-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.pv-table th { text-align: left; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-dim); padding: 0 6px 8px; white-space: nowrap; }
+.pv-table th { text-align: left; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-dim); padding: 0 6px 8px; white-space: nowrap; }
 .pv-table th.n, .pv-table td.n { text-align: right; white-space: nowrap; }
 .pv-table td { padding: 7px 6px; border-top: 1px solid var(--hairline); vertical-align: middle; }
 .pv-table tfoot td { font-weight: 700; border-top: 1px solid var(--border); }
 .pv-name { display: block; font-weight: 500; color: var(--text); }
-.pv-what { display: block; font-size: 0.72rem; color: var(--text-dim); }
+.pv-what { display: block; font-size: 0.78rem; color: var(--text-dim); }
 .pv-what.is-warn { color: var(--secondary); }
 .pv-barcell { width: 22%; min-width: 80px; }
 .pv-sub { display: block; margin-top: 3px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); }
@@ -3135,7 +3181,24 @@ body .cta-button.ghost:hover {
 .guide-body li::marker { color: var(--accent); }
 .guide-body strong { color: var(--text); }
 .guide-body kbd { font-family: var(--font-mono); font-size: 0.82em; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border-medium); background: var(--bg-2); }
-.guide-body a { color: var(--accent); }
+/* Nombres de jugador como link al perfil: heredan el color de la fila y se
+   marcan al pasar o con foco, para no convertir cada tabla en un mar de links */
+.player-link {
+    color: inherit;
+    text-decoration: none;
+    border-radius: 3px;
+}
+.player-link:hover,
+.player-link:focus-visible {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+}
+.empty-state .player-link { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Links del texto; los botones (.cta-button) conservan su propio color */
+.guide-body a:not(.cta-button) { color: var(--accent); }
 .guide-src { font-size: 0.78rem; color: var(--text-dim); }
 
 /* Cajas: concepto (teoría), en PR (mecánica del juego), ojo (error común) */
@@ -3253,7 +3316,7 @@ body .cta-button.ghost:hover {
 .sq-clan { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
 .sq-sub { display: block; font-size: .78rem; color: var(--text-muted); }
 .sq-barcell { min-width: 120px; }
-.sq-open, .sq-close { background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: .82rem; white-space: nowrap; }
+.sq-open, .sq-close { display: inline-flex; align-items: center; min-height: 44px; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: .82rem; white-space: nowrap; }
 .sq-open:hover, .sq-close:hover { border-color: var(--accent); color: var(--accent); }
 .sq-roster { margin-top: 16px; }
 .sq-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }

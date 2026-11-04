@@ -24,7 +24,7 @@ sección.
 | Vista | Ruta | Secciones (`id`) | Módulos |
 |---|---|---|---|
 | Inicio | `#/inicio` | `hero`, `dashboard` | `hero.js`, `dashboard.js` |
-| Jugadores | `#/jugadores` | `player-search-section`, `comparison` | `player.js`, `comparison.js` |
+| Jugadores | `#/jugadores`, `#/jugadores/p/<nick>` | `player-search-section`, `comparison` | `player.js`, `comparison.js` |
 | Rankings | `#/rankings` | `rankings`, `leaderboards`, `role-leaderboards`, `clan-squads` | `rankings.js`, `leaderboards.js`, `roles.js`, `squads.js` |
 | Clanes | `#/clanes` | `clan-averages`, `charts` | `clans.js`, `charts.js` |
 | Partidas | `#/partidas` | `recent-matches`, `heatmaps`, `demo-stats` | `matches.js`, `heatmaps.js`, `demos.js` |
@@ -33,6 +33,19 @@ sección.
 
 Los anchors viejos (`#rankings`, `#heatmaps`, `#guias`…) siguen funcionando: el router
 los traduce a la ruta nueva. El bot y algunos links externos todavía los usan.
+
+**Perfil de jugador:** `#/jugadores/p/<nick>` (nick con `encodeURIComponent`) abre ese
+perfil. Toda búsqueda pasa por esa ruta, así que el perfil se puede compartir, Atrás
+vuelve y al recargar se mantiene. Los nombres en rankings, leaderboards, roles,
+escuadras, el dashboard y el destacado de Inicio son links a esa ruta
+(`playerLinkHTML` / `playerHref` en `utils.js`). Si el nick no existe, el perfil
+sugiere hasta 3 parecidos ("¿Quisiste decir…?"). Como `player.js` se inicia después
+de cargar los datos, el router guarda la ruta pendiente y la abre cuando
+`player.js` registra el handler (`onPlayerRoute`).
+
+**Buscador del header:** en anchos de 1180 px o menos se esconde detrás de la lupa
+(`#header-search-toggle`) y se despliega debajo del header. La tecla `/` lo abre
+(o le da foco) desde cualquier lado, salvo cuando estás escribiendo en un campo.
 
 ## Módulos compartidos
 

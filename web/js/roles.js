@@ -8,7 +8,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadRoleLeaderboards } from './data.js';
-import { escapeHtml, formatNumber, clanLogoHTML } from './utils.js';
+import { escapeHtml, formatNumber, clanLogoHTML, playerHref, playerLinkHTML } from './utils.js';
 import { barHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 const CONF = { alta: 'Alta', media: 'Media', baja: 'Baja' };
@@ -53,6 +53,7 @@ async function renderRoleBoard() {
         : `K/D ${formatNumber(Number((p.kills / Math.max(p.deaths, 1)).toFixed(2)))}`);
     const podium = podiumHTML(players.slice(0, 3).map(p => ({
         title: p.player,
+        href: playerHref(p.player),
         sub: `${clan(p)} · ${formatNumber(p.rounds)} rondas · real ${fmtValue(board, p.value)}`,
         value: fmtValue(board, p.adjusted),
         logo: '',
@@ -71,7 +72,7 @@ async function renderRoleBoard() {
         ],
         rest.map((p, i) => [
             posHTML(i + 4),
-            `<span class="dtable-name">${escapeHtml(p.player)}</span>`,
+            `<span class="dtable-name">${playerLinkHTML(p.player)}</span>`,
             p.clan ? `${clanLogoHTML(p.clan, 20)} <span class="dtable-muted">${escapeHtml(p.clan)}</span>` : '',
             `<span class="dtable-val-o">${fmtValue(board, p.adjusted)}</span>${barHTML((p.adjusted / top) * 100, 'orange')}`,
             `<span class="dtable-muted">${fmtValue(board, p.value)}</span>`,

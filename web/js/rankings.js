@@ -5,7 +5,7 @@
 
 import { state } from './data.js';
 import { MIN_ROUNDS_FOR_RANKING } from './config.js';
-import { escapeHtml, clanLogoHTML, formatNumber } from './utils.js';
+import { escapeHtml, clanLogoHTML, formatNumber, playerHref, playerLinkHTML } from './utils.js';
 import { barHTML, tierBarHTML, tierChipHTML, podiumHTML, tableHTML, posHTML } from './ui.js';
 
 // Metric value → the raw player field it reads, plus whether higher is better.
@@ -78,6 +78,7 @@ function renderRankings() {
 
     const podium = podiumHTML(shown.slice(0, 3).map((p) => ({
         title: p.Player,
+        href: playerHref(p.Player),
         sub: `${p.Clan ? clanLogoHTML(p.Clan, 18) + ' ' + escapeHtml(p.Clan) : ''} ${tierChipHTML(p['Performance Score'])}`,
         value: fmt(p[metric.key]),
         logo: '',
@@ -95,7 +96,7 @@ function renderRankings() {
         ],
         rest.map((p, i) => [
             posHTML(i + 4),
-            `<span class="dtable-name">${escapeHtml(p.Player)}</span>`,
+            `<span class="dtable-name">${playerLinkHTML(p.Player)}</span>`,
             clanCell(p),
             tierChipHTML(p['Performance Score']),
             bar(p[metric.key] || 0),

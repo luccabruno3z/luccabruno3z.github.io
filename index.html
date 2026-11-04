@@ -103,6 +103,10 @@
         </nav>
 
         <div class="header-tools">
+            <!-- En pantallas medianas y chicas el buscador se abre con la lupa (o con "/") -->
+            <button type="button" class="header-search-toggle" id="header-search-toggle" aria-expanded="false" aria-controls="header-search" aria-label="Buscar jugador">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+            </button>
             <form class="header-search" id="header-search" role="search">
                 <label for="header-player" class="sr-only">Buscar jugador</label>
                 <input type="search" id="header-player" placeholder="Buscar jugador…" autocomplete="off" aria-autocomplete="list" aria-controls="header-suggestions">
@@ -496,9 +500,9 @@
                 <label for="heatmap-round" class="sr-only">Ronda</label>
                 <select id="heatmap-round" aria-label="Ronda"></select>
                 <div class="heatmap-teams" role="group" aria-label="Filtrar por equipo">
-                    <button type="button" data-team="all" class="active">Todos</button>
-                    <button type="button" data-team="1">BLUFOR</button>
-                    <button type="button" data-team="2">OPFOR</button>
+                    <button type="button" data-team="all" class="active" aria-pressed="true">Todos</button>
+                    <button type="button" data-team="1" aria-pressed="false">BLUFOR</button>
+                    <button type="button" data-team="2" aria-pressed="false">OPFOR</button>
                 </div>
                 <label class="heatmap-check"><input type="checkbox" id="heatmap-flags" checked> 🚩 Banderas</label>
                 <span class="heatmap-player-wrap">
@@ -507,11 +511,11 @@
                 </span>
             </div>
             <div class="heatmap-layers" role="group" aria-label="Tipo de mapa de calor">
-                <button type="button" data-layer="deaths" class="active">🔥 Mapa de calor</button>
-                <button type="button" data-layer="movement">🧭 Recorridos</button>
-                <button type="button" data-layer="spawns">📍 Spawns</button>
-                <button type="button" data-layer="sniper">🎯 Francotiradores</button>
-                <button type="button" data-layer="fire">🔫 Líneas de fuego</button>
+                <button type="button" data-layer="deaths" class="active" aria-pressed="true">🔥 Mapa de calor</button>
+                <button type="button" data-layer="movement" aria-pressed="false">🧭 Recorridos</button>
+                <button type="button" data-layer="spawns" aria-pressed="false">📍 Spawns</button>
+                <button type="button" data-layer="sniper" aria-pressed="false">🎯 Francotiradores</button>
+                <button type="button" data-layer="fire" aria-pressed="false">🔫 Líneas de fuego</button>
             </div>
             <div id="heatmap-fire-legend" class="heatmap-fire-legend" hidden>
                 <span><i class="fl-swatch fl-blu"></i> BLUFOR dispara</span>

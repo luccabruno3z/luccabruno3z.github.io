@@ -12,7 +12,7 @@
 
 import { state, loadDemoData, getDemoInfo, loadSynergy } from './data.js';
 import { NORM_CAPS } from './config.js';
-import { escapeHtml, formatNumber, clanLogoHTML, fmtDuration, avgLife, NEAR_MIN_SAMPLES, COHESION_MIN_SAMPLES } from './utils.js';
+import { escapeHtml, formatNumber, clanLogoHTML, playerLinkHTML, fmtDuration, avgLife, NEAR_MIN_SAMPLES, COHESION_MIN_SAMPLES } from './utils.js';
 import { barHTML, versusBarHTML, tierChipHTML, posHTML } from './ui.js';
 
 const SIZE = 8;
@@ -171,7 +171,7 @@ export function rosterHTML(sq, closable = true) {
         const role = d?.best_role ? roleLabel(d, d.best_role) : '—';
         const g = d ? (d.wins || 0) + (d.losses || 0) : 0;
         return `<tr>
-            <td><span class="dtable-name">${escapeHtml(p.Player)}</span></td>
+            <td><span class="dtable-name">${playerLinkHTML(p.Player)}</span></td>
             <td>${tierChipHTML(p['Performance Score'])}</td>
             <td class="n">${f2(p['Performance Score'])}</td>
             <td class="n">${f2(p['K/D Ratio'])}</td>

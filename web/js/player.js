@@ -19,6 +19,7 @@ import {
 import { barHTML, tierBarHTML, rankBarHTML, tierChipHTML } from './ui.js';
 import { renderRadarChart, renderHistoryChart, clearPlayerCharts, clearHistoryChart } from './charts.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
+import { onPlayerRoute, playerRoute } from './router.js';
 
 const f2 = (v) => formatNumber(Number((v || 0).toFixed(2)));
 const pctTxt = (frac) => `${Math.round(frac * 100)} %`;
@@ -57,8 +58,8 @@ const COMP_WHAT = {
     effectiveness: (p) => `${f2(p['Kills per Round'])} kills por ronda`,
     score: (p) => `${formatNumber(Math.round(p['Score per Round'] || 0))} de score por ronda`,
     winrate: () => 'Victorias en demos, ajustadas por muestra',
-    teamwork: () => 'Parte de tu score que es teamwork',
-    consistency: () => 'Qué tan parejo jugás entre rondas',
+    teamwork: () => 'Parte del score que es teamwork',
+    consistency: () => 'Qué tan parejo juega entre rondas',
     experience: (p) => `${formatNumber(p.Rounds || 0)} rondas`,
 };
 
@@ -85,7 +86,7 @@ function performanceHTML(player) {
     const levels = player.ps_components;
 
     let path = '';
-    let title = 'De qué sale tu Performance';
+    let title = 'De qué sale su Performance';
     if (t) {
         const cur = TIER_ORDER.filter(([k]) => ps >= t[k]).pop();
         const next = TIER_ORDER.find(([k]) => ps < t[k]);
@@ -96,11 +97,11 @@ function performanceHTML(player) {
             path = `<div class="pv-path">
                 <div class="pv-path-track"><span class="pv-path-dot" style="left:${(prog * 100).toFixed(1)}%"></span></div>
                 <div class="pv-path-ends"><span>${escapeHtml(cur ? cur[1] : 'Recluta')} <b>${f2(from)}</b></span><span>${escapeHtml(next[1])} <b>${f2(t[next[0]])}</b></span></div>
-                <p class="pv-path-msg">Te faltan <b>${(t[next[0]] - ps).toFixed(3).replace('.', ',')}</b> para ${escapeHtml(next[1])}.<span id="pv-levers"></span></p>
+                <p class="pv-path-msg">Le faltan <b>${(t[next[0]] - ps).toFixed(3).replace('.', ',')}</b> para ${escapeHtml(next[1])}.<span id="pv-levers"></span></p>
             </div>`;
         } else {
-            title = 'Tu Performance';
-            path = `<p class="pv-path-msg">Estás en <b>Elite</b>, ${(ps - t.elite).toFixed(3).replace('.', ',')} por encima del corte.</p>`;
+            title = 'Performance';
+            path = `<p class="pv-path-msg">Está en <b>Elite</b>, ${(ps - t.elite).toFixed(3).replace('.', ',')} por encima del corte.</p>`;
         }
     }
 
@@ -120,7 +121,7 @@ function performanceHTML(player) {
     const isLever = (r) => levers.includes(r);
     const n3 = (v) => v.toFixed(3).replace('.', ',');
     const table = `<div class="pv-scroll"><table class="pv-table">
-        <thead><tr><th>Componente</th><th>Tu nivel</th><th class="n">Peso</th><th class="n">Aporta</th><th class="n">Podés sumar</th></tr></thead>
+        <thead><tr><th>Componente</th><th>Nivel</th><th class="n">Peso</th><th class="n">Aporta</th><th class="n">Puede sumar</th></tr></thead>
         <tbody>${rows.map(r => `<tr class="${isLever(r) ? 'is-lever' : ''}">
             <td><span class="pv-name">${escapeHtml(r.label)} ${srcTag(r.source)}</span>
                 <span class="pv-what">${escapeHtml(r.missing ? 'Sin demos: cuenta como neutro' : COMP_WHAT[r.key]?.(player) || '')}</span></td>
@@ -131,7 +132,7 @@ function performanceHTML(player) {
         </tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="3">Total</td><td class="n">${n3(ps)}</td><td></td></tr></tfoot>
     </table></div>
-    <p class="profile-muted">"Podés sumar" es lo que le falta a cada componente para llegar al máximo, por su peso. Las filas marcadas son las dos con más margen.</p>`;
+    <p class="profile-muted">"Puede sumar" es lo que le falta a cada componente para llegar al máximo, por su peso. Las filas marcadas son las dos con más margen.</p>`;
     const how = levers.filter(r => COMP_HOW[r.key] && r.room > 0.005).map(r => `<li><b>${escapeHtml(COMP_HOW[r.key][0])}</b> (+${n3(r.room)}): ${escapeHtml(COMP_HOW[r.key][1])}</li>`);
     const howHTML = how.length ? `<div class="pv-how"><h5>Cómo sumar</h5><ul>${how.join('')}</ul></div>` : '';
     return { title, html: path + table + howHTML, levers };
@@ -165,7 +166,7 @@ function clanHTML(player) {
         <h4 class="profile-subtitle">Dentro de ${escapeHtml(player.Clan)}</h4>
         <div class="pv-clan-rank"><span class="pv-big">#${pos}</span><span class="profile-muted">de ${formatNumber(members.length)} jugadores del clan</span></div>
         <div class="pv-cmp">${rows}</div>
-        <p class="profile-muted">Tu valor / promedio del clan (jugadores con 50+ rondas). La línea gris marca el promedio.</p>
+        <p class="profile-muted">Valor del jugador / promedio del clan (jugadores con 50+ rondas). La línea gris marca el promedio.</p>
     </section>`;
 }
 
@@ -267,7 +268,7 @@ async function renderPlayerProfile(player) {
 
     const leversEl = document.getElementById('pv-levers');
     if (leversEl && perf.levers.length) {
-        leversEl.textContent = ` Donde más podés sumar: ${perf.levers.map(l => l.label).join(' y ')}.`;
+        leversEl.textContent = ` Donde más puede sumar: ${perf.levers.map(l => l.label).join(' y ')}.`;
     }
 
     // Radar vs clan average.
@@ -345,7 +346,7 @@ function formHTML(pr, d) {
         <div class="pv-spark-axis"><span>${ddmm(list[0].date)}</span><span>Kills por ronda · verde victoria, rojo derrota</span><span>${ddmm(list[list.length - 1].date)}</span></div>
         <div class="pv-vs"><span>K/D</span><b>${f2(k / Math.max(de, 1))}</b>${delta(k / Math.max(de, 1), baseKD, 2)}</div>
         <div class="pv-vs"><span>Kills por ronda</span><b>${(k / list.length).toFixed(1).replace('.', ',')}</b>${delta(k / list.length, baseKPR, 1)}</div>
-        <div class="pv-vs"><span>Victorias</span><b>${wins} de ${list.length}</b>${baseWR == null ? '' : `<span class="profile-muted">tu promedio: ${pctTxt(baseWR)}</span>`}</div>`;
+        <div class="pv-vs"><span>Victorias</span><b>${wins} de ${list.length}</b>${baseWR == null ? '' : `<span class="profile-muted">su promedio: ${pctTxt(baseWR)}</span>`}</div>`;
 }
 
 const HISTORY_PAGE = 15;
@@ -389,8 +390,8 @@ const GLANCE = [
     { key: 'kd', label: 'Letal', weak: 'Morís más de lo que matás', val: d => (d.total_kills || 0) / Math.max(d.total_deaths || 0, 1),
       fmt: v => f2(v), unit: 'K/D en demos', tip: 'Elegí mejor los enfrentamientos y moverte con cobertura.',
       say: { adj: 'letal' }, sayWeak: 'muere más de lo que mata' },
-    { key: 'teamwork', label: 'Jugás para el equipo', weak: 'Poco teamwork', val: d => ((d.rounds_played || 0) >= 10 && d.teamwork_ratio != null ? d.teamwork_ratio : null),
-      fmt: v => pctTxt(v), unit: 'de tu score es teamwork',
+    { key: 'teamwork', label: 'Juega para el equipo', weak: 'Poco teamwork', val: d => ((d.rounds_played || 0) >= 10 && d.teamwork_ratio != null ? d.teamwork_ratio : null),
+      fmt: v => pctTxt(v), unit: 'de su score es teamwork',
       tip: 'El score de teamwork sale de revivir y curar, reabastecer con la bolsa de munición, reparar vehículos, construir con la pala en el FOB y llevar a tu escuadra en vehículo.',
       say: { que: 'juega para el equipo' }, sayWeak: 'suma poco teamwork' },
     { key: 'revives', label: 'Levantás compañeros', val: d => (d.total_revives_given || 0) / Math.max(d.rounds_played || 0, 1),
@@ -400,13 +401,13 @@ const GLANCE = [
       say: { que: 'sobrevive mucho' }, sayWeak: 'muere rápido' },
     // Junto a la escuadra: la medida nueva cuando hay muestra; si no, la distancia al
     // centro de la escuadra (con historial). Nunca las dos a la vez.
-    { key: 'near', label: 'Vas con tu escuadra', weak: 'Jugás separado de tu escuadra', val: d => squadNear(d),
+    { key: 'near', label: 'Va con su escuadra', weak: 'Juega separado de su escuadra', val: d => squadNear(d),
       fmt: v => pctTxt(v), unit: 'del tiempo vivo con un compañero a 50 m o menos',
       tip: 'Moverte con tu escuadra (o con tu equipo de fuego) te da quién te reviva, quién cubra y más score de teamwork.',
       say: { que: 'se mueve con su escuadra' }, sayWeak: 'se aleja de su escuadra' },
-    { key: 'coh', label: 'Vas con tu escuadra', weak: 'Jugás separado de tu escuadra', lowerBetter: true,
+    { key: 'coh', label: 'Va con su escuadra', weak: 'Juega separado de su escuadra', lowerBetter: true,
       val: d => (squadNear(d) == null ? squadDistance(d) : null),
-      fmt: v => `${Math.round(v)} m`, unit: 'al centro de tu escuadra en promedio',
+      fmt: v => `${Math.round(v)} m`, unit: 'al centro de su escuadra en promedio',
       tip: 'Moverte con tu escuadra (o con tu equipo de fuego) te da quién te reviva, quién cubra y más score de teamwork.',
       say: { que: 'se mueve con su escuadra' }, sayWeak: 'se aleja de su escuadra' },
     { key: 'tk', label: 'Disciplina de fuego', weak: 'Fuego amigo', lowerBetter: true,
@@ -440,7 +441,7 @@ function glanceItems(d, player, cmp) {
     // Score por ronda (PRStats): el componente con menos nivel de la mayoría.
     const spr = player['Score per Round'] || 0;
     const sprBelow = rankOf(spr, cmp.map(p => p['Score per Round'] || 0)).below;
-    items.push({ m: { key: 'spr', label: 'Sumás score', weak: 'Score por ronda', fmt: v => formatNumber(Math.round(v)), unit: 'de score por ronda',
+    items.push({ m: { key: 'spr', label: 'Suma score', weak: 'Score por ronda', fmt: v => formatNumber(Math.round(v)), unit: 'de score por ronda',
         tip: 'Capturar banderas, construir y destruir vehículos suma score.',
         say: { que: 'suma mucho score' }, sayWeak: 'le cuesta sumar score' }, v: spr, good: sprBelow, below: sprBelow,
         med: median(cmp.map(p => p['Score per Round'] || 0)) });
@@ -459,7 +460,7 @@ function glanceHTML(g) {
     const li = (i, weak) => `<li><b>${escapeHtml(weak ? (i.m.weak || i.m.label) : i.m.label)}</b>
         <span><span class="pv-mono">${escapeHtml(i.m.fmt(i.v))}</span> ${escapeHtml(i.m.unit)} · ${escapeHtml(posTxt(i))}</span>
         <span class="pv-tip">${escapeHtml(weak && i.m.tip ? `${i.m.tip} Mediana: ${i.m.fmt(i.med)}.` : `Mediana de la comunidad: ${i.m.fmt(i.med)}.`)}</span></li>`;
-    return `<div class="pv-head"><h4 class="profile-subtitle">Tu juego en una mirada</h4>
+    return `<div class="pv-head"><h4 class="profile-subtitle">Su juego en una mirada</h4>
             <span class="profile-muted">Comparado con ${formatNumber(g.popSize)} jugadores con 10+ rondas con demo</span></div>
         <div class="pv-sw">
             <div class="pv-sw-col is-good"><h5>Fortalezas</h5>${strengths.length ? `<ul>${strengths.map(i => li(i, false)).join('')}</ul>` : '<p class="profile-muted">Nada que se destaque todavía.</p>'}</div>
@@ -479,7 +480,7 @@ const cap = (txt) => txt.charAt(0).toUpperCase() + txt.slice(1);
 
 /**
  * Lectura del jugador en dos o tres frases, armada con datos reales: su rol, sus dos
- * fortalezas y debilidades principales (las de "Tu juego en una mirada"), la forma
+ * fortalezas y debilidades principales (las de "Su juego en una mirada"), la forma
  * reciente y su lugar en el clan o la distancia al próximo tier. Reemplaza la frase
  * fija del arquetipo, que era la misma para todos los de ese arquetipo.
  */
@@ -541,15 +542,15 @@ function rolesHTML(d) {
             <td><span class="pv-conf is-${r.confidence}">${CONF[r.confidence] || r.confidence}</span></td>
         </tr>`;
     }).join('');
-    return `<div class="pv-head"><h4 class="profile-subtitle">Tus roles</h4>
+    return `<div class="pv-head"><h4 class="profile-subtitle">Roles</h4>
             <span class="profile-muted">Cada rol se compara con los demás jugadores de ese mismo rol</span></div>
         ${best ? `<div class="pv-best-role"><span class="kpi-label">Mejor rol</span><span class="pv-best-name">${escapeHtml(best.label)}</span>
             <span class="profile-muted">Mejor que el <b>${pctTxt(best.pct)}</b> de los jugadores de ese rol (${escapeHtml(best.metric_label)}) · ${formatNumber(best.rounds)} rondas · confianza ${escapeHtml((CONF[best.confidence] || '').toLowerCase())}</span></div>` : ''}
         <div class="pv-scroll"><table class="pv-table pv-roles">
-            <thead><tr><th>Rol</th><th>Tu actividad</th><th class="n">Rondas</th><th class="n">Tu valor</th><th class="n">Mediana del rol</th><th>Frente al resto</th><th>Confianza</th></tr></thead>
+            <thead><tr><th>Rol</th><th>Actividad</th><th class="n">Rondas</th><th class="n">Valor</th><th class="n">Mediana del rol</th><th>Frente al resto</th><th>Confianza</th></tr></thead>
             <tbody>${rows}</tbody>
         </table></div>
-        <p class="profile-muted">Actividad = parte de tus kills y muertes con ese kit puesto. "Frente al resto" usa un valor ajustado por muestra: con pocas rondas se acerca a la mediana del rol, así una ronda excepcional no te define. Confianza alta con 15+ rondas; baja con menos de 8 o si una sola ronda explica más del 40 %. Solo un rol con confianza media o alta puede ser el mejor.</p>`;
+        <p class="profile-muted">Actividad = parte de sus kills y muertes con ese kit puesto. "Frente al resto" usa un valor ajustado por muestra: con pocas rondas se acerca a la mediana del rol, así una ronda excepcional no lo define. Confianza alta con 15+ rondas; baja con menos de 8 o si una sola ronda explica más del 40 %. Solo un rol con confianza media o alta puede ser el mejor.</p>`;
 }
 
 /** Tarjetas cortas con datos de demos (cada una se omite si no hay muestra). */
@@ -558,10 +559,10 @@ async function insightsHTML(d) {
     const tile = (label, value, desc, cls = '') => tiles.push(`<div class="pv-ins"><span class="kpi-label">${escapeHtml(label)}</span>
         <span class="pv-ins-v ${cls}">${escapeHtml(value)}</span><span class="pv-ins-d">${desc}</span></div>`);
     const main = (d.roles || [])[0];
-    if (main) tile('Rol principal', main.label, `<b>${pctTxt(main.share)}</b> de tu actividad`);
+    if (main) tile('Rol principal', main.label, `<b>${pctTxt(main.share)}</b> de su actividad`);
     const near = squadNear(d), dist = squadDistance(d);
-    if (near != null) tile('Junto a tu escuadra', pctTxt(near), 'del tiempo vivo con un compañero de escuadra a 50 m o menos');
-    else if (dist != null) tile('Distancia a tu escuadra', `${Math.round(dist)} m`, `al centro de tu escuadra en promedio: ${squadDistanceLabel(dist)}`);
+    if (near != null) tile('Junto a su escuadra', pctTxt(near), 'del tiempo vivo con un compañero de escuadra a 50 m o menos');
+    else if (dist != null) tile('Distancia a su escuadra', `${Math.round(dist)} m`, `al centro de su escuadra en promedio: ${squadDistanceLabel(dist)}`);
     const weapons = aggregateByLabel(d.kill_weapons, weaponModel, { exclude: c => c === '?' || ['vehicle', 'unknown'].includes(weaponKind(c)) });
     if (weapons.length) tile('Arma principal', weapons[0][0], `<b>${formatNumber(weapons[0][1])}</b> kills`);
     const maps = Object.entries(d.per_map_stats || {}).filter(([, s]) => (s.rounds || 0) >= 3 && (s.wins || 0) + (s.losses || 0) > 0)
@@ -579,7 +580,7 @@ async function insightsHTML(d) {
                 .map(([n, s]) => [n, s, s.wins / s.rounds]).sort((a, b) => b[2] - a[2] || b[1].rounds - a[1].rounds);
             if (mates.length) {
                 const [n, s] = mates[0];
-                tile('Mejor compañero', n, `<b>${s.wins}–${s.rounds - s.wins}</b> juntos · tu winrate sin él: ${pctTxt(syn.baseline.wins / syn.baseline.rounds)}`);
+                tile('Mejor compañero', n, `<b>${s.wins}–${s.rounds - s.wins}</b> juntos · su winrate sin él: ${pctTxt(syn.baseline.wins / syn.baseline.rounds)}`);
             }
         }
     } catch (_) { /* sinergia opcional */ }
@@ -592,7 +593,7 @@ async function insightsHTML(d) {
     }
     if (avgLife(d)) tile('Vida promedio', fmtDuration(avgLife(d)), 'por vida');
     if (tiles.length < 3) return '';
-    return `<div class="pv-head"><h4 class="profile-subtitle">Datos de tus demos</h4><span class="profile-muted">${formatNumber(d.rounds_played)} rondas</span></div>
+    return `<div class="pv-head"><h4 class="profile-subtitle">Datos de sus demos</h4><span class="profile-muted">${formatNumber(d.rounds_played)} rondas</span></div>
         <div class="pv-insights">${tiles.slice(0, 8).join('')}</div>
         ${mapsTableHTML(d)}`;
 }
@@ -713,6 +714,64 @@ async function enrichWithDemo(player, cmp) {
     }
 }
 
+/** Distancia de edición (Levenshtein) acotada, para sugerir un nick parecido. */
+function editDistance(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+        const cur = [i];
+        let rowMin = i;
+        for (let j = 1; j <= b.length; j++) {
+            cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            if (cur[j] < rowMin) rowMin = cur[j];
+        }
+        if (rowMin > max) return max + 1;
+        prev = cur;
+    }
+    return prev[b.length];
+}
+
+/** Hasta 3 nicks parecidos a `name` (para el "¿Quisiste decir…?"). */
+function similarPlayers(name) {
+    const q = name.toLowerCase();
+    const max = Math.max(1, Math.min(3, Math.floor(q.length / 3)));
+    return (state.playersData || [])
+        .filter(p => p.Player)
+        .map(p => ({ p, d: editDistance(q, p.Player.toLowerCase(), max) }))
+        .filter(x => x.d <= max)
+        .sort((a, b) => a.d - b.d || (b.p['Performance Score'] || 0) - (a.p['Performance Score'] || 0))
+        .slice(0, 3)
+        .map(x => x.p.Player);
+}
+
+function showNotFound(name) {
+    const host = document.getElementById('player-profile-card');
+    clearPlayerCharts();
+    if (!host) return;
+    const alt = similarPlayers(name);
+    const hint = alt.length
+        ? `¿Quisiste decir ${alt.map(n => `<a class="player-link" href="${playerRoute(n)}">${escapeHtml(n)}</a>`).join(', ')}?`
+        : 'Revisá cómo se escribe el nick o probá con una parte del nombre.';
+    // .empty-state es flex en columna: cada frase va en su <p> para que el link quede en línea.
+    host.innerHTML = `<div class="empty-state"><p>No se encontró ningún jugador con "${escapeHtml(name)}".</p><p>${hint}</p></div>`;
+}
+
+/** Abre el perfil de `name` (lo llama el router en #/jugadores/p/<nick>). */
+function openProfile(name) {
+    const input = document.getElementById('player-name');
+    const player = findPlayer(state.playersData, name);
+    if (input) input.value = player ? player.Player : name;
+    if (!player) { showNotFound(name); return; }
+    renderPlayerProfile(player);
+}
+
+/** Cada búsqueda pasa por la URL: el perfil queda compartible y Atrás vuelve. */
+function goToPlayer(name) {
+    const route = playerRoute(name);
+    if (location.hash === route) openProfile(name);
+    else location.hash = route;
+}
+
 /** Player search init: form submit + autocomplete. */
 export function initPlayerSearch() {
     const form = document.getElementById('search-form');
@@ -722,8 +781,7 @@ export function initPlayerSearch() {
     if (input && suggestions) {
         setupAutocomplete(input, suggestions, playerSource(() => state.playersData || []), (value) => {
             input.value = value;
-            const player = findPlayer(state.playersData, value);
-            if (player) renderPlayerProfile(player);
+            goToPlayer(value);
         });
     }
 
@@ -733,13 +791,9 @@ export function initPlayerSearch() {
             const name = input.value.trim();
             if (!name) return;
             const player = findPlayer(state.playersData, name);
-            const host = document.getElementById('player-profile-card');
-            if (!player) {
-                if (host) host.innerHTML = `<div class="empty-state">No se encontró ningún jugador con "${escapeHtml(name)}".</div>`;
-                clearPlayerCharts();
-                return;
-            }
-            renderPlayerProfile(player);
+            goToPlayer(player ? player.Player : name);
         });
     }
+
+    onPlayerRoute(openProfile);
 }

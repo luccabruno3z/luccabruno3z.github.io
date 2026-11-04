@@ -81,6 +81,17 @@ export function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+/** Hash del perfil de un jugador (#/jugadores/p/<nick>); el router lo resuelve. */
+export function playerHref(name) {
+    return `#/jugadores/p/${encodeURIComponent(name)}`;
+}
+
+/** Nombre de jugador como link a su perfil (escapado). */
+export function playerLinkHTML(name) {
+    if (!name) return '';
+    return `<a class="player-link" href="${playerHref(name)}">${escapeHtml(name)}</a>`;
+}
+
 /** Turn a snake_case token (map/gamemode) into a readable, escaped label. */
 export function prettifyToken(token) {
     return escapeHtml(String(token ?? '').replace(/_/g, ' ').trim());

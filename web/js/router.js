@@ -2,6 +2,7 @@
    router.js — una vista por pestaña, ruteada por hash.
 
    Rutas: #/<vista> y #/<vista>/<id-de-sección> (scrollea a esa sección).
+   Perfil: #/jugadores/p/<nick> abre ese jugador (link compartible, Atrás vuelve).
    Compatibilidad: los anchors viejos (#rankings, #heatmaps, …) y #guias (link
    del bot) siguen andando: se resuelven a su vista y se reescriben a la ruta nueva.
    Cualquier otro hash (p.ej. #main del skip-link) no cambia de vista.
@@ -9,10 +10,30 @@
 
 import { state } from './data.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
+import { playerHref } from './utils.js';
 
 const DEFAULT_VIEW = 'inicio';
 const SITE_TITLE = 'Legión de Hierro — Stats Tracker';
 const ALIASES = { guias: 'guias', guides: 'guias' };
+const PLAYER_VIEW = 'jugadores';
+
+/** Hash del perfil de un jugador (lo usan los links de nombres en todo el sitio). */
+export const playerRoute = playerHref;
+
+// player.js registra cómo abrir un perfil; hasta entonces (datos cargando) la
+// ruta queda pendiente y se abre apenas se registra.
+let playerHandler = null;
+let pendingPlayer = null;
+
+export function onPlayerRoute(fn) {
+    playerHandler = fn;
+    if (pendingPlayer != null) { const n = pendingPlayer; pendingPlayer = null; fn(n); }
+}
+
+function openPlayer(name) {
+    if (playerHandler) playerHandler(name);
+    else pendingPlayer = name;
+}
 
 let panels = {};
 
@@ -22,7 +43,12 @@ function resolve(hash) {
     if (!h || h === '/') return { view: DEFAULT_VIEW, section: null, canonical: false };
 
     if (h.startsWith('/')) {
-        const [view, section] = h.slice(1).split('/');
+        const [view, section, ...rest] = h.slice(1).split('/');
+        if (view === PLAYER_VIEW && section === 'p' && rest.length) {
+            let player = rest.join('/');
+            try { player = decodeURIComponent(player); } catch (_) { /* nick con % suelto */ }
+            return { view, section: null, player, canonical: false };
+        }
         if (panels[view]) return { view, section: section || null, canonical: false };
         return { view: DEFAULT_VIEW, section: null, canonical: true };
     }
@@ -90,6 +116,13 @@ function apply() {
     show(route.view);
     currentView = route.view;
 
+    if (route.player) {
+        openPlayer(route.player);
+        const card = document.getElementById('player-profile-card');
+        if (card) keepAligned(panels[route.view], card.closest('.section') || card);
+        return;
+    }
+
     const target = route.section && document.getElementById(route.section);
     if (target) keepAligned(panels[route.view], target);
     else if (changed) window.scrollTo({ top: 0, behavior: 'instant' });
@@ -102,16 +135,38 @@ function initHeaderSearch() {
     const suggestions = document.getElementById('header-suggestions');
     if (!form || !input) return;
 
+    const tools = form.closest('.header-tools');
+    const toggle = document.getElementById('header-search-toggle');
+    const setOpen = (on) => {
+        if (!tools || !toggle) return;
+        tools.classList.toggle('search-open', on);
+        toggle.setAttribute('aria-expanded', String(on));
+        if (on) input.focus();
+    };
+
     const open = (name) => {
-        const target = document.getElementById('player-name');
-        const playerForm = document.getElementById('search-form');
-        if (!target || !playerForm || !name) return;
-        location.hash = '#/jugadores';
-        target.value = name;
-        playerForm.requestSubmit();
+        if (!name) return;
+        const route = playerRoute(name);
+        if (location.hash === route) apply();
+        else location.hash = route;
         input.value = '';
         input.blur();
+        setOpen(false);
     };
+
+    if (toggle) toggle.addEventListener('click', () => setOpen(!tools.classList.contains('search-open')));
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && tools && tools.classList.contains('search-open')) { setOpen(false); toggle.focus(); }
+    });
+    // "/" abre la búsqueda desde cualquier lado (salvo escribiendo en un campo).
+    document.addEventListener('keydown', (e) => {
+        if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+        const t = e.target;
+        if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+        e.preventDefault();
+        if (toggle && getComputedStyle(toggle).display !== 'none') setOpen(true);
+        else input.focus();
+    });
 
     setupAutocomplete(input, suggestions, playerSource(() => state.playersData || []), open);
     form.addEventListener('submit', (e) => {

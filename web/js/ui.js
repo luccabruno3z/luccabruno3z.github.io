@@ -55,8 +55,8 @@ export function tierChipHTML(score) {
 
 /**
  * Podio de los 3 primeros, en orden visual 2 · 1 · 3.
- * items: [{ title, sub, value, logo }] ya en orden 1, 2, 3 (HTML ya escapado en
- * `sub`/`logo`; `title` y `value` se escapan acá).
+ * items: [{ title, sub, value, logo, href }] ya en orden 1, 2, 3 (HTML ya escapado en
+ * `sub`/`logo`; `title` y `value` se escapan acá). Con `href`, el título es un link.
  */
 export function podiumHTML(items) {
     const order = [1, 0, 2].filter(i => items[i]);
@@ -65,7 +65,7 @@ export function podiumHTML(items) {
         return `<div class="podium-card podium-${i + 1}">
             <span class="podium-place">#${i + 1}</span>
             ${it.logo || ''}
-            <span class="podium-title">${escapeHtml(it.title)}</span>
+            <span class="podium-title">${it.href ? `<a class="player-link" href="${escapeHtml(it.href)}">${escapeHtml(it.title)}</a>` : escapeHtml(it.title)}</span>
             ${it.sub ? `<span class="podium-sub">${it.sub}</span>` : ''}
             <span class="podium-value">${escapeHtml(String(it.value))}</span>
         </div>`;

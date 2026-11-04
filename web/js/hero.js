@@ -5,7 +5,7 @@
 
 import { state } from './data.js';
 import {
-    escapeHtml, clanLogoHTML, tierBadge, getPlayerArchetype, formatNumber,
+    escapeHtml, clanLogoHTML, tierBadge, getPlayerArchetype, formatNumber, playerHref,
 } from './utils.js';
 
 /** Ease-out cubic count-up for a single counter element. */
@@ -56,7 +56,7 @@ function renderFeatured() {
     host.innerHTML = `
         <div class="card featured-card">
             <div class="featured-rank">#1 · Jugador destacado</div>
-            <div class="featured-name">${name}</div>
+            <div class="featured-name"><a class="player-link" href="${playerHref(top.Player)}">${name}</a></div>
             <div class="featured-meta">${clan}</div>
             <div class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</div>
             <div class="badge featured-archetype">${arch.emoji} ${escapeHtml(arch.name)}</div>

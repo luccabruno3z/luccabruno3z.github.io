@@ -512,14 +512,14 @@ export async function initHeatmaps() {
     if (teamGroup) teamGroup.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-team]'); if (!btn) return;
         team = btn.dataset.team;
-        teamGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        teamGroup.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b === btn); b.setAttribute('aria-pressed', String(b === btn)); });
         render();
     });
     const layerGroup = document.querySelector('.heatmap-layers');
     if (layerGroup) layerGroup.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-layer]'); if (!btn) return;
         layer = btn.dataset.layer;
-        layerGroup.querySelectorAll('button').forEach(b => b.classList.toggle('active', b === btn));
+        layerGroup.querySelectorAll('button').forEach(b => { b.classList.toggle('active', b === btn); b.setAttribute('aria-pressed', String(b === btn)); });
         render();
     });
 

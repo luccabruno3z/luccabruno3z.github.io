@@ -4,7 +4,7 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { loadLeaderboard } from './data.js';
-import { escapeHtml, formatNumber } from './utils.js';
+import { escapeHtml, formatNumber, playerLinkHTML } from './utils.js';
 import { barHTML, tableHTML, posHTML } from './ui.js';
 
 const LB_METRIC_LABELS = {
@@ -73,7 +73,7 @@ async function renderLeaderboard() {
         const kd = kdOf(p);
         const cells = [
             posHTML(i + 1),
-            `<span class="dtable-name">${escapeHtml(p.ign)}</span>`,
+            `<span class="dtable-name">${playerLinkHTML(p.ign)}</span>`,
             `<span class="dtable-val-o">${fmtVal(value)}</span>${barHTML((value / top) * 100, 'orange')}`,
             formatNumber(p.rounds || 0),
         ];
