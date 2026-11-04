@@ -11,6 +11,12 @@ import { COLORS } from './config.js';
 const RADAR_LABELS = ['Letalidad', 'Supervivencia', 'Teamwork', 'Impacto', 'Consistencia', 'Versatilidad'];
 const RADAR_KEYS = ['letalidad', 'supervivencia', 'teamwork', 'impacto', 'consistencia', 'versatilidad'];
 
+/** Qué mide cada eje del radar (scraper/scoring.py _compute_radar), de 0 a 1. */
+export const RADAR_HELP = 'Cada eje va de 0 a 1. Letalidad: kills por ronda frente al resto. '
+    + 'Supervivencia: K/D frente al resto y pocas muertes por ronda. Teamwork: parte del score que es '
+    + 'trabajo en equipo, revives y banderas. Impacto: cuánto gana por encima del 50 % y cuánto más mata '
+    + 'cuando gana. Consistencia: qué tan parejo juega entre rondas. Versatilidad: variedad de roles que juega.';
+
 let radarChartInstance = null;
 let historyChartInstance = null;
 let teamRadarInstance = null;
@@ -207,12 +213,15 @@ export function renderTeamRadar(team, container) {
     }
 
     const withRadar = team.filter(p => p.radar);
-    let labels, values, max;
+    let labels, values, max, refValues = null;
 
     if (withRadar.length) {
         labels = RADAR_LABELS;
         values = RADAR_KEYS.map(k => withRadar.reduce((s, p) => s + (p.radar[k] ?? 0), 0) / withRadar.length);
         max = 1.0;
+        // Referencia: el promedio de los jugadores con 50+ rondas.
+        const pop = (state.playersData || []).filter(p => p.radar && (p.Rounds || 0) >= 50);
+        if (pop.length) refValues = RADAR_KEYS.map(k => pop.reduce((s, p) => s + (p.radar[k] ?? 0), 0) / pop.length);
     } else {
         labels = ['Combate (K/D)', 'Eficiencia (KPR)', 'Puntuación (SPR)', 'Experiencia', 'Performance'];
         const avg = key => teamAverage(team, key);
@@ -239,7 +248,15 @@ export function renderTeamRadar(team, container) {
                 borderColor: COLORS.accent,
                 pointBackgroundColor: COLORS.accent,
                 pointRadius: 4,
-            }],
+            }, ...(refValues ? [{
+                label: 'Promedio de la comunidad (50+ rondas)',
+                data: refValues,
+                fill: false,
+                borderColor: 'rgba(255,170,0,0.9)',
+                borderDash: [6, 4],
+                pointRadius: 3,
+                pointBackgroundColor: 'rgba(255,170,0,0.9)',
+            }] : [])],
         },
         options: {
             responsive: true,

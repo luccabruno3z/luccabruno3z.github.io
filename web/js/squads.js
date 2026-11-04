@@ -34,15 +34,67 @@ const pct = (v) => (v == null ? '—' : `${Math.round(v * 100)} %`);
 const sum = (arr, fn) => arr.reduce((s, x) => s + (fn(x) || 0), 0);
 const avg = (arr, fn) => (arr.length ? sum(arr, fn) / arr.length : null);
 
-/** Probabilidad del predictor (PS, K/D, KPR renormalizados), como en Equipos. */
-function composite(sq) {
+// ── Modelo de fuerza ───────────────────────────────────────────────────────
+// Fuerza = Performance, K/D y kills por ronda de cada jugador (pesos de
+// tier_config), con dos ajustes:
+//  - Muestra: con pocas rondas el jugador cuenta cerca de la mediana de la
+//    comunidad (n / (n + PRIOR_ROUNDS)), así 2 rondas buenas no hacen favorito.
+//  - Tamaño (solo equipos armados a mano): un equipo con menos jugadores
+//    suma menos, como si los lugares vacíos valieran cero.
+// La probabilidad es una curva sobre la diferencia de fuerza (no un cociente,
+// que dejaba todo entre 45 % y 65 %).
+const PRIOR_ROUNDS = 50;
+const PROB_K = 6;               // pendiente: 0,1 de diferencia ≈ 65 %
+export const FEW_ROUNDS = 50;   // por debajo se avisa que cuenta cerca del promedio
+
+function weights() {
     const w = state.tierConfigData?.predictor_weights;
-    let ps = 0.5, kd = 0.3, kpr = 0.2;
     if (w && (w.ps + w.kd + w.kpr) > 0) {
         const t = w.ps + w.kd + w.kpr;
-        ps = w.ps / t; kd = w.kd / t; kpr = w.kpr / t;
+        return { ps: w.ps / t, kd: w.kd / t, kpr: w.kpr / t };
     }
-    return ps * sq.ps + kd * (sq.kdAvg / NORM_CAPS.kd) + kpr * (sq.kpr / NORM_CAPS.kpr);
+    return { ps: 0.5, kd: 0.3, kpr: 0.2 };
+}
+
+let medCache = null;
+function medians() {
+    if (medCache && medCache.src === state.playersData) return medCache;
+    const pop = (state.playersData || []).filter(p => (p.Rounds || 0) >= MIN_ROUNDS);
+    const med = (key) => {
+        const v = pop.map(p => p[key] || 0).sort((x, y) => x - y);
+        return v.length ? v[Math.floor(v.length / 2)] : 0;
+    };
+    medCache = { src: state.playersData, ps: med('Performance Score'), kd: med('K/D Ratio'), kpr: med('Kills per Round') };
+    return medCache;
+}
+
+/** Valor del jugador ajustado por muestra hacia la mediana de la comunidad. */
+function shrunk(p, key, med) {
+    const n = p.Rounds || 0, w = n / (n + PRIOR_ROUNDS);
+    return w * (p[key] || 0) + (1 - w) * med;
+}
+
+/** Fuerza de un jugador (la del equipo es el promedio de la de sus jugadores). */
+export function strength(p) {
+    const w = weights(), m = medians();
+    return w.ps * shrunk(p, 'Performance Score', m.ps)
+        + w.kd * (shrunk(p, 'K/D Ratio', m.kd) / NORM_CAPS.kd)
+        + w.kpr * (shrunk(p, 'Kills per Round', m.kpr) / NORM_CAPS.kpr);
+}
+
+/** Probabilidad de que gane `a`. `bySize`: el equipo más chico suma menos. */
+export function winProb(a, b, bySize = false) {
+    let sa = a.score, sb = b.score;
+    if (bySize) {
+        const n = Math.max(a.members.length, b.members.length) || 1;
+        sa *= a.members.length / n; sb *= b.members.length / n;
+    }
+    return 1 / (1 + Math.exp(-PROB_K * (sa - sb)));
+}
+
+/** Cómo leer la probabilidad del favorito (0,5–1). */
+function probBand(p) {
+    return p < 0.55 ? 'parejo' : p < 0.65 ? 'ventaja leve' : p < 0.8 ? 'ventaja clara' : 'muy desbalanceado';
 }
 
 /** Estadísticas de un grupo de jugadores. `clan` es el nombre que se muestra; con
@@ -73,18 +125,28 @@ export function buildSquad(clan, members, synergy, isClan = true) {
         streak: D.length ? Math.max(...D.map(d => d.best_killstreak || 0)) : null,
         active: members.filter(p => p['Active 30d']).length,
     };
-    // Roles: el mejor rol de cada uno, y qué roles puede cubrir la escuadra
-    // (alguien con 10+ rondas y confianza media o alta en ese rol).
+    // Roles: "juega de" = el mejor rol de cada uno; "puede cubrir" = cuántos jugaron
+    // ese rol de verdad (10+ rondas con confianza media o alta y al menos el 10 % de
+    // su actividad: jugarlo de vez en cuando no alcanza).
     sq.roles = {};
-    sq.covers = new Set();
+    sq.coverCount = {};
     demos.forEach(({ d }) => {
         if (d.best_role) {
             const label = roleLabel(d, d.best_role);
             sq.roles[label] = (sq.roles[label] || 0) + 1;
         }
-        (d.roles || []).forEach(r => { if (r.eligible) sq.covers.add(r.key); });
+        const plays = new Set((d.roles || []).filter(r => r.eligible && (r.share || 0) >= 0.1).map(r => r.key));
+        NEEDED.forEach(([keys, label]) => { if (keys.some(k => plays.has(k))) sq.coverCount[label] = (sq.coverCount[label] || 0) + 1; });
     });
-    sq.missing = NEEDED.filter(([keys]) => !keys.some(k => sq.covers.has(k))).map(([, l]) => l);
+    sq.noDemos = members.length - demos.length;
+    sq.missing = demos.length ? NEEDED.map(([, l]) => l).filter(l => !sq.coverCount[l]) : [];
+    const m = medians();
+    sq.model = {
+        ps: avg(members, p => shrunk(p, 'Performance Score', m.ps)),
+        kd: avg(members, p => shrunk(p, 'K/D Ratio', m.kd)),
+        kpr: avg(members, p => shrunk(p, 'Kills per Round', m.kpr)),
+    };
+    sq.few = members.filter(p => (p.Rounds || 0) < FEW_ROUNDS);
     // Sinergia: pares de la escuadra que jugaron juntos en la misma escuadra del juego.
     const names = new Set(members.map(p => p.Player));
     let pairs = 0, pr = 0, pw = 0;
@@ -100,7 +162,8 @@ export function buildSquad(clan, members, synergy, isClan = true) {
     });
     const possible = members.length * (members.length - 1) / 2;
     sq.chem = { pairs, possible, share: possible ? pairs / possible : 0, rounds: pr, winrate: pr ? pw / pr : null };
-    sq.score = composite(sq);
+    const w = weights();
+    sq.score = w.ps * sq.model.ps + w.kd * (sq.model.kd / NORM_CAPS.kd) + w.kpr * (sq.model.kpr / NORM_CAPS.kpr);
     return sq;
 }
 
@@ -130,12 +193,18 @@ const SORTS = {
 };
 
 function rolesHTML(sq) {
-    const chips = Object.entries(sq.roles).sort((a, b) => b[1] - a[1])
+    if (!sq.demos.length) {
+        return '<span class="sq-role">Sin datos de partidas: no se pueden ver los roles</span>';
+    }
+    const plays = Object.entries(sq.roles).sort((a, b) => b[1] - a[1])
         .map(([label, n]) => `<span class="sq-role">${n}× ${escapeHtml(label)}</span>`).join('');
-    const miss = sq.missing.length
-        ? `<span class="sq-role is-miss">Nadie cubre: ${escapeHtml(sq.missing.join(', '))}</span>`
-        : '<span class="sq-role is-ok">Cubre oficial, médico, AR/MG y AT</span>';
-    return chips + miss;
+    const cover = NEEDED.map(([, label]) => {
+        const n = sq.coverCount[label] || 0;
+        return `<span class="sq-role ${n ? 'is-ok' : 'is-miss'}">${escapeHtml(label)}: ${n ? `${n} ${n === 1 ? 'jugador' : 'jugadores'}` : 'nadie'}</span>`;
+    }).join('');
+    const nod = sq.noDemos ? `<span class="sq-sub">${sq.noDemos} sin datos de partidas</span>` : '';
+    return `<div class="sq-roles-row"><span class="sq-roles-lbl">Juega de</span>${plays || '<span class="sq-sub">—</span>'}</div>
+        <div class="sq-roles-row"><span class="sq-roles-lbl">Puede cubrir</span>${cover}${nod}</div>`;
 }
 
 function rankingHTML(squads, sortKey) {
@@ -145,7 +214,7 @@ function rankingHTML(squads, sortKey) {
     const rows = list.map((sq, i) => `
         <tr class="sq-row" data-clan="${escapeHtml(sq.clan)}">
             <td>${posHTML(i + 1)}</td>
-            <td><span class="sq-clan">${clanLogoHTML(sq.clan, 20)} ${escapeHtml(sq.clan)}</span><span class="sq-sub">${sq.members.length}/${SIZE} · ${sq.active} activos</span></td>
+            <td><span class="sq-clan">${clanLogoHTML(sq.clan, 20)} ${escapeHtml(sq.clan)}</span><span class="sq-sub">${sq.members.length} jugadores · ${sq.active} de ${sq.members.length} activos</span></td>
             <td class="sq-barcell">${barHTML(sq.score / top * 100)}<span class="sq-sub">${(sq.score * 100).toFixed(1).replace('.', ',')}</span></td>
             <td class="n">${tierChipHTML(sq.ps)} ${f2(sq.ps)}</td>
             <td class="n">${f2(sq.kd)}</td>
@@ -159,7 +228,7 @@ function rankingHTML(squads, sortKey) {
             <thead><tr><th>#</th><th>Clan</th><th>Fuerza</th><th class="n">Performance</th><th class="n">K/D</th><th class="n">Kills/ronda</th><th class="n">Winrate</th><th class="n">Pares que jugaron juntos</th><th></th></tr></thead>
             <tbody>${rows}</tbody>
         </table></div>
-        <p class="rankings-excluded">Escuadra = los ${SIZE} jugadores con más Performance de cada clan (${MIN_ROUNDS}+ rondas). Fuerza = el mismo cálculo del predictor de Equipos (Performance, K/D y kills por ronda). Pares que jugaron juntos: de los 28 pares posibles, cuántos compartieron escuadra en ${MIN_PAIR_ROUNDS}+ rondas con demo.</p>`;
+        <p class="rankings-excluded">Escuadra = los ${SIZE} jugadores con más Performance de cada clan (${MIN_ROUNDS}+ rondas). Fuerza (de 100) = el cálculo del predictor de Equipos: Performance, K/D y kills por ronda de cada jugador, ajustados por muestra. Pares que jugaron juntos: de los 28 pares posibles, cuántos compartieron escuadra en ${MIN_PAIR_ROUNDS}+ rondas con demo.</p>`;
 }
 
 const logo = (sq, size) => (sq.isClan ? clanLogoHTML(sq.clan, size) : '');
@@ -190,7 +259,7 @@ export function rosterHTML(sq, closable = true) {
             ${stat('Winrate (demos)', `${pct(sq.winrate)}<small> ${sq.record[0]}–${sq.record[1]}</small>`)}${stat('Revives/ronda', sq.revives == null ? '—' : f2(sq.revives))}
             ${sq.near == null ? '' : stat('Junto a su escuadra', pct(sq.near))}${stat('Distancia a su escuadra', sq.dist == null ? '—' : `${Math.round(sq.dist)} m`)}${stat('Vida promedio', sq.life ? fmtDuration(sq.life) : '—')}
             ${stat('Teamkills c/100 kills', sq.tk == null ? '—' : sq.tk.toFixed(1).replace('.', ','))}${stat('Mejor racha', sq.streak ?? '—')}
-            ${stat('Sinergia', `${sq.chem.pairs}/${sq.chem.possible} pares`)}${stat('Winrate juntos', pct(sq.chem.winrate))}
+            ${stat('Pares que jugaron juntos', `${sq.chem.pairs} de ${sq.chem.possible}`)}${stat('Winrate juntos', pct(sq.chem.winrate))}
         </div>
         <div class="sq-roles">${rolesHTML(sq)}</div>
         <div class="pv-scroll"><table class="pv-table">
@@ -200,12 +269,21 @@ export function rosterHTML(sq, closable = true) {
     </div>`;
 }
 
-const VS_ROWS = [
-    ['Performance', sq => sq.ps, f2, true],
-    ['K/D', sq => sq.kd, f2, true],
-    ['Kills por ronda', sq => sq.kpr, f2, true],
-    ['Score por ronda', sq => sq.spr, v => formatNumber(Math.round(v)), true],
+// [etiqueta, valor, formato, más es mejor]. Tres grupos: lo que usa la
+// probabilidad, el resto del rendimiento (se cuenta quién gana más) y contexto
+// (experiencia y actividad: se muestra, no se cuenta).
+const VS_MODEL = [
+    ['Performance (ajustada)', sq => sq.model.ps, f2, true],
+    ['K/D promedio (ajustado)', sq => sq.model.kd, f2, true],
+    ['Kills por ronda (ajustadas)', sq => sq.model.kpr, f2, true],
+];
+const VS_CONTEXT = [
     ['Rondas promedio', sq => sq.rounds, v => formatNumber(Math.round(v)), true],
+    ['Jugadores activos (30 días)', sq => sq.active, v => String(v), true],
+];
+const VS_ROWS = [
+    ['K/D del grupo (kills / muertes totales)', sq => sq.kd, f2, true],
+    ['Score por ronda', sq => sq.spr, v => formatNumber(Math.round(v)), true],
     ['Winrate (demos)', sq => sq.winrate, pct, true],
     ['Revives por ronda', sq => sq.revives, f2, true],
     ['Teamwork (parte del score)', sq => sq.teamwork, pct, true],
@@ -214,42 +292,98 @@ const VS_ROWS = [
     ['Vida promedio', sq => sq.life, v => fmtDuration(v), true],
     ['Teamkills c/100 kills', sq => sq.tk, v => v.toFixed(1).replace('.', ','), false],
     ['Clutch kills por ronda', sq => sq.clutch, f2, true],
-    ['Sinergia (pares juntos)', sq => sq.chem.share, v => pct(v), true],
+    ['Pares que jugaron juntos', sq => sq.chem.share, v => pct(v), true],
     ['Winrate jugando juntos', sq => sq.chem.winrate, pct, true],
-    ['Jugadores activos', sq => sq.active, v => String(v), true],
 ];
 
-/** Comparación A vs B con la probabilidad del predictor. */
-export function versusHTML(a, b) {
-    const pa = a.score / (a.score + b.score || 1);
-    const wins = [0, 0];
-    const rows = VS_ROWS.map(([label, fn, fmt, hb]) => {
+/** Filas de comparación; `tally` = [ganadas A, ganadas B, empates] o null (no cuenta). */
+function vsRows(defs, a, b, tally) {
+    return defs.map(([label, fn, fmt, hb]) => {
         const v1 = fn(a), v2 = fn(b);
         if (v1 == null && v2 == null) return '';   // métrica sin dato todavía (p.ej. junto a la escuadra)
         if (v1 == null || v2 == null) {
-            return `<div class="compare-row"><span class="compare-cell">${v1 == null ? '—' : fmt(v1)}</span><span class="compare-metric">${escapeHtml(label)}</span><span class="compare-cell">${v2 == null ? '—' : fmt(v2)}</span></div>`;
+            const none = '<span class="sq-sub">sin datos de partidas</span>';
+            return `<div class="compare-row"><span class="compare-cell">${v1 == null ? none : fmt(v1)}</span><span class="compare-metric">${escapeHtml(label)}</span><span class="compare-cell">${v2 == null ? none : fmt(v2)}</span></div>`;
         }
-        const better1 = hb ? v1 > v2 : v1 < v2, better2 = hb ? v2 > v1 : v2 < v1;
-        if (better1) wins[0] += 1; if (better2) wins[1] += 1;
+        const tie = fmt(v1) === fmt(v2);
+        const better1 = !tie && (hb ? v1 > v2 : v1 < v2), better2 = !tie && !better1;
+        if (tally) { if (tie) tally[2] += 1; else if (better1) tally[0] += 1; else tally[1] += 1; }
         return `<div class="compare-row">
             <span class="compare-cell ${better1 ? 'compare-winner' : ''}">${fmt(v1)}</span>
             <span class="compare-metric">${escapeHtml(label)}${versusBarHTML(v1, v2, hb)}</span>
             <span class="compare-cell ${better2 ? 'compare-winner' : ''}">${fmt(v2)}</span>
         </div>`;
     }).join('');
-    const fav = pa >= 0.5 ? a : b;
+}
+
+/** Comparación A vs B con la probabilidad del predictor. `bySize`: equipos armados
+ *  a mano (el más chico suma menos). */
+export function versusHTML(a, b, bySize = false) {
+    const pa = winProb(a, b, bySize);
+    const pf = Math.max(pa, 1 - pa), fav = pa >= 0.5 ? a : b;
+    const tally = [0, 0, 0];
+    const model = vsRows(VS_MODEL, a, b, null);
+    const rest = vsRows(VS_ROWS, a, b, tally);
+    const ctx = vsRows(VS_CONTEXT, a, b, null);
+    const verdict = pf < 0.55
+        ? `Parejo (${Math.round(pa * 100)}–${Math.round((1 - pa) * 100)})`
+        : `Favorita: <strong>${escapeHtml(fav.clan)}</strong> con ${Math.round(pf * 100)} %, ${probBand(pf)}`;
+    const notes = [];
+    if (bySize && a.members.length !== b.members.length) {
+        notes.push(`Equipos de distinto tamaño (${a.members.length} contra ${b.members.length}): el más chico suma menos.`);
+    }
+    const few = [...a.few, ...b.few];
+    if (few.length) {
+        notes.push(`Con menos de ${FEW_ROUNDS} rondas cuentan cerca del promedio de la comunidad: ${few.map(p => `${escapeHtml(p.Player)} (${p.Rounds || 0})`).join(', ')}.`);
+    }
+    const sec = (title, sub) => `<div class="sq-vs-sec"><b>${title}</b>${sub ? `<span class="sq-sub">${sub}</span>` : ''}</div>`;
     return `<div class="compare-header">
             <span class="compare-entity side-1">${logo(a, 24)} ${escapeHtml(a.clan)}</span>
             <span class="compare-vs">VS</span>
             <span class="compare-entity side-2">${logo(b, 24)} ${escapeHtml(b.clan)}</span>
         </div>
-        <div class="compare-verdict">${Math.abs(pa - 0.5) < 0.02
-            ? 'Parejo según el predictor'
-            : `Favorita: <strong>${escapeHtml(fav.clan)}</strong> con ${Math.round(Math.max(pa, 1 - pa) * 100)} % según el predictor`} · ${escapeHtml(a.clan)} gana ${wins[0]} y ${escapeHtml(b.clan)} ${wins[1]} de las métricas comparables</div>
+        <div class="compare-verdict">${verdict}</div>
         <div class="sq-prob"><span style="width:${(pa * 100).toFixed(1)}%"></span></div>
         <div class="sq-prob-lbl"><span>${escapeHtml(a.clan)} ${Math.round(pa * 100)} %</span><span>${Math.round((1 - pa) * 100)} % ${escapeHtml(b.clan)}</span></div>
-        <div class="compare-table">${rows}</div>
+        <p class="sq-scale">Cómo leerlo: hasta 55 % es parejo · 55–65 % ventaja leve · 65–80 % ventaja clara · más de 80 % muy desbalanceado.</p>
+        ${notes.length ? `<ul class="sq-notes">${notes.map(n => `<li>${n}</li>`).join('')}</ul>` : ''}
+        <div class="compare-table">
+            ${sec('Lo que usa la probabilidad', 'promedio de cada equipo, ajustado por muestra')}${model}
+            ${sec('Otras métricas', `no entran en la probabilidad · ${escapeHtml(a.clan)} gana ${tally[0]}, ${escapeHtml(b.clan)} ${tally[1]}${tally[2] ? `, ${tally[2]} empate${tally[2] > 1 ? 's' : ''}` : ''}`)}${rest}
+            ${sec('Contexto', 'experiencia y actividad: no se cuentan')}${ctx}
+        </div>
         <div class="sq-vs-roles"><div>${rolesHTML(a)}</div><div>${rolesHTML(b)}</div></div>`;
+}
+
+/** Reparte los jugadores en dos equipos del mismo tamaño lo más parejos posible
+ *  (prueba todas las combinaciones: con 16 jugadores son 12.870). */
+export function balanceTeams(players) {
+    const n = players.length;
+    if (n < 2 || n > 16) return null;
+    // La fuerza del equipo es el promedio de la de cada jugador: se calcula una vez.
+    const s = players.map(strength);
+    const total = s.reduce((x, y) => x + y, 0);
+    const half = Math.floor(n / 2), big = n - half;
+    let best = null;
+    const pick = [];
+    const rec = (start) => {
+        if (pick.length === half) {
+            const sa = pick.reduce((x, i) => x + s.at(i), 0);
+            // Mismo cálculo que winProb con tamaño: cada equipo suma / el más grande.
+            const d = Math.abs(sa / big - (total - sa) / big);
+            if (!best || d < best.d) {
+                const set = new Set(pick);
+                best = { d, A: pick.map(i => players.at(i)), B: players.filter((_, i) => !set.has(i)) };
+            }
+            return;
+        }
+        for (let i = start; i <= n - (half - pick.length); i++) {
+            if (n % 2 === 0 && pick.length === 0 && i > 0) break;   // el primero siempre en A: evita espejos
+            pick.push(i); rec(i + 1); pick.pop();
+        }
+    };
+    rec(0);
+    return best;
 }
 
 let squads = [];

@@ -8,10 +8,11 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { state } from './data.js';
-import { escapeHtml } from './utils.js';
+import { escapeHtml, findPlayer } from './utils.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
 
 let uid = 0;
+const pickers = {};   // label → write(names): para cargar equipos desde afuera (balancear)
 
 /**
  * @param {HTMLElement} host   dónde va el selector (se inserta al principio)
@@ -59,19 +60,29 @@ function mountChipPicker(host, inputIds, label) {
             <span>${escapeHtml(n)}</span>
             <button type="button" class="chip-remove" data-k="${k}" aria-label="Quitar a ${escapeHtml(n)}">×</button>
         </li>`).join('');
-        count.textContent = `${cur.length}/${max}`;
+        count.textContent = note || `${cur.length}/${max}`;
+        count.classList.toggle('is-warn', !!note);
+        note = '';
         field.disabled = cur.length >= max;
         field.placeholder = cur.length >= max ? 'Equipo completo' : '+ agregar jugador';
     }
 
+    let note = '';
+    // Se guarda el nombre real del jugador: un nick mal escrito o parcial ya no
+    // queda como chip que después el cálculo ignora en silencio.
     function add(name) {
-        const n = (name || '').trim();
-        if (!n) return;
+        const typed = (name || '').trim();
+        if (!typed) return;
+        const p = findPlayer(state.playersData || [], typed);
+        if (!p) { note = `No encontré a «${typed}»`; field.value = ''; render(); return; }
+        const n = p.Player;
         const cur = names();
         if (cur.length >= max || cur.some(x => x.toLowerCase() === n.toLowerCase())) { field.value = ''; return; }
+        if (n.toLowerCase() !== typed.toLowerCase()) note = `«${typed}» → ${n}`;
         write([...cur, n]);
         field.value = '';
     }
+    pickers[label] = (list_) => write(list_.slice(0, max));
 
     setupAutocomplete(field, box.querySelector('.suggestions'), playerSource(() => state.playersData || []), add);
     // Enter con texto agrega el chip (sin mandar el formulario); vacío, deja enviar.
@@ -86,6 +97,11 @@ function mountChipPicker(host, inputIds, label) {
         field.focus();
     });
     render();
+}
+
+/** Carga una lista de nombres en el selector `label` ("Equipo A", "Equipo B", "Jugadores"). */
+export function setChipNames(label, list_) {
+    pickers[label]?.(list_);
 }
 
 /** Monta los selectores en el predictor (equipo A y B) y en el análisis de equipo. */

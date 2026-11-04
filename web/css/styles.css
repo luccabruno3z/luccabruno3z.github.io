@@ -3333,8 +3333,7 @@ body .cta-button.ghost:hover {
 .sq-prob span { display: block; height: 100%; background: var(--accent); }
 .sq-prob-lbl { display: flex; justify-content: space-between; font-size: .82rem; color: var(--text-muted); margin-bottom: 12px; }
 .sq-vs-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-.sq-vs-roles > div { display: flex; flex-wrap: wrap; gap: 6px; }
-.sq-vs-roles > div:last-child { justify-content: flex-end; }
+.sq-vs-roles > div { display: flex; flex-direction: column; gap: 6px; }
 
 /* Historial de partidas del perfil */
 .pv-nowrap { white-space: nowrap; }
@@ -3348,3 +3347,26 @@ body .cta-button.ghost:hover {
 .pv-how h5 { margin: 0 0 6px; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); }
 .pv-how ul { margin: 0; padding-left: 18px; }
 .pv-how li { margin: 4px 0; line-height: 1.45; }
+
+/* Roles: juega de / puede cubrir; secciones y escala del versus */
+.sq-roles { flex-direction: column; flex-wrap: nowrap; }
+.sq-roles-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.sq-roles-lbl { font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); min-width: 92px; }
+.sq-vs-sec { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 18px 0 4px; padding-top: 10px; border-top: 1px solid var(--border); }
+.sq-vs-sec:first-child { margin-top: 4px; border-top: 0; padding-top: 0; }
+.sq-vs-sec b { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; }
+.sq-scale { font-size: .8rem; color: var(--text-muted); margin: 0 0 8px; }
+.sq-notes { margin: 0 0 10px; padding-left: 18px; font-size: .82rem; color: var(--warning, #ffb020); }
+.chip-item.is-bad { border-color: var(--danger); color: var(--danger); }
+.chip-item .chip-real { font-size: .74rem; color: var(--text-muted); margin-left: 4px; }
+.pred-balance { margin-top: 18px; }
+.pred-balance ul { margin: 6px 0; padding-left: 18px; }
+.chip-picker-count.is-warn { color: var(--warning); font-family: inherit; }
+/* El "×" de los chips: las reglas de botón de los formularios (body .prediction-form
+   button) le ganaban a .chip-remove y lo pintaban como botón principal. */
+body form .chip-picker .chip-remove {
+    width: 28px; height: 28px; min-height: 0; min-width: 0; padding: 0;
+    background: transparent; box-shadow: none; border: none; border-radius: 50%;
+    color: var(--text-muted); font-size: 1.1rem; line-height: 1; text-transform: none; letter-spacing: 0;
+}
+body form .chip-picker .chip-remove:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); transform: none; }

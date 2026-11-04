@@ -6,7 +6,7 @@
 import { state, loadDemoData, loadSynergy } from './data.js';
 import { buildSquad, rosterHTML } from './squads.js';
 import { setupAutocomplete, playerSource } from './autocomplete.js';
-import { renderTeamRadar } from './charts.js';
+import { renderTeamRadar, RADAR_HELP } from './charts.js';
 import {
     escapeHtml, findPlayer, clanLogoHTML, tierBadge, getPlayerArchetype, formatNumber, teamAverage,
 } from './utils.js';
@@ -37,7 +37,7 @@ function playerCard(p) {
         <div class="card team-player-card">
             <div class="team-player-name">${escapeHtml(p.Player)} ${clan}</div>
             <div class="badge tier-badge ${tier.cssClass}">${tier.emoji} ${escapeHtml(tier.name)}</div>
-            <div class="badge team-player-archetype">${arch.emoji} ${escapeHtml(arch.name)}</div>
+            <div class="badge team-player-archetype" title="Estilo de juego según sus estadísticas (no es el rol de las partidas)">Estilo: ${arch.emoji} ${escapeHtml(arch.name)}</div>
             <div class="stat-row"><span class="stat-label">PS</span><span class="stat-value">${formatNumber(p['Performance Score'] || 0)}</span></div>
             <div class="stat-row"><span class="stat-label">K/D</span><span class="stat-value">${formatNumber(p['K/D Ratio'] || 0)}</span></div>
             <div class="stat-row"><span class="stat-label">KPR</span><span class="stat-value">${formatNumber(p['Kills per Round'] || 0)}</span></div>
@@ -80,7 +80,8 @@ async function performTeamAnalysis() {
         </div>
         ${rosterHTML(squad, false)}
         <div class="team-player-cards">${cards}</div>
-        <div class="team-radar-wrapper"></div>`;
+        <div class="team-radar-wrapper"><h4 class="profile-subtitle">Perfil del equipo frente a la comunidad</h4></div>
+        <p class="rankings-excluded">${RADAR_HELP} El "Estilo" de cada tarjeta sale de estas mismas estadísticas; el "Mejor rol" de la tabla, de los kits que usó en las partidas.</p>`;
 
     // Radar appended into results (renderTeamRadar creates/owns #teamRadarChart).
     const radarHost = results.querySelector('.team-radar-wrapper') || results;
