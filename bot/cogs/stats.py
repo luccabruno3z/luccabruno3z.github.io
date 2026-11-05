@@ -346,7 +346,11 @@ class Stats(commands.Cog):
 
     @commands.hybrid_command(aliases=["avg", "averages"])
     @commands.cooldown(1, 10, commands.BucketType.user)
-    async def promedios(self, ctx: commands.Context):
+    @app_commands.describe(clan="Opcional: un clan para ver sus promedios explicados")
+    async def promedios(self, ctx: commands.Context, clan: str = None):
+        if clan:
+            await self._promedios_clan(ctx, clan)
+            return
         try:
             data = await self.fetcher.fetch_clan_averages()
         except Exception as e:
@@ -368,15 +372,73 @@ class Stats(commands.Cog):
             metrica="performance",
             footer=standard_footer(data),
             author_id=ctx.author.id,
-            subtitle="Promedio de todos los miembros por clan · cambiá la métrica abajo",
+            subtitle=("Promedio de TODOS los miembros, incluso los de pocas rondas · "
+                      "para un clan explicado: `-promedios LDH` · activos: `-promedios_activos`"),
             show_tier=False,  # los umbrales de tier son de jugadores, no de promedios
         )
         card.message = await ctx.send(view=card, files=[card.build_chart_file()])
 
+    async def _promedios_clan(self, ctx: commands.Context, clan: str):
+        """Las tres maneras de promediar un clan, lado a lado y explicadas (antes
+        cada comando mostraba una distinta sin decirlo: 0,39, 0,65 o 0,79)."""
+        await ctx.defer()
+        try:
+            data = await self.fetcher.fetch_all_players()
+        except Exception:
+            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            return
+        members = [p for p in data if (p.get("Clan") or "").upper() == clan.upper()]
+        if not members:
+            await ctx.send(f"⚠️ No encontré jugadores del clan **{clan}**.")
+            return
+        tag = members[0].get("Clan", clan)
+        try:
+            payload = await self.fetcher.fetch_clan_averages_active()
+        except Exception:
+            payload = None
+        act_row = next((c for c in ((payload or {}).get("clans") or [])
+                        if (c.get("Clan") or "").upper() == tag.upper()), None)
+
+        def avg(rows, key):
+            return sum((r.get(key) or 0) for r in rows) / len(rows) if rows else None
+
+        def line(title, rows_or_row, n, how):
+            if isinstance(rows_or_row, dict):
+                ps, kd, kpr = (rows_or_row.get("Performance Score"), rows_or_row.get("K/D Ratio"),
+                               rows_or_row.get("Kills per Round"))
+            else:
+                ps, kd, kpr = (avg(rows_or_row, "Performance Score"), avg(rows_or_row, "K/D Ratio"),
+                               avg(rows_or_row, "Kills per Round"))
+            if ps is None:
+                return f"**{title}**\n-# {how}\nSin datos."
+            return (f"**{title}** · {n} jugadores\n-# {how}\n"
+                    f"Performance **{ps:.3f}** · K/D {kd or 0:.2f} · Kills/ronda {kpr or 0:.2f}")
+
+        exp = [p for p in members if (p.get("Rounds") or 0) >= MIN_ROUNDS]
+        act_n = act_row.get("Averaged Players", act_row.get("Active Players", "—")) if act_row else 0
+        blocks = [
+            line("Todos los miembros", members, len(members),
+                 "Incluye a los que jugaron pocas rondas: es el que usa `-compare` entre clanes."),
+            line(f"Con {MIN_ROUNDS}+ rondas", exp, len(exp),
+                 "Solo los que tienen muestra suficiente para entrar al top."),
+            (line(f"Activos: hasta {(payload or {}).get('top_n', 50)} por clan", act_row, act_n,
+                  f"Jugaron en los últimos {(payload or {}).get('window_days', 30)} días; si son más, "
+                  "se toman los de mayor Performance. Es el de `-promedios_activos`.")
+             if act_row else "**Activos**\n-# El clan no llega al mínimo de activos para este promedio."),
+        ]
+        embed = discord.Embed(
+            title=f"📊 Promedios de {get_clan_emoji(tag)}{tag}",
+            description="\n\n".join(blocks),
+            color=discord.Color.blue(),
+        )
+        embed.set_thumbnail(url=clan_logo_url(tag))
+        embed.set_footer(text="Cada número promedia un grupo distinto del clan; por eso no coinciden.")
+        await ctx.send(embed=embed)
+
     # ── -promedios_tops <cantidad> <metrica> ──────────────────────────────
 
     async def _promedios_activos(self, ctx: commands.Context, metrica: str):
-        """Top de clanes con el promedio de sus 50 mejores jugadores activos (30 días)."""
+        """Top de clanes con el promedio de sus jugadores activos (30 días), hasta 50 por clan."""
         await ctx.defer()
         try:
             payload = await self.fetcher.fetch_clan_averages_active()
@@ -396,8 +458,9 @@ class Stats(commands.Cog):
             footer=f"Activos: jugaron en los últimos {payload.get('window_days', 30)} días "
                    f"(rondas de PRStats o demos) · clanes con al menos {payload.get('min_active', 5)} activos",
             author_id=ctx.author.id,
-            subtitle=f"Promedio de los {payload.get('top_n', 50)} mejores jugadores activos de cada clan "
-                     f"(por Performance) · histórico: `-promedios_tops`",
+            subtitle=f"Promedio de los jugadores activos de cada clan (si son más de "
+                     f"{payload.get('top_n', 50)}, los {payload.get('top_n', 50)} de mayor Performance) · "
+                     f"todos los miembros: `-promedios`",
             show_tier=False,
         )
         card.message = await ctx.send(view=card, files=[card.build_chart_file()])
@@ -407,7 +470,7 @@ class Stats(commands.Cog):
     @app_commands.describe(metrica="Métrica para ordenar los clanes")
     @app_commands.choices(metrica=METRICA_PROMEDIOS_CHOICES)
     async def promedios_activos(self, ctx: commands.Context, metrica: str = "performance"):
-        """Top de clanes con el promedio de sus 50 mejores jugadores activos (últimos 30 días)."""
+        """Top de clanes con el promedio de sus jugadores activos (30 días), hasta 50 por clan."""
         await self._promedios_activos(ctx, metrica)
 
     @commands.hybrid_command(aliases=["avgtop", "topavg"])
@@ -415,11 +478,11 @@ class Stats(commands.Cog):
     @app_commands.describe(
         cantidad="Cantidad de mejores jugadores por clan (solo histórico)",
         metrica="Métrica para calcular promedios",
-        alcance="historico: todos los jugadores · activos: los 50 mejores activos (30 días)",
+        alcance="historico: todos los jugadores · activos: jugaron en 30 días (hasta 50 por clan)",
     )
     @app_commands.choices(metrica=METRICA_PROMEDIOS_CHOICES, alcance=[
         app_commands.Choice(name="Histórico (todos)", value="historico"),
-        app_commands.Choice(name="Activos (top 50, 30 días)", value="activos"),
+        app_commands.Choice(name="Activos (30 días, hasta 50 por clan)", value="activos"),
     ])
     async def promedios_tops(
         self,
@@ -1326,78 +1389,69 @@ class Stats(commands.Cog):
 
         # Determine actual clan name from first match
         actual_clan = clan_players[0].get("Clan", clan)
+        clan_players.sort(key=lambda x: x.get("Performance Score", 0), reverse=True)
 
-        # Group by archetype
-        archetype_groups: dict[str, list[dict]] = {}
-        for p in clan_players:
-            arch = p.get("archetype", {})
-            arch_name = arch.get("name", "Soldado") if isinstance(arch, dict) else "Soldado"
-            archetype_groups.setdefault(arch_name, []).append(p)
-
-        # Sort each group by PS descending
-        for group in archetype_groups.values():
-            group.sort(key=lambda x: x.get("Performance Score", 0), reverse=True)
-
-        # Priority order for archetypes
-        archetype_priority = [
-            "Médico", "Oficial", "Tripulante", "Anti-tanque", "Preciso",
-            "Estratega", "Explorador", "Soldado",
-        ]
-        archetype_emojis = {
-            "Médico": "💉",
-            "Oficial": "📡",
-            "Tripulante": "🛡️",
-            "Anti-tanque": "💣",
-            "Preciso": "🎯",
-            "Estratega": "🧠",
-            "Explorador": "🔭",
-            "Soldado": "⚔️",
-        }
-
-        # Sort groups by priority (unknown archetypes go last)
-        sorted_archetypes = sorted(
-            archetype_groups.keys(),
-            key=lambda a: archetype_priority.index(a) if a in archetype_priority else len(archetype_priority),
-        )
-
+        # Agrupar por el rol que juega en las partidas grabadas (mejor rol de demos).
+        # Antes se agrupaba por arquetipo (estilo de estadísticas), que no es un rol, y
+        # la sección "faltan" pluralizaba a mano ("Sin Oficials").
         try:
-            tier_config = await self.fetcher.fetch_tier_config()
+            demo = await self.fetcher.fetch_player_details()
         except Exception:
-            tier_config = None
-        thresholds = tier_config.get("thresholds") if isinstance(tier_config, dict) else None
+            demo = None
+        demo_by_name = {(d.get("ign") or "").lower(): d for d in (demo or [])}
+        groups: dict[str, list[dict]] = {}
+        for p in clan_players:
+            d = demo_by_name.get(p["Player"].lower())
+            label = "Sin partidas grabadas"
+            if d and d.get("rounds_played"):
+                roles = d.get("roles") or []
+                best = d.get("best_role")
+                label = next((r.get("label") for r in roles if r.get("key") == best), None) or "Sin rol definido"
+            groups.setdefault(label, []).append(p)
 
+        order = sorted(groups, key=lambda g: (g in ("Sin rol definido", "Sin partidas grabadas"),
+                                               g == "Sin partidas grabadas", -len(groups[g])))
+        active = sum(1 for p in clan_players if p.get("Active 30d"))
         clan_emoji = get_clan_emoji(actual_clan)
         embed = discord.Embed(
-            title=f"📋 Plantel de {clan_emoji}{actual_clan} ({len(clan_players)} jugadores)",
+            title=f"📋 Plantel de {clan_emoji}{actual_clan}",
+            description=(f"**{len(clan_players)}** jugadores · 🟢 **{active}** jugaron en los últimos 30 días\n"
+                         "-# Agrupados por su mejor rol en las partidas grabadas; "
+                         "el número es el Performance."),
             color=discord.Color.blue(),
         )
         embed.set_thumbnail(url=clan_logo_url(actual_clan))
 
-        for arch_name in sorted_archetypes:
-            players = archetype_groups[arch_name]
-            emoji = archetype_emojis.get(arch_name, "⚔️")
-            player_strs = [
-                f"{p['Player']} ({p.get('Performance Score', 0):.2f})"
-                for p in players
-            ]
-            embed.add_field(
-                name=f"{emoji} {arch_name}s ({len(players)})",
-                value=" · ".join(player_strs) if player_strs else "—",
-                inline=False,
-            )
+        budget = 5000 - len(embed.title) - len(embed.description)  # límite de 6000 por embed
+        for idx, label in enumerate(order[:20]):
+            players = groups[label]
+            if budget < 200:
+                rest = sum(len(groups[g]) for g in order[idx:])
+                embed.add_field(name="…", value=f"{rest} jugadores más en otros grupos.", inline=False)
+                break
+            strs = [f"{'🟢 ' if p.get('Active 30d') else ''}{p['Player']} ({p.get('Performance Score', 0):.2f})"
+                    for p in players]
+            value = " · ".join(strs)
+            cap = min(990, budget - 60)
+            if len(value) > cap:
+                shown = []
+                for s_ in strs:
+                    if len(" · ".join(shown + [s_])) > cap:
+                        break
+                    shown.append(s_)
+                value = " · ".join(shown) + f" · y {len(strs) - len(shown)} más"
+            name = f"{label} ({len(players)})"
+            embed.add_field(name=name, value=value, inline=False)
+            budget -= len(name) + len(value)
 
-        # Warning for missing key roles
-        key_roles = ["Médico", "Oficial"]
-        missing_roles = [r for r in key_roles if r not in archetype_groups]
-        if missing_roles:
-            warnings = "\n".join(
-                f"⚠️ Sin {role}s — consideren reclutar uno"
-                for role in missing_roles
-            )
-            embed.add_field(name="⚠️ Roles Faltantes", value=warnings, inline=False)
+        # Roles de infantería que nadie activo juega de verdad (mismo criterio que equipos).
+        from bot.services.team_model import roles_text
+        actives = [p for p in clan_players if p.get("Active 30d")] or clan_players
+        cover = roles_text(actives, demo)
+        if cover:
+            embed.add_field(name="🧩 Roles entre los activos", value=cover.split("\n", 1)[-1][:1024], inline=False)
 
-        # Use standard_footer from first player sorted by PS
-        best_player = max(clan_players, key=lambda x: x.get("Performance Score", 0))
+        best_player = clan_players[0]
         embed.set_footer(text=standard_footer(best_player))
         await ctx.send(embed=embed)
 

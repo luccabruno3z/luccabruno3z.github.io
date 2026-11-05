@@ -141,7 +141,8 @@ class TopCard(discord.ui.LayoutView):
         podium_lines, lines = [], []
         start = self.page * _PAGE
         for i, p in enumerate(ranked[start:start + _PAGE], start=start + 1):
-            medal = rank_medal(i) if i <= 3 else f"`{i:>2}.`"
+            # Sin medallas en muertes: tener más muertes no es un logro.
+            medal = rank_medal(i) if i <= 3 and self.metrica != "deaths" else f"`{i:>2}.`"
             clan = p.get("Clan", "")
             emoji = get_clan_emoji(clan)
             # Si la fila ES un clan (rankings de -promedios: Player == Clan), no

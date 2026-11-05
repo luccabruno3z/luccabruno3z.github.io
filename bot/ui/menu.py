@@ -213,7 +213,7 @@ async def _clanes(bot, owner: int, *, activos: bool = False):
         except Exception:
             payload = None
         data = (payload or {}).get("clans") if isinstance(payload, dict) else None
-        title = "## Clanes · activos (top 50, 30 días)"
+        title = "## Clanes · activos (30 días, hasta 50 por clan)"
         note = ("-# Promedio de los 50 mejores jugadores que jugaron en los últimos 30 días · "
                 "completo: `-promedios_activos`")
     else:
@@ -232,7 +232,7 @@ async def _clanes(bot, owner: int, *, activos: bool = False):
         lines.append("Todavía no hay datos de clanes activos: se generan en la próxima actualización.")
     lines.append(note)
     switch = (MenuButton("clanes", owner, "Ver histórico") if activos
-              else MenuButton("clanesact", owner, "Ver activos (top 50)"))
+              else MenuButton("clanesact", owner, "Ver activos (30 días)"))
     return 0xFFA500, [discord.ui.TextDisplay("\n".join(lines)), discord.ui.ActionRow(
         _back(owner), switch,
         discord.ui.Button(label="Ver en la web", style=discord.ButtonStyle.link, url=_WEB + "clanes"))]
