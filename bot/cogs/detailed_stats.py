@@ -19,7 +19,7 @@ from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_horizontal_bars, render_multi_comparison, render_top_chart
 from bot.ui.leaderboard_card import LeaderboardView
 from bot.ui.role_leaderboard_card import RoleLeaderboardView, resolve_role
-from bot.utils import format_number, find_player, standard_footer, progress_bar, squad_play_text, teamwork_share
+from bot.utils import format_number, find_player, standard_footer, progress_bar, squad_play_text, teamwork_share, is_test_map
 from bot.views.explain import ExplainView
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ async def map_name_autocomplete(
         data = await interaction.client.data_fetcher.fetch_map_stats()
     except Exception:
         return []
-    names = sorted({m["map_name"] for m in data})
+    names = sorted({m["map_name"] for m in data if not is_test_map(m["map_name"])})
     filtered = [n for n in names if current.lower() in n.lower()][:25]
     return [app_commands.Choice(name=n, value=n) for n in filtered]
 
@@ -75,6 +75,13 @@ def _top_named(d: dict, namer, n: int = 10, exclude=None) -> list[tuple[str, int
         name = namer(code)
         agg[name] = agg.get(name, 0) + cnt
     return sorted(agg.items(), key=lambda x: x[1], reverse=True)[:n]
+
+
+MAP_MIN_ROUNDS = 5       # rondas en un mapa para entrar a mejores/peores
+SYNERGY_MIN_ROUNDS = 8   # rondas en la misma escuadra para medir la sinergia
+
+
+_is_test_map = is_test_map
 
 
 class DetailedStats(commands.Cog):
@@ -560,7 +567,7 @@ class DetailedStats(commands.Cog):
         weapons_str = ", ".join(f"**{w}** ({c})" for w, c in top_weapons) if top_weapons else "N/A"
 
         # Top maps (cleaned names)
-        top_maps = _top_items(player.get("maps_played", {}), 3)
+        top_maps = _top_items({k: v for k, v in player.get("maps_played", {}).items() if not is_test_map(k)}, 3)
         maps_str = ", ".join(f"**{clean_map_name(m)}** ({c})" for m, c in top_maps) if top_maps else "N/A"
 
         embed = discord.Embed(
@@ -947,6 +954,8 @@ class DetailedStats(commands.Cog):
         map_data = []
         if map_stats:
             for m_name, m_info in map_stats.items():
+                if _is_test_map(m_name):
+                    continue
                 m_rounds = m_info.get("rounds", 0)
                 m_avg_kpr = m_info.get("avg_kpr", 0.0)
                 m_wins = m_info.get("wins", 0)
@@ -954,15 +963,18 @@ class DetailedStats(commands.Cog):
         elif maps_played:
             # Fallback: only round counts, no KPR/wins
             for m_name, m_rounds in maps_played.items():
-                map_data.append((m_name, 0.0, m_rounds, 0))
+                if not _is_test_map(m_name):
+                    map_data.append((m_name, 0.0, m_rounds, 0))
 
         embed = discord.Embed(
             title=f"🗺️ Perfil por Mapa: {player['ign']}",
             color=discord.Color.purple(),
         )
 
-        # Top 5 maps by avg KPR
-        top_maps = sorted(map_data, key=lambda x: x[1], reverse=True)[:5]
+        # Mejores y peores mapas solo con 5+ rondas: con 1 o 2 rondas el "mejor mapa"
+        # es una partida buena, no un mapa.
+        qualified = [m for m in map_data if m[2] >= MAP_MIN_ROUNDS]
+        top_maps = sorted(qualified, key=lambda x: x[1], reverse=True)[:5]
         map_chart_items = []
         if top_maps:
             lines = []
@@ -970,18 +982,21 @@ class DetailedStats(commands.Cog):
                 m_wr = (m_wins / m_rds * 100) if m_rds > 0 else 0
                 lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** | WR: {m_wr:.0f}% ({m_rds}R)")
                 map_chart_items.append((clean_map_name(m_name), m_kpr, "#00FF88"))
-            embed.add_field(name="🏆 Top 5 Mapas (por KPR)", value="\n".join(lines), inline=False)
+            embed.add_field(name=f"🏆 Mejores mapas (kills por ronda, {MAP_MIN_ROUNDS}+ rondas)",
+                            value="\n".join(lines), inline=False)
+        else:
+            embed.add_field(name="🏆 Mejores mapas",
+                            value=f"Ningún mapa con {MAP_MIN_ROUNDS}+ rondas todavía.", inline=False)
 
-        # Bottom 3 maps by avg KPR (min 3 rounds)
-        qualified = [m for m in map_data if m[2] >= 3]
-        bottom_maps = sorted(qualified, key=lambda x: x[1])[:3]
+        bottom_maps = [m for m in sorted(qualified, key=lambda x: x[1])[:3] if m not in top_maps]
         if bottom_maps:
             lines = []
             for m_name, m_kpr, m_rds, m_wins in bottom_maps:
                 m_wr = (m_wins / m_rds * 100) if m_rds > 0 else 0
                 lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** | WR: {m_wr:.0f}% ({m_rds}R)")
                 map_chart_items.append((clean_map_name(m_name), m_kpr, "#FF4444"))
-            embed.add_field(name="📉 Peores Mapas (por KPR, min 3R)", value="\n".join(lines), inline=False)
+            embed.add_field(name=f"📉 Peores mapas (kills por ronda, {MAP_MIN_ROUNDS}+ rondas)",
+                            value="\n".join(lines), inline=False)
 
         # Most played maps
         most_played = sorted(map_data, key=lambda x: x[2], reverse=True)[:5]
@@ -1230,19 +1245,20 @@ class DetailedStats(commands.Cog):
         rows = []
         for q, v in entry["mates"].items():
             r = v.get("rounds", 0)
-            if r < 3:  # mínimo para que sea representativo
+            if r < SYNERGY_MIN_ROUNDS:  # con 3 rondas el "mejor compañero" era azar
                 continue
             kpr_with = v.get("kills", 0) / r
             wo_r = base_rounds - r
             kpr_wo = (base_kills - v.get("kills", 0)) / wo_r if wo_r > 0 else base_kpr
             impact = kpr_with - kpr_wo
-            wr = v.get("wins", 0) / r * 100
+            decided = v.get("wins", 0) + v.get("losses", 0) if "losses" in v else r
+            wr = v.get("wins", 0) / decided * 100 if decided else 0
             rows.append((impact, q, r, kpr_with, kpr_wo, wr))
 
         if not rows:
             await ctx.send(
                 f"**{name}** todavía no tiene compañeros con suficientes rondas compartidas "
-                "(mínimo 3). Seguí jugando en escuadra y probá después."
+                f"(mínimo {SYNERGY_MIN_ROUNDS}). Seguí jugando en escuadra y probá después."
             )
             return
 
@@ -1253,14 +1269,15 @@ class DetailedStats(commands.Cog):
         def _line(row):
             impact, q, r, kpr_with, kpr_wo, wr = row
             sign = "📈" if impact >= 0 else "📉"
-            return (f"{sign} **{q}** — KPR **{kpr_with:.2f}** (solo {kpr_wo:.2f}, "
+            return (f"{sign} **{q}** — KPR **{kpr_with:.2f}** (en otras escuadras {kpr_wo:.2f}, "
                     f"{impact:+.2f}) · WR {wr:.0f}% · {r} rondas")
 
         embed = discord.Embed(
             title=f"🤝 Sinergia de {name}",
             description=(
                 "Rendimiento jugando en la **misma escuadra** que cada compañero.\n"
-                f"KPR base (en escuadra): **{base_kpr:.2f}** · {base_rounds} rondas con dato"
+                f"KPR base (en escuadra): **{base_kpr:.2f}** · {base_rounds} rondas con dato · "
+                f"compañeros con {SYNERGY_MIN_ROUNDS}+ rondas juntos"
             ),
             color=discord.Color.teal(),
         )

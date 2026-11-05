@@ -218,7 +218,8 @@ def player_records(dp: dict) -> dict | None:
     add("Vehículos destruidos", dp.get("total_vehicles_destroyed", 0))
     add("Revives dados", dp.get("total_revives_given", 0))
 
-    maps = dp.get("maps_played") or {}
+    from bot.utils import is_test_map
+    maps = {k: v for k, v in (dp.get("maps_played") or {}).items() if not is_test_map(k)}
     if maps:
         top_map = max(maps.items(), key=lambda kv: kv[1])
         items.append(("Mapa más jugado", f"{clean_map_name(top_map[0])} ({top_map[1]})"))

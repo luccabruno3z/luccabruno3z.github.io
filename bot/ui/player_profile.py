@@ -136,10 +136,13 @@ async def load_context(bot, name: str) -> dict | None:
 
 
 # ── Contenido de cada pestaña: (items, files) ────────────────────────────────
-def _rank_line(label: str, value_txt: str, value: float, values: list, extra: str = "") -> str:
-    """Barra + valor real + "top N%": largo y color salen de la posición, no del valor crudo."""
+def _rank_line(label: str, value_txt: str, value: float, values: list, extra: str = "",
+               provisional: bool = False) -> str:
+    """Barra + valor real + "top N%": largo y color salen de la posición, no del valor crudo.
+    Con `provisional` (menos de 50 rondas) no se da un puesto: con pocas rondas el
+    "top 3 %" sale de una racha."""
     below = below_fraction(value, values)
-    tail = top_label(below) + (f" · {extra}" if extra else "")
+    tail = ("sin posición: menos de 50 rondas" if provisional else top_label(below)) + (f" · {extra}" if extra else "")
     return _metric_line(rank_meter(below), label, value_txt, tail)
 
 
@@ -151,27 +154,35 @@ def _tab_resumen(ctx: dict):
 
     # Performance: color del rango (mismos umbrales que el tier del encabezado).
     ps_below = below_fraction(ps, col("Performance Score"))
+    prov = rounds < 50
     lines = [
         "### Resumen",
         _metric_line(meter(ps, thr), "Performance", _f2(ps) + ctx["trend"], top_label(ps_below)),
         f"-# Kills {format_number(p.get('Total Kills', 0))} · Muertes {format_number(p.get('Total Deaths', 0))}",
         "### De qué sale tu Performance",
-        _rank_line("Combate · K/D", _f2(p.get("K/D Ratio", 0)), p.get("K/D Ratio", 0) or 0, col("K/D Ratio")),
+        _rank_line("Combate · K/D", _f2(p.get("K/D Ratio", 0)), p.get("K/D Ratio", 0) or 0, col("K/D Ratio"),
+                   provisional=prov),
         _rank_line("Puntuación · score/ronda", f"{p.get('Score per Round', 0) or 0:.0f}",
-                   p.get("Score per Round", 0) or 0, col("Score per Round")),
+                   p.get("Score per Round", 0) or 0, col("Score per Round"), provisional=prov),
         _rank_line("Agresividad · kills/ronda", _f2(p.get("Kills per Round", 0)),
-                   p.get("Kills per Round", 0) or 0, col("Kills per Round")),
+                   p.get("Kills per Round", 0) or 0, col("Kills per Round"), provisional=prov),
         _rank_line("Experiencia · rondas", format_number(rounds), rounds, col("Rounds")),
     ]
     ratings = get_player_ratings(p)
     if ratings:
-        lines.append("-# Índices de 0 a 100 (no son los ejes del radar): " + " · ".join(
-            f"{lbl} {ratings.get(k, 0):.0f}" for k, lbl in
-            (("combat", "Combate"), ("tactical", "Táctico"), ("reliability", "Fiabilidad"), ("impact", "Impacto"))))
+        # Táctico e Impacto salen de partidas grabadas: sin demos el scraper pone un
+        # valor base (30 y 25) que parecía un dato real.
+        keys = (("combat", "Combate"), ("tactical", "Táctico"), ("reliability", "Fiabilidad"), ("impact", "Impacto"))
+        has_demo = bool(ctx["dp"] and (ctx["dp"].get("rounds_played") or 0))
+        shown = " · ".join(
+            f"{lbl} {ratings.get(k, 0):.0f}" if has_demo or k not in ("tactical", "impact") else f"{lbl} sin datos"
+            for k, lbl in keys)
+        lines.append("-# Índices de 0 a 100 (no son los ejes del radar): " + shown
+                     + ("" if has_demo else " (Táctico e Impacto necesitan partidas grabadas)"))
 
     extra = []
     t = thr or {}
-    for key, nm in (("soldado", "Soldado"), ("experimentado", "Experimentado"), ("veterano", "Veterano"), ("elite", "Élite")):
+    for key, nm in (("soldado", "Soldado"), ("experimentado", "Experimentado"), ("veterano", "Veterano"), ("elite", "Elite")):
         if t.get(key) and ps < t[key]:
             extra.append(f"Próximo tier: **{nm}** — te faltan **{_f2(t[key] - ps)}** pts")
             break
@@ -229,12 +240,19 @@ def _tab_perfil(ctx: dict):
     mates = [q for q in data if q.get("Clan") == clan and q.get("radar")]
     avg = {k: (sum(q["radar"].get(k, 0) for q in mates) / len(mates) if mates else 0) for k, _ in _RADAR_LABELS}
     lines = ["### Perfil de habilidades"]
+    # Teamwork, consistencia y versatilidad salen de partidas grabadas: sin demos el
+    # scraper pone 30 de base, que no es un dato del jugador.
+    has_demo = bool(ctx["dp"] and (ctx["dp"].get("rounds_played") or 0))
     for k, lbl in _RADAR_LABELS:
         v = radar.get(k, 0) or 0
+        if not has_demo and k in ("teamwork", "consistencia", "versatilidad"):
+            lines.append(f"**{lbl}** · sin datos: necesita partidas grabadas")
+            continue
         values = [q["radar"].get(k, 0) for q in pop if q.get("radar")]
         diff = v - avg[k]
         cmp = f"{'+' if diff >= 0 else '−'}{abs(diff) * 100:.0f} vs {clan}" if mates else ""
-        lines.append(_rank_line(lbl, f"{v * 100:.0f}", v, values, cmp))
+        lines.append(_rank_line(lbl, f"{v * 100:.0f}", v, values, cmp,
+                                provisional=(p.get("Rounds", 0) or 0) < 50))
     desc = get_player_archetype_desc(p)
     if desc:
         lines.append(f"-# {desc}")

@@ -485,3 +485,9 @@ def teamwork_share(tw_score, total_score) -> float:
     if not total_score or total_score <= 0 or not tw_score or tw_score <= 0:
         return 0.0
     return min(tw_score / total_score, 1.0)
+
+
+def is_test_map(name: str) -> bool:
+    """Mapas de prueba del juego (test_airfield, test_bootcamp…): no son partidas reales."""
+    n = (name or "").lower().replace(" ", "_")
+    return n.startswith("test_") or n in ("test", "testmap")
