@@ -46,7 +46,7 @@ Entre corchetes van los alias.
 | Comando | Qué hace |
 |---|---|
 | `-perfil` [`profile`, `p`] / `-estadisticas` [`stats`, `st`, `e`] | Perfil con pestañas: Resumen, Récords, Perfil, Historial y selector de demos |
-| `-vincular <IGN>` [`link`, `soy`] / `-desvincular` [`unlink`] | Asocia o quita tu IGN |
+| `-vincular <IGN>` [`link`, `soy`] / `-desvincular` [`unlink`] | Asocia o quita tu IGN; con el vínculo, `-perfil`, `-mejora`, `-tendencia` e `-historial` andan sin nombre |
 | `-buscar_usuario` [`buscar`, `search`, `find`] | Busca jugadores por nombre parcial |
 | `-tendencia` [`trend`, `evolucion`] · `-historial` [`hist`] | Evolución del Performance |
 | `-plan_mejora` [`mejora`, `goals`] | Qué mejorar para subir de tier |
@@ -59,7 +59,7 @@ Entre corchetes van los alias.
 | Comando | Qué hace |
 |---|---|
 | `-top` [`ranking`, `lb`] | Top por Performance. `-top activos` filtra a los activos de los últimos 30 días |
-| `-top_periodo` [`top_dia`, `top_semana`, `top_mes`] | Ranking de demos por período, con selects de período y métrica |
+| `-top_periodo` [`top_dia`, `top_semana`, `top_mes`] | Ranking de demos por período (argumentos en cualquier orden: `-top_mes 10 kd`); K/D con mínimo de rondas por período |
 | `-top_rol <rol>` [`top_medicos`, `top_at`, `top_tripulantes`, `top_pilotos`] | Los mejores de cada rol: `medico`, `at` (LAT/HAT), `aa`, `tripulante`, `piloto`, `fusilero`, `ar` (fusilero automático), `ametrallador`, `tirador`, `granadero`, `breacher`, `ingeniero`, `oficial`, `observador`. Con selects de rol y período. También desde `-menu` → Rankings |
 | `-ranking_semanal` [`semanal`] | Ranking de la semana |
 | `-mvp` [`mvp_semana`] | Jugador de la semana |
@@ -67,8 +67,8 @@ Entre corchetes van los alias.
 ### Clanes
 | Comando | Qué hace |
 |---|---|
-| `-promedios` [`avg`] | Ranking histórico de clanes (todos los jugadores) |
-| `-promedios_activos` [`clanes_activos`] | Ranking con los 50 mejores activos de cada clan |
+| `-promedios [clan]` [`avg`] | Ranking de clanes con todos los miembros; con un clan, sus tres promedios (todos, 50+ rondas, activos) explicados |
+| `-promedios_activos` [`clanes_activos`] | Ranking con los activos de cada clan (30 días, hasta 50 por clan) |
 | `-promedios_tops` [`avgtop`] | Promedios del top N de cada clan |
 | `-clan_roster` [`roster`, `plantel`] · `-clan_fortalezas` [`clan_foda`] | Plantel y fortalezas o debilidades de un clan |
 | `-grafico` [`graph`, `g`] | Gráfico de un clan |
@@ -78,7 +78,7 @@ Entre corchetes van los alias.
 |---|---|
 | `-compare` [`vs`, `comparar`] | Jugador contra jugador o clan contra clan, con barras divididas |
 | `-compare_tops` [`topvs`] · `-comparar_equipos` [`teamvs`] | Tops o equipos enfrentados |
-| `-analizar_equipo` [`equipo`] · `-sugerir_equipo` [`sugerir`] · `-prediccion` [`pred`] | Análisis, armado y predicción de equipos |
+| `-analizar_equipo` [`equipo`] · `-sugerir_equipo` [`sugerir`] · `-prediccion A B vs C D` [`pred`] · `-balancear` [`repartir`] | Equipos con el mismo modelo que la web (`bot/services/team_model.py`): fuerza ajustada por muestra, tamaño, roles y probabilidad; `-balancear` reparte hasta 16 jugadores en dos equipos parejos |
 
 ### Utilidades
 `-ayuda` [`h`], `-glosario`, `-modo` (fuente de datos del servidor), `-tips` / `-tips_para`,
