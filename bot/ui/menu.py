@@ -267,7 +267,8 @@ async def _partidas(bot, owner: int):
 async def _equipos(bot, owner: int):
     text = (
         "-# Menú › Equipos\n## Equipos\n"
-        "**Predecir una partida** — `-prediccion` con los jugadores de cada equipo.\n"
+        "**Predecir una partida** — `-prediccion juan pedro vs ana luis`\n"
+        "**Armar dos equipos parejos** — `-balancear juan pedro ana luis …` (hasta 16)\n"
         "**Analizar un equipo** — `-analizar_equipo jugador1 jugador2 …`\n"
         "**Comparar equipos** — `-comparar_equipos`\n"
         "**Comparar dos jugadores o clanes** — `-compare A B`\n"

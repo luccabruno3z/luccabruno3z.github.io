@@ -22,7 +22,7 @@ const MIN_PAIR_ROUNDS = 3;      // rondas juntos para contar un par en la sinerg
 
 // Lo que una escuadra de infantería necesita tener (manual de campo / guía de líder).
 // "apoyo" es el kit de AR y "ametrallador" el de MG: cualquiera de los dos cubre.
-const NEEDED = [[['oficial'], 'Oficial'], [['medico'], 'Médico'], [['apoyo', 'ametrallador'], 'AR o MG'], [['at'], 'Anti-tanque']];
+const NEEDED = [[['oficial'], 'Oficial'], [['medico'], 'Médico'], [['ar', 'ametrallador'], 'AR o MG'], [['at'], 'Anti-tanque']];
 
 /** Etiqueta del rol tal como la trae la demo (Médico, Apoyo, Anti-tanque…). */
 function roleLabel(d, key) {

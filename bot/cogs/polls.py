@@ -54,13 +54,38 @@ class Polls(commands.Cog):
             await ctx.send("❌ No pude crear la encuesta. ¿El canal permite encuestas?", ephemeral=True)
 
     @commands.hybrid_command(aliases=["mvp_semana"])
-    @app_commands.describe(jugadores="Nombres de candidatos separados por coma o '|'")
-    async def mvp(self, ctx: commands.Context, *, jugadores: str):
-        """Encuesta rápida de MVP con los candidatos dados."""
-        sep = "|" if "|" in jugadores else ","
-        cands = [c.strip() for c in jugadores.split(sep) if c.strip()][:10]
+    @app_commands.describe(jugadores="Candidatos separados por espacio, coma o '|'. Vacío: los 5 de mayor score de la semana")
+    async def mvp(self, ctx: commands.Context, *, jugadores: str = ""):
+        """Encuesta de MVP. Sin nombres, propone los 5 de mayor score de la semana (demos)."""
+        if "|" in jugadores:
+            cands = jugadores.split("|")
+        elif "," in jugadores:
+            cands = jugadores.split(",")
+        else:
+            cands = jugadores.split()
+        cands = [c.strip() for c in cands if c.strip()]
+        fetcher = getattr(self.bot, "data_fetcher", None)
+        if cands and fetcher:
+            # Nombre real de cada candidato si está en los datos (si no, tal cual).
+            try:
+                from bot.utils import find_player
+                data = await fetcher.fetch_all_players()
+                cands = [(find_player(data, c) or {}).get("Player", c) for c in cands]
+            except Exception:
+                pass
+        if not cands and fetcher:
+            try:
+                lb = await fetcher.fetch_leaderboard("semana")
+                top = sorted((lb or {}).get("players", []), key=lambda p: p.get("score", 0), reverse=True)
+                cands = [p.get("name") or p.get("ign") or p.get("player") for p in top[:5]]
+                cands = [c for c in cands if c]
+            except Exception:
+                cands = []
+        cands = list(dict.fromkeys(cands))[:10]
         if len(cands) < 2:
-            await ctx.send("❗ Dame al menos 2 candidatos: `-mvp juan, pedro, ana`", ephemeral=True)
+            await ctx.send("❗ Dame al menos 2 candidatos: `-mvp juan pedro ana` "
+                           "(o sin nombres, para votar entre los 5 de mayor score de la semana).",
+                           ephemeral=True)
             return
         poll = discord.Poll(question="🏆 MVP de la semana", duration=timedelta(hours=24 * 7))
         for i, c in enumerate(cands):

@@ -16,6 +16,10 @@ from bot.services.chart_renderer import render_kd_chart, render_comparison_chart
 from bot.utils import format_number, find_player, versus_table, progress_bar, relative_time, sample_reliability, standard_footer, ERR_DB
 from bot.views.demo_details import DemoDetailsView
 from bot.ui.comparison_card import ComparisonCard
+from bot.services.team_model import (
+    Model, resolve_names, split_teams, roles_text, prob_band,
+    BAND_HELP, FEW_ROUNDS, MIN_ROUNDS,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -449,13 +453,19 @@ class Compare(commands.Cog):
             logger.error("Error: %s", e)
             return
 
-        equipo = []
-        for nombre in nombres_jugadores:
-            found = find_player(data, nombre)
-            if not found:
-                await ctx.send(f"⚠️ Jugador '{nombre}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-                return
-            equipo.append(found)
+        r = await self._resolve_or_report(ctx, data, nombres_jugadores)
+        if not r:
+            return
+        equipo, partial, dups = r
+        try:
+            tc = await self.fetcher.fetch_tier_config()
+        except Exception:
+            tc = None
+        try:
+            demo = await self.fetcher.fetch_player_details()
+        except Exception:
+            demo = None
+        model = Model(data, tc)
 
         total_score = sum(j["Total Score"] for j in equipo)
         total_kills = sum(j["Total Kills"] for j in equipo)
@@ -502,6 +512,11 @@ class Compare(commands.Cog):
             inline=True,
         )
 
+        embed.add_field(name="🧭 Fuerza y roles", value=self._team_field(model, equipo, demo), inline=False)
+        warn = self._warnings([equipo], partial, dups)
+        if warn:
+            embed.add_field(name="ℹ️ A tener en cuenta", value=warn[:1024], inline=False)
+
         file = discord.File(buf, filename="team_analysis.png")
         embed.set_image(url="attachment://team_analysis.png")
         embed.set_footer(text=standard_footer(data))
@@ -510,89 +525,63 @@ class Compare(commands.Cog):
     # ── -sugerir_equipo <clan> <num_jugadores> ────────────────────────────
 
     async def _send_sugerencia(self, ctx: commands.Context, clan: str, num_jugadores: int, offset: int = 0):
-        """Internal helper: build and send a team suggestion embed at a given offset."""
+        """Sugerencia de equipo: los más fuertes del clan con el modelo de la web
+        (ajustado por muestra, mínimo de rondas), de a `num_jugadores`."""
         try:
             data = await self.fetcher.fetch_json(json_url(clan))
+            all_players = await self.fetcher.fetch_all_players()
         except Exception as e:
             await ctx.send(ERR_DB)
             logger.error("Error: %s", e)
             return
-
-        jugadores_ordenados = sorted(
-            data,
-            key=lambda x: (x.get("Kills per Round", 0), -x.get("Deaths per Round", 0)),
-            reverse=True,
-        )
-
-        # If offset exceeds available players, wrap around
-        if offset >= len(jugadores_ordenados):
+        try:
+            tc = await self.fetcher.fetch_tier_config()
+        except Exception:
+            tc = None
+        try:
+            demo = await self.fetcher.fetch_player_details()
+        except Exception:
+            demo = None
+        model = Model(all_players, tc)
+        pool = [p for p in (data or []) if (p.get("Rounds") or 0) >= MIN_ROUNDS]
+        ordenados = sorted(pool, key=model.strength, reverse=True)
+        if offset >= len(ordenados):
             offset = 0
-
-        equipo = jugadores_ordenados[offset : offset + num_jugadores]
+        equipo = ordenados[offset: offset + num_jugadores]
         if not equipo:
-            await ctx.send("No hay suficientes jugadores para otra sugerencia.")
+            await ctx.send(f"**{clan}** no tiene jugadores con {MIN_ROUNDS}+ rondas para sugerir.")
             return
 
-        total_score = sum(j["Total Score"] for j in equipo)
-        total_kills = sum(j["Total Kills"] for j in equipo)
-        total_deaths = sum(j["Total Deaths"] for j in equipo)
-        total_rounds = sum(j["Rounds"] for j in equipo)
-        avg_ps = sum(j["Performance Score"] for j in equipo) / len(equipo)
-        avg_kpr = total_kills / total_rounds if total_rounds > 0 else 0
-        avg_dpr = total_deaths / total_rounds if total_rounds > 0 else 0
-        team_kd = total_kills / total_deaths if total_deaths > 0 else 0
-
-        suggestion_num = (offset // num_jugadores) + 1
+        n = (offset // num_jugadores) + 1
         embed = discord.Embed(
-            title=f"🎯 Equipo Sugerido para {clan} (#{suggestion_num})",
-            description=f"Los **{len(equipo)}** mejores jugadores disponibles del clan **{clan}**:",
+            title=f"🎯 Equipo sugerido para {clan} (#{n})",
+            description=(f"Los **{len(equipo)}** más fuertes del clan con {MIN_ROUNDS}+ rondas "
+                         f"({len(pool)} disponibles), por fuerza: Performance, K/D y kills por ronda "
+                         "ajustados por muestra, como en la web."),
             color=discord.Color.blue(),
         )
         embed.set_thumbnail(url=BOT_THUMBNAIL)
+        rows = []
+        for i, p in enumerate(equipo, offset + 1):
+            rows.append(f"`{i:>2}.` **{p['Player']}**: fuerza {model.strength(p) * 100:.0f} · "
+                        f"Perf. {p.get('Performance Score', 0):.3f} · K/D {p.get('K/D Ratio', 0):.2f} · "
+                        f"{format_number(p.get('Rounds', 0))} rondas")
+        embed.add_field(name="👥 Jugadores", value="\n".join(rows)[:1024], inline=False)
+        embed.add_field(name="📊 El equipo", value=self._team_field(model, equipo, demo), inline=False)
 
-        for j in equipo:
-            embed.add_field(
-                name=f"👤 {j['Player']}",
-                value=(
-                    f"💥 **K/D:** {format_number(j['K/D Ratio'])}\n"
-                    f"🔫 **Kills/Ronda:** {format_number(j['Kills per Round'])}\n"
-                    f"💀 **Muertes/Ronda:** {format_number(j['Deaths per Round'])}\n"
-                    f"🌟 **Performance:** {format_number(j['Performance Score'])}\n"
-                    f"🎮 **Rondas:** {format_number(j['Rounds'])}"
-                ),
-                inline=True,
-            )
-
-        embed.add_field(
-            name="📊 Métricas del Equipo",
-            value=(
-                f"💥 **K/D Equipo:** {format_number(team_kd)}\n"
-                f"🌟 **Avg Performance:** {format_number(avg_ps)}\n"
-                f"🔫 **Kills/Ronda:** {format_number(avg_kpr)}\n"
-                f"💀 **Muertes/Ronda:** {format_number(avg_dpr)}\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"☠️ **Total Kills:** {format_number(total_kills)}\n"
-                f"💀 **Total Muertes:** {format_number(total_deaths)}\n"
-                f"🏆 **Total Score:** {format_number(total_score)}\n"
-                f"🎮 **Total Rondas:** {format_number(total_rounds)}"
-            ),
-            inline=False,
-        )
-
-        # K/D chart for the suggested team
-        team_chart_items = [(j["Player"], j["K/D Ratio"], "#00FFFF") for j in equipo]
-        team_buf = render_horizontal_bars(team_chart_items, title=f"K/D Equipo Sugerido", max_value=3.0)
-        team_file = discord.File(team_buf, filename="team_kd.png")
+        chart = [(p["Player"], model.strength(p) * 100, "#00FFFF") for p in equipo]
+        buf = render_horizontal_bars(chart, title="Fuerza (de 100)", max_value=100)
+        file = discord.File(buf, filename="team_kd.png")
         embed.set_image(url="attachment://team_kd.png")
 
         next_offset = offset + num_jugadores
-        # Only show the button if there are more players to suggest
-        if next_offset < len(jugadores_ordenados):
+        if next_offset < len(ordenados):
+            embed.set_footer(text="«Otra sugerencia» muestra los siguientes por fuerza.")
             view = OtraSugerenciaView(self, ctx, clan, num_jugadores, next_offset)
-            await ctx.send(embed=embed, file=team_file, view=view)
+            await ctx.send(embed=embed, file=file, view=view)
         else:
-            embed.set_footer(text="No hay mas jugadores disponibles para otra sugerencia.")
-            await ctx.send(embed=embed, file=team_file)
+            embed.set_footer(text="No hay más jugadores con suficientes rondas para otra sugerencia.")
+            await ctx.send(embed=embed, file=file)
 
     @commands.hybrid_command(aliases=["suggest", "sugerir"])
     @commands.cooldown(1, 10, commands.BucketType.user)
@@ -623,341 +612,193 @@ class Compare(commands.Cog):
 
         await self._send_sugerencia(ctx, clan_tag, num_jugadores, offset=0)
 
-    # ── -comparar_equipos <equipo1> <equipo2> <jugadores...> ──────────────
+    # ── Equipos: helpers del modelo (el mismo de la web) ─────────────────
+
+    async def _team_ctx(self, ctx):
+        """(jugadores, modelo, demos) o None si falló la carga."""
+        try:
+            data = await self.fetcher.fetch_all_players()
+        except Exception as e:
+            await ctx.send(ERR_DB)
+            logger.error("Error: %s", e)
+            return None
+        try:
+            tc = await self.fetcher.fetch_tier_config()
+        except Exception:
+            tc = None
+        try:
+            demo = await self.fetcher.fetch_player_details()
+        except Exception:
+            demo = None
+        return data, Model(data, tc), demo
+
+    async def _resolve_or_report(self, ctx, data, names):
+        found, missing, partial, dups = resolve_names(data, names)
+        if missing:
+            await ctx.send(
+                "⚠️ No encontré a: " + ", ".join(f"**{m}**" for m in missing)
+                + ". Probá `-buscar <nombre>` para ver cómo está escrito."
+            )
+            return None
+        return found, partial, dups
+
+    @staticmethod
+    def _team_field(model, team, demo):
+        score = model.team_score(team)
+
+        def avg(k):
+            return sum((p.get(k) or 0) for p in team) / len(team)
+
+        lines = [
+            "👥 " + ", ".join(p["Player"] for p in team),
+            f"**Fuerza:** {score * 100:.0f} de 100",
+            f"Performance {avg('Performance Score'):.3f} · K/D {avg('K/D Ratio'):.2f} · "
+            f"Kills/ronda {avg('Kills per Round'):.2f}",
+        ]
+        rt = roles_text(team, demo)
+        if rt:
+            lines.append(rt)
+        return "\n".join(lines)[:1024]
+
+    @staticmethod
+    def _warnings(teams, partial, dups):
+        out = []
+        if partial:
+            out.append("🔎 Nombres resueltos: " + ", ".join(f"{a} → **{b}**" for a, b in partial))
+        if dups:
+            out.append("♻️ Repetidos (se cuentan una vez): " + ", ".join(dups))
+        few = [p["Player"] for t in teams for p in t if (p.get("Rounds") or 0) < FEW_ROUNDS]
+        if few:
+            out.append(f"🟡 Con menos de {FEW_ROUNDS} rondas cuentan cerca del promedio: " + ", ".join(few))
+        return "\n".join(out)
+
+    async def _send_matchup(self, ctx, model, demo, name1, team1, name2, team2, partial, dups):
+        prob = model.win_prob(team1, team2, by_size=True)
+        fav, fav_p = (name1, prob) if prob >= 0.5 else (name2, 1 - prob)
+        band = prob_band(prob)
+        if band == "parejo":
+            desc = f"🤝 **Parejo:** {name1} {prob:.0%} · {name2} {1 - prob:.0%}"
+            color = discord.Color.gold()
+        else:
+            desc = f"🏆 **{fav}** tiene **{fav_p:.0%}** de ganar: {band}"
+            color = discord.Color.green() if fav == name1 else discord.Color.red()
+        if len(team1) != len(team2):
+            desc += (f"\n-# {len(team1)} contra {len(team2)}: el equipo más chico suma menos "
+                     "(los lugares vacíos valen cero).")
+        embed = discord.Embed(title=f"🔮 {name1} vs {name2}", description=desc, color=color)
+        embed.add_field(name=f"⚔️ {name1}", value=self._team_field(model, team1, demo), inline=True)
+        embed.add_field(name=f"⚔️ {name2}", value=self._team_field(model, team2, demo), inline=True)
+        warn = self._warnings([team1, team2], partial, dups)
+        if warn:
+            embed.add_field(name="ℹ️ A tener en cuenta", value=warn[:1024], inline=False)
+        buf = render_probability_bar(prob, 1 - prob, label_a=name1[:20], label_b=name2[:20])
+        file = discord.File(buf, filename="prediccion.png")
+        embed.set_image(url="attachment://prediccion.png")
+        embed.set_footer(text=f"Cómo leerlo: {BAND_HELP}. No ve mapa, modo ni comunicación.")
+        await ctx.send(embed=embed, file=file)
+
+    # ── -prediccion <jugadores> vs <jugadores> ───────────────────────────
+
+    @commands.hybrid_command(aliases=["predict", "pred"])
+    @commands.cooldown(1, 10, commands.BucketType.user)
+    @app_commands.describe(jugadores="Equipo 1 vs Equipo 2, p. ej.: juan pedro vs ana luis")
+    async def prediccion(self, ctx: commands.Context, *, jugadores: str = None):
+        """Probabilidad de ganar entre dos equipos (mismo modelo que la web)."""
+        teams = split_teams(jugadores or "")
+        if not teams or not teams[0] or not teams[1]:
+            await ctx.send(
+                "❗ Separá los equipos con `vs`: `-prediccion juan pedro vs ana luis`.\n"
+                "-# También sirve `contra` o `|`. Para repartir una lista en dos equipos parejos: `-balancear`."
+            )
+            return
+        if len(teams[0]) > 8 or len(teams[1]) > 8:
+            await ctx.send("❗ Hasta 8 jugadores por equipo.")
+            return
+        await ctx.defer()
+        loaded = await self._team_ctx(ctx)
+        if not loaded:
+            return
+        data, model, demo = loaded
+        r1 = await self._resolve_or_report(ctx, data, teams[0])
+        if not r1:
+            return
+        r2 = await self._resolve_or_report(ctx, data, teams[1])
+        if not r2:
+            return
+        names1 = {p["Player"] for p in r1[0]}
+        both = [p["Player"] for p in r2[0] if p["Player"] in names1]
+        if both:
+            await ctx.send("❗ Un jugador no puede estar en los dos equipos: " + ", ".join(f"**{n}**" for n in both))
+            return
+        await self._send_matchup(ctx, model, demo, "Equipo 1", r1[0], "Equipo 2", r2[0],
+                                 r1[1] + r2[1], r1[2] + r2[2])
+
+    # ── -comparar_equipos <nombre1> <nombre2> <jugadores> ────────────────
 
     @commands.hybrid_command(aliases=["teamvs"])
     @commands.cooldown(1, 15, commands.BucketType.user)
     @app_commands.describe(
         equipo1="Nombre del primer equipo",
         equipo2="Nombre del segundo equipo",
-        jugadores="Jugadores separados por espacios (mitad para cada equipo)",
+        jugadores="Jugadores del equipo 1 vs jugadores del equipo 2",
     )
-    async def comparar_equipos(
-        self,
-        ctx: commands.Context,
-        equipo1: str = None,
-        equipo2: str = None,
-        *,
-        jugadores: str = None,
-    ):
-        if not equipo1 or not equipo2:
-            await ctx.send(
-                "❗ Uso: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 ... Jugador1_E2 ...`."
-            )
+    async def comparar_equipos(self, ctx: commands.Context, equipo1: str = None,
+                               equipo2: str = None, *, jugadores: str = None):
+        uso = ("❗ Uso: `-comparar_equipos Rojos Azules juan pedro vs ana luis`\n"
+               "-# Primero los dos nombres de equipo, después los jugadores separados con `vs`. "
+               "Sin `vs`, la primera mitad va al primer equipo.")
+        if not equipo1 or not equipo2 or not jugadores:
+            await ctx.send(uso)
             return
-
-        if not jugadores:
-            await ctx.send(
-                "❗ Por favor, proporciona los jugadores de ambos equipos. "
-                "Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`."
-            )
+        teams = split_teams(jugadores)
+        if not teams:
+            names = jugadores.split()
+            if len(names) < 2 or len(names) % 2:
+                await ctx.send(uso)
+                return
+            teams = (names[: len(names) // 2], names[len(names) // 2:])
+        if not teams[0] or not teams[1] or len(teams[0]) > 8 or len(teams[1]) > 8:
+            await ctx.send("❗ Cada equipo necesita entre 1 y 8 jugadores.\n" + uso)
             return
-
-        nombres_jugadores = jugadores.split()
-
-        if len(nombres_jugadores) > 16:
-            await ctx.send("❗ El máximo de jugadores es 8 por equipo (16 en total).")
-            return
-
-        if len(nombres_jugadores) < 2 or len(nombres_jugadores) % 2 != 0:
-            await ctx.send(
-                "❗ Por favor, proporciona un número par de jugadores. "
-                "Ejemplo: `-comparar_equipos Equipo1 Equipo2 Jugador1_E1 Jugador2_E1 ... Jugador1_E2 Jugador2_E2 ...`."
-            )
-            return
-
         await ctx.defer()
-
-        try:
-            data = await self.fetcher.fetch_all_players()
-        except Exception as e:
-            await ctx.send(ERR_DB)
-            logger.error("Error: %s", e)
+        loaded = await self._team_ctx(ctx)
+        if not loaded:
             return
+        data, model, demo = loaded
+        r1 = await self._resolve_or_report(ctx, data, teams[0])
+        if not r1:
+            return
+        r2 = await self._resolve_or_report(ctx, data, teams[1])
+        if not r2:
+            return
+        await self._send_matchup(ctx, model, demo, equipo1, r1[0], equipo2, r2[0],
+                                 r1[1] + r2[1], r1[2] + r2[2])
 
-        mitad = len(nombres_jugadores) // 2
-        equipos = {
-            equipo1: nombres_jugadores[:mitad],
-            equipo2: nombres_jugadores[mitad:],
-        }
+    # ── -balancear <jugadores> ───────────────────────────────────────────
 
-        resultados = {}
-        all_team_data = {}
-
-        for equipo_name, nombres in equipos.items():
-            equipo_data = []
-            for nombre in nombres:
-                found = find_player(data, nombre)
-                if not found:
-                    await ctx.send(f"⚠️ Jugador '{nombre}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-                    return
-                equipo_data.append(found)
-
-            total_score = sum(j["Total Score"] for j in equipo_data)
-            total_kills = sum(j["Total Kills"] for j in equipo_data)
-            total_deaths = sum(j["Total Deaths"] for j in equipo_data)
-            total_rounds = sum(j["Rounds"] for j in equipo_data)
-            avg_ps = sum(j["Performance Score"] for j in equipo_data) / len(equipo_data)
-            avg_kpr = total_kills / total_rounds if total_rounds > 0 else 0
-            avg_dpr = total_deaths / total_rounds if total_rounds > 0 else 0
-            team_kd = total_kills / total_deaths if total_deaths > 0 else 0
-
-            resultados[equipo_name] = {
-                "total_score": total_score,
-                "total_kills": total_kills,
-                "total_deaths": total_deaths,
-                "total_rounds": total_rounds,
-                "avg_performance_score": avg_ps,
-                "avg_kills_per_round": avg_kpr,
-                "avg_deaths_per_round": avg_dpr,
-                "team_kd_ratio": team_kd,
-            }
-            all_team_data[equipo_name] = equipo_data
-
-        # Generate comparison chart
-        team_names = list(all_team_data.keys())
-        buf = render_comparison_chart(
-            team_names[0],
-            all_team_data[team_names[0]],
-            team_names[1],
-            all_team_data[team_names[1]],
-        )
-
-        embed = discord.Embed(
-            title=f"📊 {equipo1} vs {equipo2}",
-            description=f"Comparación de equipos personalizados ({mitad} jugadores c/u)",
-            color=discord.Color.blue(),
-        )
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-
-        for equipo_name, datos in resultados.items():
-            roster = ", ".join(p["Player"] for p in all_team_data[equipo_name])
-            embed.add_field(
-                name=f"⚔️ {equipo_name}",
-                value=(
-                    f"👥 {roster}\n"
-                    f"━━━━━━━━━━━━━━━━━━━━\n"
-                    f"💥 **K/D Equipo:** {format_number(datos['team_kd_ratio'])}\n"
-                    f"🌟 **Avg Performance:** {format_number(datos['avg_performance_score'])}\n"
-                    f"🔫 **Kills/Ronda:** {format_number(datos['avg_kills_per_round'])}\n"
-                    f"💀 **Muertes/Ronda:** {format_number(datos['avg_deaths_per_round'])}\n"
-                    f"☠️ **Total Kills:** {format_number(datos['total_kills'])}\n"
-                    f"🏆 **Total Score:** {format_number(datos['total_score'])}\n"
-                    f"🎮 **Rondas:** {format_number(datos['total_rounds'])}"
-                ),
-                inline=True,
-            )
-
-        # Team-level comparison bars chart
-        t_names = list(resultados.keys())
-        comparison_metrics = [
-            ("K/D", resultados[t_names[0]]["team_kd_ratio"], resultados[t_names[1]]["team_kd_ratio"]),
-            ("Avg PS", resultados[t_names[0]]["avg_performance_score"], resultados[t_names[1]]["avg_performance_score"]),
-            ("Kills/Ronda", resultados[t_names[0]]["avg_kills_per_round"], resultados[t_names[1]]["avg_kills_per_round"]),
-            ("Muertes/Ronda", resultados[t_names[0]]["avg_deaths_per_round"], resultados[t_names[1]]["avg_deaths_per_round"]),
-        ]
-        comp_buf = render_comparison_bars(
-            comparison_metrics,
-            name1=t_names[0],
-            name2=t_names[1],
-            title=f"{t_names[0]} vs {t_names[1]}",
-        )
-        comp_file = discord.File(comp_buf, filename="team_comparison_bars.png")
-        embed.set_image(url="attachment://team_comparison_bars.png")
-        embed.set_footer(text=standard_footer(data))
-        await ctx.send(embed=embed, file=comp_file)
-
-        # Per-player K/D chart as follow-up
-        kd_file = discord.File(buf, filename="team_comparison.png")
-        kd_embed = discord.Embed(
-            title=f"📊 K/D por Jugador: {equipo1} vs {equipo2}",
-            color=discord.Color.blue(),
-        )
-        kd_embed.set_image(url="attachment://team_comparison.png")
-        await ctx.send(embed=kd_embed, file=kd_file)
-
-
-    # ── -prediccion <jugadores_equipo1> vs <jugadores_equipo2> ──────────
-
-    @commands.hybrid_command(aliases=["predict", "pred"])
+    @commands.hybrid_command(aliases=["balance", "repartir"])
     @commands.cooldown(1, 10, commands.BucketType.user)
-    @app_commands.describe(
-        jugadores="Jugadores: Equipo1_J1 Equipo1_J2 ... vs Equipo2_J1 Equipo2_J2 ..."
-    )
-    async def prediccion(self, ctx: commands.Context, *, jugadores: str = None):
-        """Predice el ganador entre dos equipos basándose en estadísticas."""
-        if not jugadores or " vs " not in jugadores:
-            await ctx.send(
-                "❗ Uso: `-prediccion Jugador1 Jugador2 Jugador3 vs Jugador4 Jugador5 Jugador6`."
-            )
+    @app_commands.describe(jugadores="Entre 2 y 16 jugadores separados por espacios")
+    async def balancear(self, ctx: commands.Context, *, jugadores: str = None):
+        """Reparte una lista de jugadores en dos equipos lo más parejos posible."""
+        names = (jugadores or "").replace(",", " ").split()
+        if len(names) < 2 or len(names) > 16:
+            await ctx.send("❗ Pasame entre 2 y 16 jugadores: `-balancear juan pedro ana luis`.")
             return
-
-        parts = jugadores.split(" vs ", 1)
-        team1_names = parts[0].strip().split()
-        team2_names = parts[1].strip().split()
-
-        if not team1_names or not team2_names:
-            await ctx.send("❗ Ambos equipos deben tener al menos un jugador.")
+        await ctx.defer()
+        loaded = await self._team_ctx(ctx)
+        if not loaded:
             return
-
-        if len(team1_names) > 8 or len(team2_names) > 8:
-            await ctx.send("❗ El máximo de jugadores por equipo es 8.")
+        data, model, demo = loaded
+        r = await self._resolve_or_report(ctx, data, names)
+        if not r:
             return
-
-        try:
-            data = await self.fetcher.fetch_all_players()
-        except Exception as e:
-            await ctx.send(ERR_DB)
-            logger.error("Error: %s", e)
+        players, partial, dups = r
+        if len(players) < 2:
+            await ctx.send("❗ Quedan menos de 2 jugadores distintos.")
             return
-
-        # Try to load dynamic predictor weights
-        tier_config = None
-        try:
-            tier_config = await self.fetcher.fetch_tier_config()
-        except Exception:
-            pass
-
-        def find_players(names):
-            players = []
-            for name in names:
-                found = find_player(data, name)
-                if not found:
-                    return None, name
-                players.append(found)
-            return players, None
-
-        team1, missing1 = find_players(team1_names)
-        if team1 is None:
-            await ctx.send(f"⚠️ Jugador '{missing1}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-            return
-
-        team2, missing2 = find_players(team2_names)
-        if team2 is None:
-            await ctx.send(f"⚠️ Jugador '{missing2}' no encontrado. Probá `-buscar <nombre>` para verificar.")
-            return
-
-        # Fetch demo data for winrate bonus (if available)
-        demo_data = None
-        try:
-            demo_data = await self.fetcher.fetch_player_details()
-        except Exception:
-            pass
-
-        def _get_demo_winrate(player_name: str) -> float:
-            """Get player's demo winrate (0.0-1.0), or 0.5 if not found."""
-            if not demo_data:
-                return 0.5
-            dp = find_player(demo_data, player_name, key="ign")
-            if dp:
-                w = dp.get("wins", 0)
-                l = dp.get("losses", 0)
-                total = w + l
-                return w / total if total > 3 else 0.5  # min 3 games for reliability
-            return 0.5
-
-        def team_stats(players):
-            avg_ps = sum(p.get("Performance Score", 0) for p in players) / len(players)
-            avg_kd = sum(p.get("K/D Ratio", 0) for p in players) / len(players)
-            avg_kpr = sum(p.get("Kills per Round", 0) for p in players) / len(players)
-            avg_wr = sum(_get_demo_winrate(p["Player"]) for p in players) / len(players)
-            return avg_ps, avg_kd, avg_kpr, avg_wr
-
-        t1_ps, t1_kd, t1_kpr, t1_wr = team_stats(team1)
-        t2_ps, t2_kd, t2_kpr, t2_wr = team_stats(team2)
-
-        # Dynamic weights from tier_config.json
-        pw = (tier_config or {}).get("predictor_weights", {"ps": 0.40, "kd": 0.25, "kpr": 0.15, "winrate": 0.20})
-        def weighted_score(ps, kd, kpr, wr):
-            return ps * pw["ps"] + kd * pw["kd"] + kpr * pw["kpr"] + wr * pw["winrate"]
-
-        t1_weighted = weighted_score(t1_ps, t1_kd, t1_kpr, t1_wr)
-        t2_weighted = weighted_score(t2_ps, t2_kd, t2_kpr, t2_wr)
-
-        total = t1_weighted + t2_weighted
-        if total > 0:
-            t1_prob = (t1_weighted / total) * 100
-            t2_prob = (t2_weighted / total) * 100
-        else:
-            t1_prob = 50.0
-            t2_prob = 50.0
-
-        team1_label = " ".join(team1_names)
-        team2_label = " ".join(team2_names)
-
-        if t1_prob > t2_prob:
-            winner = f"🏆 **Equipo 1** ({team1_label}) tiene ventaja."
-            color = discord.Color.green()
-        elif t2_prob > t1_prob:
-            winner = f"🏆 **Equipo 2** ({team2_label}) tiene ventaja."
-            color = discord.Color.red()
-        else:
-            winner = "🤝 Ambos equipos están igualados."
-            color = discord.Color.gold()
-
-        # Visual probability chart
-        prob_buf = render_probability_bar(
-            t1_prob / 100, t2_prob / 100,
-            label_a="Equipo 1", label_b="Equipo 2"
-        )
-        prob_file = discord.File(prob_buf, filename="prediccion.png")
-
-        embed = discord.Embed(
-            title="🔮 Predicción de Partido",
-            description=winner,
-            color=color,
-        )
-        embed.set_image(url="attachment://prediccion.png")
-        embed.set_thumbnail(url=BOT_THUMBNAIL)
-
-        embed.add_field(
-            name=f"📊 Equipo 1",
-            value=(
-                f"👥 {', '.join(team1_names)}\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"🌟 **Avg Performance:** {format_number(t1_ps)}\n"
-                f"💥 **Avg K/D:** {format_number(t1_kd)}\n"
-                f"🔫 **Avg Kills/Ronda:** {format_number(t1_kpr)}"
-            ),
-            inline=True,
-        )
-
-        embed.add_field(
-            name=f"📊 Equipo 2",
-            value=(
-                f"👥 {', '.join(team2_names)}\n"
-                f"━━━━━━━━━━━━━━━━━━━━\n"
-                f"🌟 **Avg Performance:** {format_number(t2_ps)}\n"
-                f"💥 **Avg K/D:** {format_number(t2_kd)}\n"
-                f"🔫 **Avg Kills/Ronda:** {format_number(t2_kpr)}"
-            ),
-            inline=True,
-        )
-
-        # Check for low-sample players in either team
-        low_sample_players = []
-        for p in team1:
-            if p.get("Rounds", 0) < 50:
-                low_sample_players.append(p["Player"])
-        for p in team2:
-            if p.get("Rounds", 0) < 50:
-                low_sample_players.append(p["Player"])
-
-        if low_sample_players:
-            embed.add_field(
-                name="⚠️ Advertencia de muestra",
-                value=(
-                    f"Los siguientes jugadores tienen < 50 rondas: "
-                    f"**{', '.join(low_sample_players)}**\n"
-                    "La predicción puede ser menos confiable."
-                ),
-                inline=False,
-            )
-
-        embed.set_footer(
-            text=f"📐 Pesos: {int(pw['ps']*100)}% PS · {int(pw['kd']*100)}% K/D · {int(pw['kpr']*100)}% KPR · {int(pw['winrate']*100)}% WR"
-        )
-        await ctx.send(embed=embed, file=prob_file)
+        a, b = model.balance(players)
+        await self._send_matchup(ctx, model, demo, "Equipo A", a, "Equipo B", b, partial, dups)
 
 
     # ── -compare_tops <clan1> <clan2> <N> ──────────────────────────────
