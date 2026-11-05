@@ -18,7 +18,7 @@ import discord
 
 from bot.config import BASE_URL, BOT_THUMBNAIL, MIN_ROUNDS
 from bot.services.chart_renderer import render_history_chart
-from bot.utils import find_player, format_number, standard_footer
+from bot.utils import find_player, format_number, standard_footer, history_trend
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,8 @@ async def build_history_embed(data_fetcher, jugador, *, color=None):
     current = scores[-1]
     best = max(scores)
     worst = min(scores)
-    trend = "📈 Mejorando" if scores[-1] >= scores[-2] else "📉 Bajando"
+    arrow, label, _ = history_trend(scores)
+    trend = f"{arrow} {label}"
 
     embed = discord.Embed(
         title=f"📈 Historial de {actual_name}",

@@ -38,12 +38,39 @@ def percentile(player_value: float, all_values: list[float]) -> str:
     return f"top {top_pct:.0f}%"
 
 
-_DEFAULT_THRESHOLDS = {"elite": 0.70, "veterano": 0.55, "experimentado": 0.40, "soldado": 0.25}
+# Respaldo por si tier_config.json no cargó (valores de noviembre de 2026). Los cortes
+# reales se guardan con set_live_thresholds cada vez que se baja tier_config.json, así
+# todos los comandos dan el mismo tier aunque no pasen los cortes a mano.
+_DEFAULT_THRESHOLDS = {"elite": 0.811, "veterano": 0.700, "experimentado": 0.574, "soldado": 0.439}
+_live_thresholds: dict | None = None
+TIER_ORDER = ["Recluta", "Soldado", "Experimentado", "Veterano", "Elite"]
+
+
+def set_live_thresholds(thresholds) -> None:
+    """Guarda los cortes de tier_config.json para los que no los pasan."""
+    global _live_thresholds
+    if isinstance(thresholds, dict) and all(
+        isinstance(thresholds.get(k), (int, float)) for k in _DEFAULT_THRESHOLDS
+    ):
+        _live_thresholds = dict(thresholds)
+
+
+def current_thresholds() -> dict:
+    return _live_thresholds or _DEFAULT_THRESHOLDS
+
+
+def next_tier(score: float, thresholds: dict | None = None):
+    """(nombre, corte) del tier siguiente, o None si ya es Elite."""
+    t = thresholds or current_thresholds()
+    for name in ("soldado", "experimentado", "veterano", "elite"):
+        if score < t[name]:
+            return name.capitalize(), t[name]
+    return None
 
 
 def _tier_name(score: float, thresholds: dict | None = None) -> str:
     """Get tier name from score using dynamic or default thresholds."""
-    t = thresholds or _DEFAULT_THRESHOLDS
+    t = thresholds or current_thresholds()
     if score >= t["elite"]:
         return "Elite"
     elif score >= t["veterano"]:
@@ -280,9 +307,12 @@ def sigmoid_penalty_display(rounds: int) -> str:
     pct = penalty * 100
     if pct >= 95:
         return ""  # No penalty worth mentioning
-    rounds_for_95 = 25 + 10 * math.log(19)  # ~54.4 rounds
-    remaining = max(0, int(rounds_for_95) - rounds)
-    return f"⚠️ Penalización: {pct:.0f}% (necesitás ~{remaining} rondas más)"
+    remaining = max(0, PENALTY_FREE_ROUNDS - rounds)
+    return (f"⚠️ Pocas rondas: el Performance cuenta al {pct:.0f} % "
+            f"(llega al 95 % con ~{remaining} rondas más)")
+
+
+PENALTY_FREE_ROUNDS = 55  # desde acá la penalización por pocas rondas es <5 %
 
 
 def stat_confidence_warning(rounds: int) -> str:
@@ -424,3 +454,34 @@ def squad_play_text(p: dict):
 ERR_DB = "❌ Error al conectar con la base de datos. Inténtalo más tarde."
 ERR_JSON = "❌ Error al procesar los datos."
 ERR_PLAYER_NOT_FOUND = "⚠️ Jugador '{}' no encontrado en la base de datos."
+
+
+def history_trend(scores: list) -> tuple[str, str, float]:
+    """Tendencia del Performance en el historial: (flecha, texto, valor).
+
+    La usan -tendencia y -historial, así los dos dicen lo mismo: pesa 70 % el cambio
+    promedio de las últimas 5 capturas y 30 % el de todo el historial; menos de
+    ±0,005 por captura es "Estable".
+    """
+    if len(scores) < 2:
+        return "➡️", "Estable", 0.0
+    short = scores[-5:]
+    short_ch = [short[i] - short[i - 1] for i in range(1, len(short))]
+    all_ch = [scores[i] - scores[i - 1] for i in range(1, len(scores))]
+    w = (sum(short_ch) / len(short_ch)) * 0.7 + (sum(all_ch) / len(all_ch)) * 0.3
+    if w > 0.005:
+        return "📈", "Mejorando", w
+    if w < -0.005:
+        return "📉", "En baja", w
+    return "➡️", "Estable", w
+
+
+def teamwork_share(tw_score, total_score) -> float:
+    """Parte del score que es teamwork, entre 0 y 1.
+
+    Con teamkills el score (o el de teamwork) puede quedar negativo y la división daba
+    porcentajes negativos o mayores a 100 %.
+    """
+    if not total_score or total_score <= 0 or not tw_score or tw_score <= 0:
+        return 0.0
+    return min(tw_score / total_score, 1.0)

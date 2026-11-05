@@ -267,7 +267,10 @@ async def build_assets(name, bot):
             d[nm] = d.get(nm, 0) + c
     grand = sum(totals.values()) or 1
     embed = discord.Embed(title=f"🧩 Assets de {player['ign']}",
-                          description=f"Cómo consigue sus **{grand}** kills, por tipo de medio",
+                          description=(f"Cómo consigue sus kills, por tipo de medio: **{format_number(grand)}** eventos de kill "
+                                       f"en {format_number(player.get('rounds_played', 0))} rondas grabadas.\n"
+                                       f"-# Se cuentan desde los eventos de cada ronda, no del marcador: no coinciden con las "
+                                       f"{format_number(player.get('total_kills', 0))} kills del marcador de demos ni con los totales de PRStats."),
                           color=discord.Color.teal())
     chart_items = []
     file = None

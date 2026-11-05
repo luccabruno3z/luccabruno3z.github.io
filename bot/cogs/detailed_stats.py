@@ -19,7 +19,7 @@ from bot.config import BOT_THUMBNAIL, performance_color
 from bot.services.chart_renderer import render_horizontal_bars, render_multi_comparison, render_top_chart
 from bot.ui.leaderboard_card import LeaderboardView
 from bot.ui.role_leaderboard_card import RoleLeaderboardView, resolve_role
-from bot.utils import format_number, find_player, standard_footer, progress_bar, squad_play_text
+from bot.utils import format_number, find_player, standard_footer, progress_bar, squad_play_text, teamwork_share
 from bot.views.explain import ExplainView
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,8 @@ class DetailedStats(commands.Cog):
             await ctx.send(f"**{player['ign']}** no tiene datos de kits registrados.")
             return
 
-        total = sum(c for _, c in kits)
+        # Porcentaje sobre todos sus kits (no solo los 10 que se muestran), igual que -rol.
+        total = sum(normalized.values())
         kit_items = []
         for kit_name, count in kits:
             pct = (count / total * 100) if total > 0 else 0
@@ -497,7 +498,8 @@ class DetailedStats(commands.Cog):
 
         embed = discord.Embed(
             title=f"🔫 Armas de {player['ign']}",
-            description=f"Total de kills: **{total}**",
+            description=(f"Kills con sus {len(weapons)} armas personales más usadas: **{format_number(total)}**\n"
+                         "-# Solo armas de infantería; las kills con vehículos y emplazamientos están en `-assets`."),
             color=discord.Color.red(),
         )
         embed.set_image(url="attachment://armas.png")
@@ -647,8 +649,8 @@ class DetailedStats(commands.Cog):
         # Teamwork ratio
         total_score = player.get("total_score", 0)
         tw_score = player.get("total_teamwork_score", 0)
-        tw_ratio = (tw_score / total_score) if total_score > 0 else 0
-        lines.append(f"\n🤝 Teamwork ratio: **{tw_ratio:.1%}** (tw_score/score)")
+        tw_ratio = teamwork_share(tw_score, total_score)
+        lines.append(f"\n🤝 Teamwork ratio: **{tw_ratio:.1%}** (parte del score que es teamwork)")
 
         # Color based on specialization
         if medic_count > 0 and medic_count >= total_kit_picks * 0.3:
@@ -707,7 +709,8 @@ class DetailedStats(commands.Cog):
 
         lines = []
         # Overall winrate
-        lines.append(f"**Winrate general:** **{overall_wr:.1f}%** ({wins}W / {losses}L)")
+        lines.append(f"**Winrate general:** **{overall_wr:.1f}%** ({wins} ganadas, {losses} perdidas)")
+        lines.append("-# Ganadas sobre ganadas + perdidas; las rondas sin ganador no cuentan.")
 
         # Per-gamemode: winrate + desempeño (K/D, KPR), nombres legibles
         gm_stats = player.get("gamemode_stats", {})
@@ -720,11 +723,13 @@ class DetailedStats(commands.Cog):
                 # ganador). Se computa acá y no del campo publicado, que en data vieja
                 # era wins/rounds (diluido).
                 decided = w + gs.get("losses", 0)
-                wr = (w / decided * 100) if decided else 0
+                if not decided:
+                    continue
+                wr = w / decided * 100
                 kd = gs.get("kd", 0)
                 kpr = gs.get("avg_kpr", 0)
                 lines.append(
-                    f"  **{clean_gamemode(gm)}** — WR **{wr:.0f}%** ({w}W/{rds}R) · "
+                    f"  **{clean_gamemode(gm)}** — WR **{wr:.0f}%** ({w}G/{decided - w}P) · "
                     f"K/D **{kd:.2f}** · KPR {kpr:.2f}"
                 )
         else:
@@ -749,7 +754,7 @@ class DetailedStats(commands.Cog):
                 # esquema viejo (wins/rounds) mientras tanto.
                 f_decided = f_wins + fdata.get("losses", 0) if "losses" in fdata else f_rounds
                 f_wr = (f_wins / f_decided * 100) if f_decided > 0 else 0
-                lines.append(f"  `{faction}` — **{f_wr:.0f}%** ({f_wins}W/{f_rounds}R)")
+                lines.append(f"  **{faction.upper()}** — **{f_wr:.0f}%** ({f_wins}G/{f_decided - f_wins}P)")
 
         # Stats in wins vs losses
         win_stats = player.get("win_stats", {})
@@ -759,8 +764,8 @@ class DetailedStats(commands.Cog):
             l_kills = win_stats.get("avg_kills_in_losses", 0)
             w_deaths = win_stats.get("avg_deaths_in_wins", 0)
             l_deaths = win_stats.get("avg_deaths_in_losses", 0)
-            lines.append(f"  Kills promedio: **{w_kills:.1f}** en W vs **{l_kills:.1f}** en L")
-            lines.append(f"  Deaths promedio: **{w_deaths:.1f}** en W vs **{l_deaths:.1f}** en L")
+            lines.append(f"  Kills promedio: **{w_kills:.1f}** al ganar vs **{l_kills:.1f}** al perder")
+            lines.append(f"  Muertes promedio: **{w_deaths:.1f}** al ganar vs **{l_deaths:.1f}** al perder")
 
         embed = discord.Embed(
             title=f"📊 Winrate de {player['ign']}",
@@ -774,21 +779,17 @@ class DetailedStats(commands.Cog):
         chart_labels = []
         wr_values = []
         # Add gamemode winrates
-        rounds_gm = player.get("rounds_per_gamemode", {})
-        wins_gm = player.get("wins_per_gamemode", {})
-        for gm, rds in sorted(rounds_gm.items(), key=lambda x: x[1], reverse=True):
-            w = wins_gm.get(gm, 0)
-            wr = (w / rds * 100) if rds > 0 else 0
-            chart_labels.append(gm)
-            wr_values.append(wr)
-        # Add faction winrates
-        faction_stats = player.get("faction_stats", {})
+        for gm, gs in sorted(gm_stats.items(), key=lambda x: x[1].get("rounds", 0), reverse=True):
+            decided = gs.get("wins", 0) + gs.get("losses", 0)
+            if decided:
+                chart_labels.append(gm)
+                wr_values.append(gs.get("wins", 0) / decided * 100)
         for faction, fdata in sorted(faction_stats.items(), key=lambda x: x[1].get("rounds", 0), reverse=True):
-            f_rounds = fdata.get("rounds", 0)
             f_wins = fdata.get("wins", 0)
-            f_wr = (f_wins / f_rounds * 100) if f_rounds > 0 else 0
-            chart_labels.append(faction)
-            wr_values.append(f_wr)
+            f_decided = f_wins + fdata.get("losses", 0) if "losses" in fdata else fdata.get("rounds", 0)
+            if f_decided:
+                chart_labels.append(faction.upper())
+                wr_values.append(f_wins / f_decided * 100)
 
         if chart_labels:
             # Chart horizontal moderno (sin podio: no es un ranking, son categorías).
@@ -843,8 +844,11 @@ class DetailedStats(commands.Cog):
             )
             return
         kpr_stddev = player.get("kpr_stddev", 0.0)
-        avg_kpr = player.get("avg_kpr", 0.0)
-        coeff_var = (kpr_stddev / avg_kpr * 100) if avg_kpr > 0 else 0
+        # El puntaje sale de la variación de las rondas con al menos una kill
+        # (puntaje = 100 - variación × 50). Se muestra esa misma variación; antes se
+        # dividía por el promedio de todas las rondas y daba, por ejemplo, 93 % con
+        # "Consistente".
+        coeff_var = max(0.0, (100 - consistency) / 50 * 100)
 
         # Category
         if consistency >= 80:
@@ -862,10 +866,10 @@ class DetailedStats(commands.Cog):
 
         lines = [
             f"**Consistencia:** **{consistency:.0f}/100** — {category}",
-            f"\n📈 **Varianza de KPR:**",
+            f"\n📈 **Kills por ronda, ronda a ronda** (rondas con al menos una kill):",
             f"  Desviación estándar: **{kpr_stddev:.2f}**",
-            f"  KPR promedio: **{avg_kpr:.2f}**",
-            f"  Coeficiente de variación: **{coeff_var:.1f}%**",
+            f"  Variación: **{coeff_var:.0f} %** del promedio (menos es más parejo)",
+            "-# 80+ muy consistente · 60–79 consistente · 40–59 variable · menos de 40 muy variable",
         ]
 
         # Best and worst round
@@ -884,9 +888,10 @@ class DetailedStats(commands.Cog):
             wr_deaths = worst_round.get("deaths", 0)
             lines.append(f"💀 **Peor ronda:** {wr_map} — {wr_kills}K / {wr_deaths}D")
 
-        # % rounds above average
-        pct_above = player.get("pct_rounds_above_avg", 0.0)
-        lines.append(f"\n📊 Rondas sobre el promedio: **{pct_above:.0f}%**")
+        # % de rondas sobre su promedio: el scraper no lo publica (antes salía siempre 0 %).
+        pct_above = player.get("pct_rounds_above_avg")
+        if pct_above:
+            lines.append(f"\n📊 Rondas sobre su promedio: **{pct_above:.0f} %**")
 
         # Streaks
         win_streak = player.get("longest_win_streak", 0)
@@ -899,7 +904,9 @@ class DetailedStats(commands.Cog):
             description="\n".join(lines),
             color=color,
         )
-        embed.set_footer(text=f"Datos de {player.get('rounds_played', 0)} rondas | {standard_footer()}")
+        embed.set_footer(text=f"Datos de {player.get('rounds_played', 0)} rondas | "
+                              "El eje Consistencia del radar compara contra la comunidad; este puntaje no | "
+                              f"{standard_footer()}")
 
         cons_items = [("Consistencia", consistency, "#00FF88")]
         buf = render_horizontal_bars(cons_items, title=f"Consistencia - {player['ign']}", max_value=100)
@@ -1028,7 +1035,7 @@ class DetailedStats(commands.Cog):
         rounds = player.get("rounds_played", 1)
         total_score = player.get("total_score", 0)
         tw_score = player.get("total_teamwork_score", 0)
-        tw_ratio = (tw_score / total_score) if total_score > 0 else 0
+        tw_ratio = teamwork_share(tw_score, total_score)
 
         revives = player.get("total_revives_given", 0)
         flags = player.get("total_flags_captured", 0)
@@ -1331,7 +1338,7 @@ class DetailedStats(commands.Cog):
         for p in clan_players:
             ts = p.get("total_score", 0)
             tw = p.get("total_teamwork_score", 0)
-            avg_tw_ratio_vals.append((tw / ts) if ts > 0 else 0)
+            avg_tw_ratio_vals.append(teamwork_share(tw, ts))
         avg_tw_ratio = sum(avg_tw_ratio_vals) / n if n > 0 else 0
 
         avg_wr_vals = []
@@ -1351,7 +1358,7 @@ class DetailedStats(commands.Cog):
         for p in data:
             ts = p.get("total_score", 0)
             tw = p.get("total_teamwork_score", 0)
-            all_tw_ratios.append((tw / ts) if ts > 0 else 0)
+            all_tw_ratios.append(teamwork_share(tw, ts))
         all_avg_tw = sum(all_tw_ratios) / all_n if all_tw_ratios else 0
 
         all_wr_vals = []
@@ -1434,12 +1441,12 @@ class DetailedStats(commands.Cog):
         w_pct = diffs[weakest] * 100
         embed.add_field(
             name=f"{s_emoji} Mayor fortaleza",
-            value=f"**{strongest}** ({'+' if s_pct > 0 else ''}{s_pct:.0f}% vs promedio global)",
+            value=f"**{strongest}** ({'en el promedio global' if abs(s_pct) < 1 else f'{abs(s_pct):.0f} % ' + ('por encima' if s_pct > 0 else 'por debajo') + ' del promedio global'})",
             inline=True,
         )
         embed.add_field(
             name=f"{w_emoji} Mayor debilidad",
-            value=f"**{weakest}** ({'+' if w_pct > 0 else ''}{w_pct:.0f}% vs promedio global)",
+            value=f"**{weakest}** ({'en el promedio global' if abs(w_pct) < 1 else f'{abs(w_pct):.0f} % ' + ('por encima' if w_pct > 0 else 'por debajo') + ' del promedio global'})",
             inline=True,
         )
 

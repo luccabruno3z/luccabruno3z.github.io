@@ -165,7 +165,7 @@ def _tab_resumen(ctx: dict):
     ]
     ratings = get_player_ratings(p)
     if ratings:
-        lines.append("-# Índices: " + " · ".join(
+        lines.append("-# Índices de 0 a 100 (no son los ejes del radar): " + " · ".join(
             f"{lbl} {ratings.get(k, 0):.0f}" for k, lbl in
             (("combat", "Combate"), ("tactical", "Táctico"), ("reliability", "Fiabilidad"), ("impact", "Impacto"))))
 

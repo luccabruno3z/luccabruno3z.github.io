@@ -278,7 +278,7 @@ class Compare(commands.Cog):
                     demo_metrics = [
                         ("Winrate %", _wr(d1), _wr(d2), True),
                         ("Part. (WR)", _decided(d1), _decided(d2), True),
-                        ("Teamwork %", d1.get("teamwork_ratio", 0) * 100, d2.get("teamwork_ratio", 0) * 100, True),
+                        ("Teamwork %", max(d1.get("teamwork_ratio", 0), 0) * 100, max(d2.get("teamwork_ratio", 0), 0) * 100, True),
                         ("Consistencia", d1.get("consistency_score", 0), d2.get("consistency_score", 0), True),
                         ("Revives/R", _rate(d1, "total_revives_given"), _rate(d2, "total_revives_given"), True),
                         ("Banderas/R", _rate(d1, "total_flags_captured"), _rate(d2, "total_flags_captured"), True),

@@ -172,6 +172,9 @@ def performance_color(score: float, thresholds: dict | None = None):
     to score boundaries and overrides the static PERFORMANCE_THRESHOLDS.
     """
     import discord
+    if not thresholds:
+        from bot.utils import current_thresholds
+        thresholds = current_thresholds()
     if thresholds:
         ordered = [
             (thresholds.get("elite", 0.70), "gold"),

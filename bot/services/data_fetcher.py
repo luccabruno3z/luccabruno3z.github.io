@@ -127,6 +127,12 @@ class DataFetcher:
 
     async def fetch_all_players(self):
         """Fetch the all-players cluster JSON."""
+        from bot import utils
+        if utils._live_thresholds is None:
+            try:
+                await self.fetch_tier_config()
+            except Exception:
+                pass
         return await self.fetch_json(all_players_url())
 
     async def fetch_clan_players(self, clan: str):
@@ -181,7 +187,11 @@ class DataFetcher:
 
     async def fetch_tier_config(self):
         """Fetch the tier configuration JSON (dynamic thresholds, predictor weights)."""
-        return await self.fetch_json(tier_config_url())
+        tc = await self.fetch_json(tier_config_url())
+        if isinstance(tc, dict):
+            from bot.utils import set_live_thresholds
+            set_live_thresholds(tc.get("thresholds"))
+        return tc
 
     # ── Combined data ─────────────────────────────────────────────────────
 

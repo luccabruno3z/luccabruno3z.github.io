@@ -36,6 +36,9 @@ from bot.utils import (
     percentile,
     rank_medal,
     tier_badge,
+    next_tier,
+    history_trend,
+    PENALTY_FREE_ROUNDS,
     tier_emoji,
     _tier_name,
     classify_playstyle,
@@ -526,13 +529,6 @@ class Stats(commands.Cog):
         total_entries = len(all_scores)
 
         # Short-term (last 5) vs long-term (all)
-        short = all_scores[-5:] if len(all_scores) >= 5 else all_scores
-        short_changes = [short[i] - short[i-1] for i in range(1, len(short))]
-        all_changes = [all_scores[i] - all_scores[i-1] for i in range(1, len(all_scores))]
-
-        short_avg = sum(short_changes) / len(short_changes) if short_changes else 0
-        long_avg = sum(all_changes) / len(all_changes) if all_changes else 0
-
         # Best and worst scores
         best_score = max(all_scores)
         worst_score = min(all_scores)
@@ -542,22 +538,20 @@ class Stats(commands.Cog):
         # Overall change
         total_change = current_score - all_scores[0]
 
-        # Determine trend (short-term weighted more)
-        weighted_trend = short_avg * 0.7 + long_avg * 0.3
+        short = all_scores[-5:]
+        short_changes = [short[i] - short[i-1] for i in range(1, len(short))]
+        all_changes = [all_scores[i] - all_scores[i-1] for i in range(1, len(all_scores))]
+        short_avg = sum(short_changes) / len(short_changes) if short_changes else 0
+        long_avg = sum(all_changes) / len(all_changes) if all_changes else 0
+        trend_arrow, trend_text, weighted_trend = history_trend(all_scores)
 
         if weighted_trend > 0.005:
-            trend_arrow = "📈"
-            trend_text = "Mejorando"
             trend_color = discord.Color.green()
             trend_desc = "Tu rendimiento viene en alza. ¡Seguí así!"
         elif weighted_trend < -0.005:
-            trend_arrow = "📉"
-            trend_text = "Declinando"
             trend_color = discord.Color.red()
             trend_desc = "Tu rendimiento bajó últimamente. Revisá tu gameplay con `-mejora`."
         else:
-            trend_arrow = "➡️"
-            trend_text = "Estable"
             trend_color = discord.Color.gold()
             trend_desc = "Tu rendimiento es consistente. Para subir, probá `-mejora`."
 
@@ -929,10 +923,10 @@ class Stats(commands.Cog):
             spr_gap = (target_spr - spr) / spr if spr > 0 else 1.0
             gaps.append(("Score/Ronda", spr_gap, spr, target_spr, True))
 
-        # Rounds gap (higher is better) — only if target has more
-        if target_rounds > rounds_played:
-            rounds_gap = (target_rounds - rounds_played) / rounds_played if rounds_played > 0 else 1.0
-            gaps.append(("Rondas Jugadas", rounds_gap, rounds_played, target_rounds, True))
+        # Rondas: solo es meta mientras pesa la penalización por pocas rondas (hasta ~55).
+        # Jugar más no sube el Performance después de eso, así que no se pide.
+        if rounds_played < PENALTY_FREE_ROUNDS:
+            gaps.append(("Rondas Jugadas", 9.0, rounds_played, PENALTY_FREE_ROUNDS, True))
 
         # ── Metas de DEMOS (integradas): métricas de juego vs el promedio de quienes
         # tienen data de demos. Solo si el jugador tiene esa data (rondas nuevas).
@@ -948,10 +942,6 @@ class Stats(commands.Cog):
                 a, pl = p.get("alive_seconds", 0), p.get("played_seconds", 0)
                 return (a / pl) if (a and pl) else None
 
-            def _kpm(p):
-                a, k = p.get("alive_seconds", 0), p.get("total_kills", 0)
-                return (k / (a / 60)) if a else None
-
             def _squad(p):
                 # % del tiempo vivo con un compañero de escuadra a <= 50 m.
                 return squad_near(p)
@@ -960,8 +950,7 @@ class Stats(commands.Cog):
                 vals = [v for v in (fn(q) for q in demo_data) if v is not None]
                 return (sum(vals) / len(vals)) if vals else None
 
-            for label, fn in (("Tiempo vivo", _alive_pct), ("Kills/min", _kpm),
-                              ("Junto a su escuadra", _squad)):
+            for label, fn in (("Tiempo vivo", _alive_pct), ("Junto a su escuadra", _squad)):
                 pv, base = fn(demo_player), _baseline(fn)
                 if pv is not None and base and pv < base:
                     gaps.append((label, (base - pv) / base, pv, base, True))
@@ -996,15 +985,12 @@ class Stats(commands.Cog):
             if higher_better:
                 if name == "Rondas Jugadas":
                     metas_lines.append(
-                        f"{medal} **Jugar {int(target_val - player_val)} rondas más** para ganar experiencia"
+                        f"{medal} **Jugar {int(target_val - player_val)} rondas más**: con menos de "
+                        f"{PENALTY_FREE_ROUNDS} rondas el Performance tiene penalización"
                     )
                 elif name in _PCT_METRICS:
                     metas_lines.append(
                         f"{medal} **Subir {name}** de `{player_val:.0%}` a `{target_val:.0%}`"
-                    )
-                elif name == "Kills/min":
-                    metas_lines.append(
-                        f"{medal} **Subir Kills/min** de `{player_val:.2f}` a `{target_val:.2f}`"
                     )
                 else:
                     metas_lines.append(
@@ -1016,7 +1002,7 @@ class Stats(commands.Cog):
                 )
 
             # Categorize weakness (para elegir consejos)
-            if name in ("K/D", "Kills/Ronda", "Kills/min"):
+            if name in ("K/D", "Kills/Ronda"):
                 weakness_categories.append("combat")
             elif name in ("Muertes/Ronda", "Tiempo vivo"):
                 weakness_categories.append("survival")
@@ -1026,55 +1012,24 @@ class Stats(commands.Cog):
                 weakness_categories.append("experience")
 
         # ── Identify bottleneck ───────────────────────────────────────────
+        pool = [p for p in jugadores_ordenados if p.get("Rounds", 0) >= 50] or jugadores_ordenados
+
+        def _better_than(key, val):
+            vals = [p.get(key, 0) for p in pool]
+            return sum(1 for v in vals if v < val) / len(vals) if vals else 0
+
         norm_components = {
-            "K/D": jugador_encontrado.get("Normalized_KD", 0),
-            "Score/Ronda": jugador_encontrado.get("Normalized_Score", 0),
-            "Kills/Ronda": jugador_encontrado.get("Normalized_Kills_Per_Round", 0),
-            "Experiencia": jugador_encontrado.get("Normalized_Rounds", 0),
+            "K/D": _better_than("K/D Ratio", kd),
+            "Kills por ronda": _better_than("Kills per Round", kpr),
+            "Score por ronda": _better_than("Score per Round", spr),
         }
         bottleneck_name = min(norm_components, key=norm_components.get)
         bottleneck_value = norm_components[bottleneck_name]
 
-        # ── Estimate new Performance Score & ranking ──────────────────────
-        # Simulate what happens if the player reaches their target values
-        # Use the REAL scoring formula from scraper/scoring.py:
-        #   weights: kd=1.0, score=0.4, kpr=0.4, rounds=0.2
-        #   caps: kd=5.0, spr=500.0, kpr=10.0, rounds=1000.0
-        #   penalty: sigmoid centered at 25 rounds
-
-        sim_kd = kd
-        sim_kpr = kpr
-        sim_spr = spr
-        sim_rounds = rounds_played
-
-        for name, _gap_val, _pv, target_val, higher_better in top_gaps:
-            if name == "K/D":
-                sim_kd = target_val
-            elif name == "Kills/Ronda":
-                sim_kpr = target_val
-            elif name == "Score/Ronda":
-                sim_spr = target_val
-            elif name == "Muertes/Ronda":
-                # Better K/D from fewer deaths (same kills)
-                sim_kd = max(sim_kd, jugador_encontrado.get("Total Kills", 0) / max(target_val * sim_rounds, 1))
-            elif name == "Rondas Jugadas":
-                sim_rounds = target_val
-
-        # Apply real formula
-        norm_kd = min(sim_kd / 5.0, 1.0)
-        norm_spr = min(sim_spr / 500.0, 1.0)
-        norm_kpr = min(sim_kpr / 10.0, 1.0)
-        norm_rounds = min(sim_rounds / 1000.0, 1.0)
-
-        raw_score = 1.0 * norm_kd + 0.4 * norm_spr + 0.4 * norm_kpr + 0.2 * norm_rounds
-
-        # Sigmoid penalty
-        sigmoid = 1.0 / (1.0 + math.exp(-((sim_rounds - 25) / 10)))
-        estimated_ps = raw_score * sigmoid
-
-        # Floor: never estimate worse than current
-        estimated_ps = max(estimated_ps, ps + 0.01)
-
+        # ── Estimación: el Performance real de los jugadores del puesto objetivo ──
+        # (las metas son sus promedios, así que alcanzarlas te deja más o menos ahí).
+        target_ps = avg("Performance Score", target_group)
+        estimated_ps = min(max(target_ps, ps), 1.0)
         estimated_rank = sum(
             1 for p in jugadores_ordenados if p.get("Performance Score", 0) > estimated_ps
         ) + 1
@@ -1140,15 +1095,17 @@ class Stats(commands.Cog):
 
         # ── Determine next tier badge ─────────────────────────────────────
         current_badge = tier_badge(ps)
-        next_badge = tier_badge(min(ps + 0.20, 1.0))
+        nt = next_tier(ps)
+        tier_line = (f"{current_badge} · Próximo tier: **{nt[0]}** desde `{nt[1]:.3f}`"
+                     if nt else f"{current_badge} · Ya está en el tier más alto")
 
         # ── Build the embed ───────────────────────────────────────────────
         color = performance_color(ps)
         embed = discord.Embed(
-            title=f"🎯 Plan de Mejora para {jugador}",
+            title=f"🎯 Plan de Mejora para {jugador_encontrado['Player']}",
             description=(
-                f"{current_badge} → Meta: {next_badge}\n"
-                f"Ranking actual: **#{ranking}** · Objetivo: **top {target_rank}**"
+                f"{tier_line}\n"
+                f"Puesto actual: **#{ranking}** de {total_players} · Objetivo: **#{target_rank}**"
             ),
             color=color,
         )
@@ -1156,8 +1113,9 @@ class Stats(commands.Cog):
 
         penalty_info = sigmoid_penalty_display(rounds_played)
         situacion_value = (
-            f"**Performance Score:** `{ps:.2f}`\n"
-            f"**Cuello de botella:** {bottleneck_name} (`{bottleneck_value:.2f}`)"
+            f"**Performance:** `{ps:.3f}`\n"
+            f"**Lo más flojo:** {bottleneck_name} (mejor que el {bottleneck_value:.0%} "
+            f"de los jugadores con 50+ rondas)"
         )
         if penalty_info:
             situacion_value += f"\n{penalty_info}"
@@ -1185,10 +1143,11 @@ class Stats(commands.Cog):
         embed.add_field(
             name="📈 Impacto Estimado",
             value=(
-                f"Si alcanzás estas metas:\n"
-                f"├─ **Performance Score:** `{ps:.2f}` → ~`{estimated_ps:.2f}`\n"
-                f"└─ **Ranking estimado:** #{ranking} → ~#{estimated_rank} "
-                f"({'↑ ' + str(rank_gain) + ' posiciones' if rank_gain > 0 else 'mantener posición'})"
+                f"Las metas son el promedio de los jugadores cerca del puesto #{target_rank}. "
+                f"Alcanzándolas, el nivel se acerca al de ellos:\n"
+                f"├─ **Performance:** `{ps:.3f}` → ~`{estimated_ps:.3f}`\n"
+                f"└─ **Puesto:** #{ranking} → ~#{estimated_rank} "
+                f"({'↑ ' + str(rank_gain) + ' puestos' if rank_gain > 0 else 'mantener el puesto'})"
             ),
             inline=False,
         )
