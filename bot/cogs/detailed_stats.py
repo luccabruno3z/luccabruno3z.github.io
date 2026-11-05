@@ -427,15 +427,23 @@ class DetailedStats(commands.Cog):
             return
         data = await self.fetcher.fetch_map_stats()
 
-        # Find map (fuzzy)
-        found = None
-        for m in data:
-            if nombre.lower() in m["map_name"].lower():
-                found = m
-                break
+        # Buscar el mapa por su código o por el nombre que se ve ("Kashan Desert" o
+        # "kashan_desert"), sin importar espacios, guiones ni mayúsculas. Si el mapa
+        # se juega en varios modos, el de más rondas.
+        def _norm(x):
+            return "".join(ch for ch in (x or "").lower() if ch.isalnum())
+
+        q = _norm(nombre)
+        rows = [m for m in (data or []) if not is_test_map(m.get("map_name"))]
+        exact = [m for m in rows if q in (_norm(m["map_name"]), _norm(clean_map_name(m["map_name"])))]
+        partial = [m for m in rows if q and (q in _norm(m["map_name"]) or q in _norm(clean_map_name(m["map_name"])))]
+        cands = exact or partial
+        found = max(cands, key=lambda m: m.get("rounds_played", 0)) if cands else None
 
         if not found:
-            await ctx.send(f"No se encontró el mapa **{nombre}** en los datos de demos. Jugá algunas partidas más o probá `-buscar <nombre>` para verificar.")
+            sugeridos = sorted({clean_map_name(m["map_name"]) for m in rows})[:15]
+            await ctx.send(f"No encontré el mapa **{nombre}** en las partidas grabadas. "
+                           f"Algunos: {', '.join(sugeridos)}.")
             return
 
         total = found["rounds_played"]
@@ -444,19 +452,19 @@ class DetailedStats(commands.Cog):
         avg_kills = found["total_kills"] / total if total > 0 else 0
 
         map_wr_items = [
-            (f"Blufor ({found['blufor_wins']}W)", blufor_wr, "#4488FF"),
-            (f"Opfor ({found['opfor_wins']}W)", opfor_wr, "#FF4444"),
+            (f"BLUFOR ({found['blufor_wins']} ganadas)", blufor_wr, "#4488FF"),
+            (f"OPFOR ({found['opfor_wins']} ganadas)", opfor_wr, "#FF4444"),
         ]
         buf = render_horizontal_bars(map_wr_items, title=f"Winrate - {clean_map_name(found['map_name'])}", max_value=100, value_suffix="%")
         file = discord.File(buf, filename="mapa.png")
 
         embed = discord.Embed(
             title=f"🗺️ {clean_map_name(found['map_name'])}",
-            description=f"Gamemode: `{found['gamemode']}`",
+            description=f"Modo: **{clean_gamemode(found['gamemode'])}**",
             color=discord.Color.purple(),
         )
         embed.add_field(name="Rondas jugadas", value=f"**{total}**", inline=True)
-        embed.add_field(name="Kills promedio/ronda", value=f"**{avg_kills:.0f}**", inline=True)
+        embed.add_field(name="Kills por ronda (los dos equipos)", value=f"**{avg_kills:.0f}**", inline=True)
         embed.add_field(name="Revives totales", value=f"**{format_number(found['total_revives'])}**", inline=True)
         avg_dur = found.get("avg_duration_seconds", 0)
         if avg_dur:
@@ -467,7 +475,7 @@ class DetailedStats(commands.Cog):
         embed.add_field(name="Vehículos destruidos", value=f"**{format_number(found['total_vehicles_destroyed'])}**", inline=True)
         embed.add_field(
             name="Tickets promedio al final",
-            value=f"Team 1: **{found['avg_tickets1_final']:.0f}** | Team 2: **{found['avg_tickets2_final']:.0f}**",
+            value=f"Equipo 1: **{found['avg_tickets1_final']:.0f}** · Equipo 2: **{found['avg_tickets2_final']:.0f}**",
             inline=False,
         )
         embed.set_image(url="attachment://mapa.png")
@@ -959,12 +967,13 @@ class DetailedStats(commands.Cog):
                 m_rounds = m_info.get("rounds", 0)
                 m_avg_kpr = m_info.get("avg_kpr", 0.0)
                 m_wins = m_info.get("wins", 0)
-                map_data.append((m_name, m_avg_kpr, m_rounds, m_wins))
+                m_dec = m_wins + m_info.get("losses", 0) if "losses" in m_info else m_rounds
+                map_data.append((m_name, m_avg_kpr, m_rounds, m_wins, m_dec))
         elif maps_played:
             # Fallback: only round counts, no KPR/wins
             for m_name, m_rounds in maps_played.items():
                 if not _is_test_map(m_name):
-                    map_data.append((m_name, 0.0, m_rounds, 0))
+                    map_data.append((m_name, 0.0, m_rounds, 0, 0))
 
         embed = discord.Embed(
             title=f"🗺️ Perfil por Mapa: {player['ign']}",
@@ -978,9 +987,9 @@ class DetailedStats(commands.Cog):
         map_chart_items = []
         if top_maps:
             lines = []
-            for m_name, m_kpr, m_rds, m_wins in top_maps:
-                m_wr = (m_wins / m_rds * 100) if m_rds > 0 else 0
-                lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** | WR: {m_wr:.0f}% ({m_rds}R)")
+            for m_name, m_kpr, m_rds, m_wins, m_dec in top_maps:
+                m_wr = (m_wins / m_dec * 100) if m_dec > 0 else 0
+                lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** · WR: {m_wr:.0f}% · {m_rds} rondas")
                 map_chart_items.append((clean_map_name(m_name), m_kpr, "#00FF88"))
             embed.add_field(name=f"🏆 Mejores mapas (kills por ronda, {MAP_MIN_ROUNDS}+ rondas)",
                             value="\n".join(lines), inline=False)
@@ -991,9 +1000,9 @@ class DetailedStats(commands.Cog):
         bottom_maps = [m for m in sorted(qualified, key=lambda x: x[1])[:3] if m not in top_maps]
         if bottom_maps:
             lines = []
-            for m_name, m_kpr, m_rds, m_wins in bottom_maps:
-                m_wr = (m_wins / m_rds * 100) if m_rds > 0 else 0
-                lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** | WR: {m_wr:.0f}% ({m_rds}R)")
+            for m_name, m_kpr, m_rds, m_wins, m_dec in bottom_maps:
+                m_wr = (m_wins / m_dec * 100) if m_dec > 0 else 0
+                lines.append(f"**{clean_map_name(m_name)}** — KPR: **{m_kpr:.2f}** · WR: {m_wr:.0f}% · {m_rds} rondas")
                 map_chart_items.append((clean_map_name(m_name), m_kpr, "#FF4444"))
             embed.add_field(name=f"📉 Peores mapas (kills por ronda, {MAP_MIN_ROUNDS}+ rondas)",
                             value="\n".join(lines), inline=False)
@@ -1002,7 +1011,7 @@ class DetailedStats(commands.Cog):
         most_played = sorted(map_data, key=lambda x: x[2], reverse=True)[:5]
         if most_played:
             lines = []
-            for m_name, m_kpr, m_rds, _ in most_played:
+            for m_name, m_kpr, m_rds, _, _ in most_played:
                 lines.append(f"**{clean_map_name(m_name)}** — **{m_rds}** rondas (KPR: {m_kpr:.2f})")
             embed.add_field(name="📊 Más Jugados", value="\n".join(lines), inline=False)
 
@@ -1013,7 +1022,7 @@ class DetailedStats(commands.Cog):
             gm_lines = []
             for gm, count in sorted(rounds_gm.items(), key=lambda x: x[1], reverse=True):
                 pct = (count / total_gm * 100) if total_gm > 0 else 0
-                gm_lines.append(f"`{gm}` — **{pct:.0f}%** ({count}R)")
+                gm_lines.append(f"**{clean_gamemode(gm)}** — **{pct:.0f}%** ({count} rondas)")
             embed.add_field(name="🎮 Gamemodes", value="\n".join(gm_lines), inline=False)
 
         embed.set_footer(text=f"Datos de {player.get('rounds_played', 0)} rondas | {standard_footer()}")

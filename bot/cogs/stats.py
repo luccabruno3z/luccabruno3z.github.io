@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import discord
+from bot.utils import linked_player
 from discord.ext import commands
 from discord import app_commands
 
@@ -128,16 +129,18 @@ class Stats(commands.Cog):
     async def estadisticas(self, ctx: commands.Context, jugador: str = None):
         """Estadísticas completas de un jugador (tarjeta con pestañas)."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-estadisticas W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-estadisticas W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
         await ctx.defer()
         try:
             await send_profile(ctx, jugador, "resumen")
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error armando el perfil de %s: %s", jugador, e)
 
     # ── -top <cantidad> <categoria> <metrica> ─────────────────────────────
@@ -195,7 +198,7 @@ class Stats(commands.Cog):
             try:
                 demo_data = await self.fetcher.fetch_player_details()
             except Exception as e:
-                await ctx.send("❌ **Error al conectar con los datos de demos.** Inténtalo más tarde.")
+                await ctx.send("❌ **Error al conectar con los datos de demos.** Probá de nuevo más tarde.")
                 logger.error("Error: %s", e)
                 return
 
@@ -237,7 +240,7 @@ class Stats(commands.Cog):
             else:
                 data = await self.fetcher.fetch_clan_players(clan_name)
         except Exception as e:
-            await ctx.send("❌ **Error al conectar con la base de datos.** Inténtalo más tarde.")
+            await ctx.send("❌ **Error al conectar con la base de datos.** Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
             return
 
@@ -287,7 +290,7 @@ class Stats(commands.Cog):
     async def buscar_usuario(self, ctx: commands.Context, *, nombre_parcial: str = None):
         if not nombre_parcial:
             await ctx.send(
-                "❗ Por favor, proporciona una parte del nombre de usuario que deseas buscar. "
+                "❗ Escribí una parte del nombre que querés buscar. "
                 "Ejemplo: `-buscar_usuario parte_del_nombre`."
             )
             return
@@ -295,7 +298,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
             return
 
@@ -354,7 +357,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_clan_averages()
         except Exception as e:
-            await ctx.send("Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
             return
 
@@ -385,7 +388,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             return
         members = [p for p in data if (p.get("Clan") or "").upper() == clan.upper()]
         if not members:
@@ -511,7 +514,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ **Error al conectar con la base de datos.** Inténtalo más tarde.")
+            await ctx.send("❌ **Error al conectar con la base de datos.** Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
             return
 
@@ -558,9 +561,11 @@ class Stats(commands.Cog):
     async def tendencia(self, ctx: commands.Context, jugador: str = None):
         """Muestra la tendencia de rendimiento de un jugador."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-tendencia W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-tendencia W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
 
@@ -730,16 +735,18 @@ class Stats(commands.Cog):
     async def perfil_cmd(self, ctx: commands.Context, jugador: str = None):
         """Perfil radar de un jugador comparado con su clan (tarjeta con pestañas)."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-perfil W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-perfil W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
         await ctx.defer()
         try:
             await send_profile(ctx, jugador, "perfil")
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error armando el perfil de %s: %s", jugador, e)
 
     # ── -ranking_semanal ────────────────────────────────────────────────
@@ -753,7 +760,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
             return
 
@@ -873,9 +880,11 @@ class Stats(commands.Cog):
     async def plan_mejora(self, ctx: commands.Context, jugador: str = None):
         """Genera un plan de mejora personalizado para un jugador."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-mejora W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-mejora W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
 
@@ -884,7 +893,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error fetching all players: %s", e)
             return
 
@@ -1270,9 +1279,11 @@ class Stats(commands.Cog):
     async def rivales(self, ctx: commands.Context, jugador: str = None):
         """Encuentra jugadores con perfil similar al tuyo."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-rivales W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-rivales W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
 
@@ -1281,7 +1292,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error fetching all players: %s", e)
             return
 
@@ -1363,7 +1374,7 @@ class Stats(commands.Cog):
         """Muestra el plantel del clan organizado por rol/arquetipo."""
         if not clan:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de clan. "
+                "❗ ¿De qué clan? "
                 "Ejemplo: `-clan_roster LDH`."
             )
             return
@@ -1373,7 +1384,7 @@ class Stats(commands.Cog):
         try:
             data = await self.fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error fetching all players: %s", e)
             return
 

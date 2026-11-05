@@ -443,7 +443,7 @@ class Compare(commands.Cog):
     async def analizar_equipo(self, ctx: commands.Context, *, jugadores: str = None):
         if not jugadores:
             await ctx.send(
-                "❗ Por favor, proporciona entre 2 y 8 jugadores. "
+                "❗ Pasame entre 2 y 8 jugadores. "
                 "Ejemplo: `-analizar_equipo Jugador1 Jugador2 ... JugadorN`."
             )
             return
@@ -607,7 +607,7 @@ class Compare(commands.Cog):
 
         if num_jugadores < 2 or num_jugadores > 8:
             await ctx.send(
-                "Por favor, selecciona entre 2 y 8 jugadores. "
+                "Elegí entre 2 y 8 jugadores. "
                 "Ejemplo: `-sugerir_equipo LDH 5`."
             )
             return

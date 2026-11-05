@@ -451,7 +451,7 @@ def squad_play_text(p: dict):
 
 
 # ── Standard error messages ──────────────────────────────────────────────
-ERR_DB = "❌ Error al conectar con la base de datos. Inténtalo más tarde."
+ERR_DB = "❌ Error al conectar con la base de datos. Probá de nuevo más tarde."
 ERR_JSON = "❌ Error al procesar los datos."
 ERR_PLAYER_NOT_FOUND = "⚠️ Jugador '{}' no encontrado en la base de datos."
 
@@ -491,3 +491,12 @@ def is_test_map(name: str) -> bool:
     """Mapas de prueba del juego (test_airfield, test_bootcamp…): no son partidas reales."""
     n = (name or "").lower().replace(" ", "_")
     return n.startswith("test_") or n in ("test", "testmap")
+
+
+def linked_player(ctx) -> str | None:
+    """Jugador vinculado con -vincular (para usar los comandos sin escribir el nombre)."""
+    try:
+        from bot.services import links
+        return links.get(ctx.author.id)
+    except Exception:
+        return None

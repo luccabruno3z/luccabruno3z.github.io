@@ -58,15 +58,33 @@ GLOSSARY: dict[str, tuple[str, list[tuple[str, str]]]] = {
             "🗡️ Asesino (muy letal pero arriesgado), 🛡️ Superviviente (juega seguro), y más."),
     ]),
     "otros": ("⚙️ Otros términos", [
-        ("Activity Index", "Actividad reciente: 40% volumen + 30% engagement (SPR) + 30% impacto (KPR)."),
+        ("Participación (Activity Index)", "Actividad reciente de 0 a 100: 40% volumen + 30% engagement (SPR) "
+            "+ 30% impacto (KPR). En `-compare` se muestra aparte: no cuenta para el veredicto."),
         ("Consistency score", "Estabilidad del KPR ronda a ronda (menos variación = más consistente). *De dónde:* demos."),
         ("Percentil", "Posición relativa vs. todos los jugadores (ej: top 5%)."),
         ("HHI", "Índice de concentración: qué tan 'casado' está un jugador con un solo kit (alimenta Versatilidad)."),
-        ("demos (.PRdemo)", "Grabaciones de partidas de servidores LATAM. Aportan winrate, teamwork, revives, mapas, etc."),
+        ("demos (.PRdemo)", "Grabaciones de partidas de los servidores que seguimos (LATAM, Brasil y algunos "
+            "europeos). Aportan winrate, teamwork, revives, mapas, etc. Son una parte de las partidas de "
+            "cada uno: sus totales no coinciden con los de PRStats."),
+    ]),
+    "partidas": ("🎮 Partidas y equipos", [
+        ("AAS / Insurgencia / Skirmish / Vehicle Warfare", "Modos de juego. AAS: banderas en orden; "
+            "Insurgencia: un bando busca y destruye cachés; Skirmish: partidas chicas de infantería; "
+            "Vehicle Warfare: con muchos vehículos."),
+        ("BLUFOR / OPFOR", "Los dos bandos de cada ronda; qué facción es cada uno depende del mapa."),
+        ("Winrate", "Ganadas ÷ (ganadas + perdidas). Las rondas sin ganador no cuentan."),
+        ("First blood", "Rondas en las que hizo la primera kill de la partida."),
+        ("Clutch kills", "Kills con su equipo a 25 tickets o menos."),
+        ("Picks (de kit)", "Cuántas veces mató o murió con ese kit puesto: así se mide qué kit usa."),
+        ("Mejor rol", "El rol en el que mejor rinde con confianza media o alta (10+ rondas con el rol)."),
+        ("Fuerza de equipo", "Performance, K/D y kills por ronda con los pesos del predictor, ajustados por "
+            "muestra (con menos de 50 rondas cuenta cerca del promedio). La del equipo es el promedio."),
+        ("Probabilidad", "Hasta 55 % parejo · 55–65 % ventaja leve · 65–80 % ventaja clara · más de 80 % muy "
+            "desbalanceado. El equipo más chico suma menos. No ve mapa, modo ni comunicación."),
     ]),
 }
 
-_ORDER = ["basicas", "performance", "indices", "radar", "arquetipos", "otros"]
+_ORDER = ["basicas", "performance", "indices", "radar", "arquetipos", "partidas", "otros"]
 _ACCENT = 0x00BBFF
 
 

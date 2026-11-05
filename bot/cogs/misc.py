@@ -75,47 +75,47 @@ class Misc(commands.Cog):
     async def _reply_error(self, ctx: commands.Context, error):
         if isinstance(error, commands.CommandNotFound):
             await ctx.send(
-                "❌ **Comando no reconocido.** Usa `-ayuda` para ver todos los comandos."
+                "❌ **Comando no reconocido.** Usá `-ayuda` para ver todos los comandos."
             )
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send(
-                "❗ Faltan argumentos. Usa `-ayuda` para ver el uso correcto."
+                "❗ Faltan argumentos. Usá `-ayuda` para ver el uso correcto."
             )
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send("🚫 No tienes permisos para ejecutar este comando.")
+            await ctx.send("🚫 No tenés permisos para ejecutar este comando.")
         elif isinstance(error, commands.BadArgument):
             await ctx.send("⚠️ Argumento inválido. Revisa los parámetros del comando.")
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send(
-                f"⏳ Cooldown activo. Intenta en {error.retry_after:.1f}s."
+                f"⏳ Cooldown activo. Probá en {error.retry_after:.1f}s."
             )
         else:
             logger.error("Error inesperado en %s", ctx.command, exc_info=error)
-            await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
+            await ctx.send("❗ Ocurrió un error inesperado. Probá de nuevo más tarde.")
 
     # ── -hola / -hi ─────────────────────────────────────────────────────
 
     @commands.command(aliases=["hi", "hello"])
     async def hola(self, ctx: commands.Context):
-        await ctx.send("¡Hola! ¿En qué puedo ayudarte? Usa `-ayuda` para ver todos los comandos.")
+        await ctx.send("¡Hola! ¿En qué puedo ayudarte? Usá `-ayuda` para ver todos los comandos.")
 
     # ── -guias / -guides ─────────────────────────────────────────────────
 
     @commands.command(aliases=["guides"])
     async def guias(self, ctx: commands.Context):
-        await ctx.send(f"[Aquí tienes acceso a las guías de la página!]({GITHUB_GUIDES})")
+        await ctx.send(f"[Acá están las guías de la página!]({GITHUB_GUIDES})")
 
     # ── -visualizador / -vis / -2d ───────────────────────────────────────
 
     @commands.command(aliases=["vis", "2d"])
     async def visualizador(self, ctx: commands.Context):
-        await ctx.send(f"[Aquí tienes acceso al visualizador 2D!]({GITHUB_VISUALIZER_2D})")
+        await ctx.send(f"[Acá está el visualizador 2D!]({GITHUB_VISUALIZER_2D})")
 
     # ── -pagina / -web / -page ───────────────────────────────────────────
 
     @commands.command(aliases=["web", "page"])
     async def pagina(self, ctx: commands.Context):
-        await ctx.send(f"[Aquí tienes la pagina de la LDH!]({GITHUB_INDEX})")
+        await ctx.send(f"[Acá está la página de la LDH!]({GITHUB_INDEX})")
 
     # ── -apagar / -shutdown ──────────────────────────────────────────────
 

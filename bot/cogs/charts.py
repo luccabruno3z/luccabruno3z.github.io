@@ -3,6 +3,7 @@
 import logging
 
 import discord
+from bot.utils import linked_player
 from discord.ext import commands
 from discord import app_commands
 
@@ -60,7 +61,7 @@ class Charts(commands.Cog):
         async def _alias_callback(ctx: commands.Context):
             url = graph_url(clan)
             await ctx.send(
-                f"[Aquí tienes el gráfico interactivo de {clan}!]({url})"
+                f"[Acá está el gráfico interactivo de {clan}!]({url})"
             )
 
         # Build a proper Command and attach it to the bot
@@ -86,7 +87,7 @@ class Charts(commands.Cog):
         if clan is None or clan.lower() in ("all", "todos"):
             url = all_players_graph_url()
             await ctx.send(
-                f"[Aquí tienes el gráfico interactivo de los usuarios!]({url})"
+                f"[Acá está el gráfico interactivo de los usuarios!]({url})"
             )
             return
 
@@ -101,7 +102,7 @@ class Charts(commands.Cog):
 
         url = graph_url(clan_tag)
         await ctx.send(
-            f"[Aquí tienes el gráfico interactivo de {clan_tag}!]({url})"
+            f"[Acá está el gráfico interactivo de {clan_tag}!]({url})"
         )
 
     # ── -historial <jugador> ──────────────────────────────────────────────
@@ -113,9 +114,11 @@ class Charts(commands.Cog):
     async def historial(self, ctx: commands.Context, jugador: str = None):
         """Muestra un gráfico histórico del Performance Score de un jugador."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-historial W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-historial W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
 
@@ -128,7 +131,7 @@ class Charts(commands.Cog):
             else:
                 await ctx.send(embed=embed)
         except Exception as e:
-            await ctx.send("❗ Ocurrió un error inesperado. Intenta de nuevo más tarde.")
+            await ctx.send("❗ Ocurrió un error inesperado. Probá de nuevo más tarde.")
             logger.error("Error: %s", e)
 
 

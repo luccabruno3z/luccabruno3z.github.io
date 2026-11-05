@@ -59,9 +59,14 @@ def build_help_categories(bot) -> dict[str, list[tuple[str, str]]]:
             graph_shortcuts += 1
             continue
         label = _CMD_CATEGORY.get(cmd.name) or _COG_LABELS.get(cmd.cog_name or "", "🧩 Otros")
-        invocation = f"**`-{cmd.name}`**"
+        # Uso: <obligatorio> [opcional], así se ve qué escribir sin abrir otra ayuda.
+        try:
+            usage = " ".join(f"<{n}>" if p.required else f"[{n}]" for n, p in cmd.clean_params.items())
+        except Exception:
+            usage = ""
+        invocation = f"**`-{cmd.name}{(' ' + usage) if usage else ''}`**"
         if cmd.aliases:
-            invocation += " " + " ".join(f"`-{a}`" for a in cmd.aliases[:3])
+            invocation += " · también " + " ".join(f"`-{a}`" for a in cmd.aliases[:3])
         desc = (cmd.description or cmd.help or "").strip().split("\n")[0]
         if not desc:
             desc = _DESCRIPTIONS.get(cmd.name, "")

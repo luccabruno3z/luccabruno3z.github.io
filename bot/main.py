@@ -67,6 +67,7 @@ async def main():
     # not just guilds where the bot is added (discord.py 2.4+).
     bot = commands.Bot(
         command_prefix=COMMAND_PREFIX,
+        case_insensitive=True,  # "-Perfil" y "-PERFIL" también andan
         intents=intents,
         allowed_installs=discord.app_commands.AppInstallationType(guild=True, user=True),
         allowed_contexts=discord.app_commands.AppCommandContext(

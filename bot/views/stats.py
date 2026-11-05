@@ -10,7 +10,7 @@ class CompareModal(discord.ui.Modal, title="Comparar jugador"):
 
     other_player = discord.ui.TextInput(
         label="Nombre del otro jugador",
-        placeholder="Escribe el nombre del jugador...",
+        placeholder="Escribí el nombre del jugador…",
         max_length=50,
     )
 

@@ -56,7 +56,7 @@ class Roles(commands.Cog):
     async def message_cmd(self, ctx: commands.Context, emoji: str, role_name: str, *, message: str):
         """Envia un mensaje con reaccion; los usuarios que reaccionen reciben un rol."""
         if not ctx.author.guild_permissions.administrator:
-            await ctx.send("No tienes permisos para usar este comando.")
+            await ctx.send("No tenés permisos para usar este comando.")
             return
 
         role = discord.utils.get(ctx.guild.roles, name=role_name)
@@ -89,7 +89,7 @@ class Roles(commands.Cog):
     ):
         """Envia un mensaje con un boton; al presionarlo se asigna/quita un rol."""
         if not ctx.author.guild_permissions.administrator:
-            await ctx.send("No tienes permisos para usar este comando.")
+            await ctx.send("No tenés permisos para usar este comando.")
             return
 
         role = discord.utils.get(ctx.guild.roles, name=role_name)

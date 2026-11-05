@@ -6,6 +6,7 @@ import os
 import random
 
 import discord
+from bot.utils import linked_player
 from discord.ext import commands
 from discord import app_commands
 
@@ -119,16 +120,18 @@ class Tips(commands.Cog):
     async def tips_para(self, ctx: commands.Context, *, jugador: str = None):
         """Da consejos personalizados basados en las debilidades de un jugador."""
         if not jugador:
+            jugador = linked_player(ctx)
+        if not jugador:
             await ctx.send(
-                "❗ Por favor, proporciona un nombre de jugador. "
-                "Ejemplo: `-tips_para W4RR10R`."
+                "❗ ¿De qué jugador? Ejemplo: `-tips_para W4RR10R`.\n"
+                "-# Si vinculás tu cuenta con `-vincular TuNombre`, podés usarlo sin nombre."
             )
             return
 
         try:
             data = await self.bot.data_fetcher.fetch_all_players()
         except Exception as e:
-            await ctx.send("❌ Error al conectar con la base de datos. Inténtalo más tarde.")
+            await ctx.send("❌ Error al conectar con la base de datos. Probá de nuevo más tarde.")
             logger.error("Error fetching players for tips_para: %s", e)
             return
 
