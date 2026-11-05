@@ -234,10 +234,14 @@ class Compare(commands.Cog):
                 ("Deaths/Ronda", p1.get("Deaths per Round", 0), p2.get("Deaths per Round", 0), False),
                 ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
                 ("Performance", p1.get("Performance Score", 0), p2.get("Performance Score", 0), True),
-                ("Participación", p1.get("Activity Index", 0), p2.get("Activity Index", 0), True),
+            ]
+            # Totales y actividad: los gana quien más jugó, no quien juega mejor. Se
+            # muestran aparte y no cuentan para el veredicto.
+            volume_metrics = [
                 ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
                 ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
                 ("Total Score", p1.get("Total Score", 0), p2.get("Total Score", 0), True),
+                ("Participación", p1.get("Activity Index", 0), p2.get("Activity Index", 0), True),
             ]
             table, p1_wins, p2_wins, _ties = versus_table(entity1, entity2, metrics)
 
@@ -331,6 +335,7 @@ class Compare(commands.Cog):
                 footer="Datos actualizados " + standard_footer(p1).replace("📅 ", ""), demo_for=demo_for,
                 radar_filename="radar_vs.png" if radar_file else None,
                 demo_metrics=demo_metrics if demo_table else None, demo_note=demo_note,
+                volume_metrics=volume_metrics,
             )
             if radar_file:
                 card.message = await ctx.send(view=card, files=[radar_file])
@@ -379,18 +384,21 @@ class Compare(commands.Cog):
                 await ctx.send(f"⚠️ No se encontraron jugadores en el clan '{entity2}'.")
                 return
 
+            # El veredicto usa solo lo que no depende del tamaño del clan.
             clan_metrics = [
-                ("Total Kills", s1["kills"], s2["kills"], True),
-                ("Total Deaths", s1["deaths"], s2["deaths"], False),
-                ("Total Score", s1["score"], s2["score"], True),
-                ("Total Rondas", s1["rounds"], s2["rounds"], True),
+                ("K/D del clan", s1["team_kd"], s2["team_kd"], True),
+                ("K/D promedio", s1["avg_kd"], s2["avg_kd"], True),
+                ("Perf. prom.", s1["avg_ps"], s2["avg_ps"], True),
+                ("Kills/ronda", s1["kills"] / max(s1["rounds"], 1), s2["kills"] / max(s2["rounds"], 1), True),
+            ]
+            size_metrics = [
                 ("Miembros", s1["members"], s2["members"], True),
-                ("K/D Equipo", s1["team_kd"], s2["team_kd"], True),
-                ("Avg K/D", s1["avg_kd"], s2["avg_kd"], True),
-                ("Avg Perf.", s1["avg_ps"], s2["avg_ps"], True),
-                ("Avg Activ.", s1["avg_act"], s2["avg_act"], True),
+                ("Total Kills", s1["kills"], s2["kills"], True),
+                ("Total Rondas", s1["rounds"], s2["rounds"], True),
+                ("Actividad", s1["avg_act"], s2["avg_act"], True),
             ]
             table, e1_wins, e2_wins, ties = versus_table(entity1, entity2, clan_metrics)
+            size_table, _, _, _ = versus_table(entity1, entity2, size_metrics)
 
             if e1_wins > e2_wins:
                 winner = entity1
@@ -412,6 +420,8 @@ class Compare(commands.Cog):
             )
             embed.add_field(name="📊 Comparación (▲ = mejor)", value=table, inline=False)
             embed.add_field(name="🏆 Veredicto", value=summary, inline=False)
+            embed.add_field(name="👥 Tamaño y actividad (no cuenta para el veredicto)",
+                            value=size_table, inline=False)
 
             # Build clan vs clan chart
             chart_labels = ["Total Kills", "Total Deaths", "Total Score", "Miembros", "K/D Equipo", "Avg K/D", "Avg PS"]

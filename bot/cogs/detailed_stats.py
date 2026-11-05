@@ -1516,7 +1516,7 @@ class DetailedStats(commands.Cog):
     )
     @app_commands.describe(
         periodo="Período: dia/semana/mes/todo",
-        cantidad="Cantidad de jugadores a mostrar (default: 15)",
+        cantidad="Cantidad de jugadores a mostrar (1 a 25, default: 15)",
         metrica="Métrica: kills, kd, score, revives, teamwork (default: kills)",
     )
     @app_commands.choices(
@@ -1537,33 +1537,54 @@ class DetailedStats(commands.Cog):
     async def top_periodo(
         self,
         ctx: commands.Context,
-        periodo: str = "semana",
-        cantidad: int = 15,
-        metrica: str = "kills",
+        periodo: str = None,
+        cantidad: str = None,
+        metrica: str = None,
     ):
         """Ranking de jugadores de clanes en un período de tiempo."""
         if self._check_mode(ctx):
             await ctx.send("⚠️ Este comando requiere modo **Demos** o **Combinado**.")
             return
 
-        # Resolve period from alias if invoked via alias
-        invoked = ctx.invoked_with.lower() if ctx.invoked_with else ""
-        if "semana" in invoked or "week" in invoked:
-            periodo = "semana"
-        elif "mes" in invoked or "month" in invoked:
-            periodo = "mes"
-        elif "dia" in invoked or "day" in invoked:
-            periodo = "dia"
-
-        # Map the (possibly aliased) period to its canonical leaderboard file.
-        period_file = {
+        # Los argumentos se reconocen por lo que son, no por la posición: con el alias
+        # `-top_mes 10 kd` el período ya viene del alias y "10" caía en `periodo`.
+        periods = {
             "dia": "dia", "hoy": "dia", "day": "dia",
             "semana": "semana", "week": "semana", "semanal": "semana",
             "mes": "mes", "month": "mes", "mensual": "mes",
             "todo": "todo", "all": "todo",
-        }.get(periodo.lower(), "semana")
+        }
+        metrics = {"kills": "kills", "kd": "kd", "k/d": "kd", "score": "score", "puntos": "score",
+                   "revives": "revives", "teamwork": "teamwork", "tw": "teamwork"}
+        period_file, count, metric, unknown = "semana", 15, "kills", []
+        invoked = (ctx.invoked_with or "").lower()
+        for alias, per in (("semana", "semana"), ("week", "semana"), ("mes", "mes"),
+                           ("month", "mes"), ("dia", "dia"), ("day", "dia")):
+            if alias in invoked:
+                period_file = per
+                break
+        for tok in (str(periodo or ""), str(cantidad or ""), str(metrica or "")):
+            t = tok.strip().lower()
+            if not t:
+                continue
+            if t in periods:
+                period_file = periods[t]
+            elif t.isdigit():
+                count = int(t)
+            elif t in metrics:
+                metric = metrics[t]
+            else:
+                unknown.append(tok)
+        if unknown:
+            await ctx.send(
+                f"⚠️ No entendí: {', '.join(f'`{u}`' for u in unknown)}. "
+                "Uso: `-top_periodo [dia|semana|mes|todo] [cantidad] [kills|kd|score|revives|teamwork]`, "
+                "en cualquier orden. Ej.: `-top_mes 10 kd`."
+            )
+            return
 
-        cantidad = max(1, min(cantidad, 50))
+        cantidad = max(1, min(count, 25))
+        metrica = metric
 
         await ctx.defer()
 
@@ -1602,12 +1623,33 @@ class DetailedStats(commands.Cog):
         if self._check_mode(ctx):
             await ctx.send("⚠️ Este comando requiere modo **Demos** o **Combinado**.")
             return
+        from bot.ui.role_leaderboard_card import ROLE_ALIASES
         invoked = (ctx.invoked_with or "").lower()
         shortcut = {"top_medicos": "medico", "top_at": "at", "top_tripulantes": "tripulante",
                     "top_pilotos": "piloto"}.get(invoked)
-        period = "mes" if (periodo or "").lower() in ("mes", "month", "30", "30d") else "todo"
+        period_words = {"mes": "mes", "month": "mes", "30": "mes", "30d": "mes", "todo": "todo",
+                        "all": "todo", "semana": None, "week": None, "dia": None, "hoy": None, "day": None}
+        role_key, period, notes = shortcut, "todo", []
+        for tok in (str(rol or ""), str(periodo or "")):
+            t = tok.strip().lower()
+            if not t:
+                continue
+            if t in period_words:
+                if period_words[t] is None:
+                    notes.append(f"Por rol solo hay **todo el historial** o **últimos 30 días** "
+                                 f"(`{tok}` no): muestro todo el historial.")
+                else:
+                    period = period_words[t]
+            elif t in ROLE_ALIASES:
+                role_key = role_key or ROLE_ALIASES[t]
+            else:
+                notes.append(f"No conozco el rol `{tok}`: muestro médicos. "
+                             "Roles: medico, at, aa, tripulante, piloto, fusilero, ar, ametrallador, "
+                             "tirador, granadero, breacher, ingeniero, oficial, observador.")
         await ctx.defer()
-        view = RoleLeaderboardView(self.fetcher, role=shortcut or resolve_role(rol),
+        if notes:
+            await ctx.send("ℹ️ " + "\n".join(notes))
+        view = RoleLeaderboardView(self.fetcher, role=role_key or "medico",
                                    period=period, author_id=ctx.author.id)
         await view.load()
         view.message = await ctx.send(view=view)

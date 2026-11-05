@@ -164,7 +164,7 @@ class TopCard(discord.ui.LayoutView):
             + (f" · {self.excluded} excluidos" if self.excluded else "")
         )
         children: list[discord.ui.Item] = [
-            discord.ui.TextDisplay(f"# 🏆 Top {len(ranked)} — {self.categoria_label} · {label}"),
+            discord.ui.TextDisplay(f"# 🏆 Top {len(ranked)} de {format_number(len(self.players))} — {self.categoria_label} · {label}"),
             discord.ui.TextDisplay(f"-# {subtitle}"),
         ]
         if podium_lines:

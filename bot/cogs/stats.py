@@ -96,6 +96,7 @@ METRICA_CHOICES = [
     app_commands.Choice(name="kills", value="kills"),
     app_commands.Choice(name="deaths", value="deaths"),
     app_commands.Choice(name="rounds", value="rounds"),
+    app_commands.Choice(name="score", value="score"),
 ]
 
 METRICA_PROMEDIOS_CHOICES = [
@@ -177,11 +178,13 @@ class Stats(commands.Cog):
         # Clamp to max 50
         cantidad = min(cantidad, 50)
 
-        metricas_validas = ["performance", "kd", "kills", "deaths", "rounds"]
+        metrica = {"muertes": "deaths", "rondas": "rounds", "puntos": "score",
+                   "k/d": "kd", "ps": "performance"}.get(metrica.lower(), metrica.lower())
+        metricas_validas = ["performance", "kd", "kills", "deaths", "rounds", "score"]
         if metrica not in metricas_validas:
             await ctx.send(
-                "❗ **Métrica inválida.** Las métricas válidas son:\n"
-                "`performance`, `kd`, `kills`, `deaths`, `rounds`."
+                "❗ **Métrica inválida.** Las métricas válidas son: "
+                "`performance`, `kd`, `kills`, `deaths`, `rounds`, `score`."
             )
             return
 
@@ -266,7 +269,7 @@ class Stats(commands.Cog):
         demo_note = " · Datos de demos también disponibles (-ayuda)" if mode == "combined" else ""
         card = TopCard(
             reliable_data,
-            categoria_label=categoria.upper(),
+            categoria_label=categoria.upper() + (" · ACTIVOS 30 DÍAS" if activos else ""),
             cantidad=cantidad,
             metrica=metrica,
             excluded=excluded_count,
@@ -736,19 +739,20 @@ class Stats(commands.Cog):
             await ctx.send("No hay suficientes datos históricos para generar el ranking semanal.")
             return
 
-        # Sort by change, filtering to only positive/negative respectively
+        # Cambios menores a 0,005 se ven como +0,00: no cuentan como mejora ni caída.
+        MIN_CHANGE = 0.005
         risers = sorted(
-            [w for w in weekly_changes if w[3] > 0], key=lambda x: x[3], reverse=True
+            [w for w in weekly_changes if w[3] >= MIN_CHANGE], key=lambda x: x[3], reverse=True
         )[:10]
         fallers = sorted(
-            [w for w in weekly_changes if w[3] < 0], key=lambda x: x[3]
+            [w for w in weekly_changes if w[3] <= -MIN_CHANGE], key=lambda x: x[3]
         )[:10]
 
         embed = discord.Embed(
             title="📊 Ranking Semanal",
             description=(
                 "Jugadores que más mejoraron y más cayeron en la última semana.\n"
-                f"*Basado en los top 50 jugadores · {len(weekly_changes)} con historial disponible*"
+                f"*Entre los 50 de mayor Performance · {len(weekly_changes)} con historial de hace 7+ días*"
             ),
             color=discord.Color.blue(),
         )
@@ -766,14 +770,13 @@ class Stats(commands.Cog):
             low_sample = " ⚠️" if rounds_lookup.get(name, 0) < 50 else ""
             medal = rank_medal(i)
             bar = progress_bar(change, max_rise, 6)
-            risers_text += f"{medal} **{name}** `{bar}`\n╰ {old:.2f} → **{curr:.2f}** (+{change:.2f}){low_sample}\n"
+            risers_text += f"{medal} **{name}** `{bar}`\n╰ {old:.3f} → **{curr:.3f}** (+{change:.3f}){low_sample}\n"
 
         fallers_text = ""
         for i, (name, curr, old, change) in enumerate(fallers, 1):
             low_sample = " ⚠️" if rounds_lookup.get(name, 0) < 50 else ""
-            medal = rank_medal(i)
             bar = progress_bar(abs(change), max_fall, 6)
-            fallers_text += f"{medal} **{name}** `{bar}`\n╰ {old:.2f} → **{curr:.2f}** ({change:.2f}){low_sample}\n"
+            fallers_text += f"`{i:>2}.` **{name}** `{bar}`\n╰ {old:.3f} → **{curr:.3f}** ({change:.3f}){low_sample}\n"
 
         embed.add_field(
             name="📈 Top 10 Mejoras",

@@ -19,6 +19,9 @@ METRICS = [("kills", "Kills"), ("kd", "K/D"), ("score", "Score"),
 _PERIOD_LABEL = {"dia": "Hoy", "semana": "Última semana", "mes": "Último mes",
                  "todo": "Todo el historial"}
 _ACCENT = 0xFFD700  # gold
+# Mínimo de rondas en el período para entrar al top de K/D (igual que la web): con
+# 1 ronda de 10/1 cualquiera queda primero.
+KD_MIN_ROUNDS = {"dia": 2, "semana": 5, "mes": 10, "todo": 20}
 
 
 def _metric_funcs(metric: str):
@@ -114,6 +117,14 @@ class LeaderboardView(discord.ui.LayoutView):
 
         key_fn, label, fmt = _metric_funcs(self.metric)
         plabel = _PERIOD_LABEL.get(self.period, self.period)
+        n_all = len(players)
+        if self.metric == "kd":
+            min_r = KD_MIN_ROUNDS.get(self.period, 5)
+            players = [p for p in players if (p.get("rounds") or 0) >= min_r]
+            note = f"K/D con {min_r}+ rondas en el período ({len(players)} de {n_all} jugadores)."
+        else:
+            note = (f"{label} es un total del período: suma más quien más jugó. "
+                    "Para comparar por ronda, elegí K/D.")
         children: list[discord.ui.Item] = [
             discord.ui.TextDisplay(f"# 🏆 Top {label} — {plabel}")
         ]
@@ -140,7 +151,7 @@ class LeaderboardView(discord.ui.LayoutView):
                 children.append(discord.ui.TextDisplay("\n".join(lines)))
             children.append(discord.ui.Separator())
             children.append(discord.ui.TextDisplay(
-                f"-# 📊 {format_number(total)} rondas · {len(players)} jugadores de clanes"
+                f"-# {note}\n-# 📊 {format_number(total)} rondas grabadas · {n_all} jugadores de clanes"
             ))
 
         children.append(discord.ui.ActionRow(_PeriodSelect(self.period)))

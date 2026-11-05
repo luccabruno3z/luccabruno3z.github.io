@@ -39,6 +39,7 @@ class ComparisonCard(discord.ui.LayoutView):
         radar_filename: str | None = None,
         demo_metrics: list[tuple] | None = None,
         demo_note: str | None = None,
+        volume_metrics: list[tuple] | None = None,
     ):
         super().__init__(timeout=180)
         self.cog = cog
@@ -60,6 +61,11 @@ class ComparisonCard(discord.ui.LayoutView):
         ]
         if warning:
             children.append(discord.ui.TextDisplay(f"-# ⚠️ {warning}"))
+        if volume_metrics:
+            vbody, _, _, _ = versus_lines(entity1, entity2, volume_metrics)
+            children.append(discord.ui.Separator())
+            children.append(discord.ui.TextDisplay(
+                "### Totales y actividad\n-# Los gana quien más jugó: no cuentan para el veredicto.\n" + vbody))
         if demo_metrics:
             dbody, dw1, dw2, _ = versus_lines(entity1, entity2, demo_metrics)
             children.append(discord.ui.Separator())

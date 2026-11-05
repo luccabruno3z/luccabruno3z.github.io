@@ -54,6 +54,8 @@ class CompareModal(discord.ui.Modal, title="Comparar jugador"):
             ("Kills/Ronda", p1.get("Kills per Round", 0), p2.get("Kills per Round", 0), True),
             ("Deaths/Ronda", p1.get("Deaths per Round", 0), p2.get("Deaths per Round", 0), False),
             ("Score/Ronda", p1.get("Score per Round", 0), p2.get("Score per Round", 0), True),
+        ]
+        volume = [
             ("Rondas", p1.get("Rounds", 0), p2.get("Rounds", 0), True),
             ("Total Kills", p1.get("Total Kills", 0), p2.get("Total Kills", 0), True),
         ]
@@ -63,6 +65,7 @@ class CompareModal(discord.ui.Modal, title="Comparar jugador"):
             warning = f"Pocas rondas ({', '.join(few)}): los stats pueden no ser representativos."
         card = ComparisonCard(
             None, None, p1["Player"], p2["Player"], metrics=metrics, warning=warning,
+            volume_metrics=volume,
             footer="Datos actualizados " + standard_footer(p1).replace("📅 ", ""),
         )
         await interaction.followup.send(view=card)
