@@ -338,7 +338,8 @@ def _allow_demos(bot, guild_id) -> bool:
 class PlayerProfileView(discord.ui.LayoutView):
     """La tarjeta completa para un jugador y una pestaña ya renderizada."""
 
-    def __init__(self, ctx: dict, tab: str, items: list[discord.ui.Item], *, owner: int, allow_demos: bool):
+    def __init__(self, ctx: dict, tab: str, items: list[discord.ui.Item], *, owner: int, allow_demos: bool,
+                 card: bool = False):
         super().__init__(timeout=None)
         from bot.ui.player_card_actions import PlayerCardActionButton
         p, thr = ctx["p"], ctx["thr"]
@@ -356,7 +357,17 @@ class PlayerProfileView(discord.ui.LayoutView):
         )
         tabs = [ProfileTabButton(t, owner, name, active=(t == tab))
                 for t, (_lbl, needs) in MAIN_TABS.items() if allow_demos or not needs]
-        children: list[discord.ui.Item] = [header, discord.ui.ActionRow(*tabs)]
+        if card:
+            # La imagen ya trae nombre, clan, logo, tier y puesto; abajo queda lo que no
+            # entra en ella (estilo y puesto en el clan) como texto copiable.
+            extra = f"-# {name} · {se} {sn}" + (f" · clan **#{ctx['rk_clan']}**" if ctx["rk_clan"] else "")
+            top: list[discord.ui.Item] = [
+                discord.ui.MediaGallery(discord.MediaGalleryItem(f"attachment://{_CARD_FILE}")),
+                discord.ui.TextDisplay(extra),
+            ]
+        else:
+            top = [header]
+        children: list[discord.ui.Item] = [*top, discord.ui.ActionRow(*tabs)]
         if allow_demos and ctx["dp"]:
             children.append(discord.ui.ActionRow(ProfileDemoSelect(tab if tab in DEMO_TABS else "x", owner, name)))
         children.append(discord.ui.Separator())
@@ -378,6 +389,63 @@ class PlayerProfileView(discord.ui.LayoutView):
         self.add_item(discord.ui.Container(*children, accent_colour=tier_color(ps, thr) or ACCENT))
 
 
+_CARD_FILE = "perfil_card.png"
+_logo_cache: dict[str, bytes | None] = {}
+
+
+async def _clan_logo_bytes(bot, clan: str | None) -> bytes | None:
+    """Logo del clan para la tarjeta (se guarda en memoria; sin logo → None)."""
+    if not clan or clan == "—":
+        return None
+    if clan in _logo_cache:
+        return _logo_cache[clan]
+    data = None
+    try:
+        session = await bot.data_fetcher.get_session()
+        async with session.get(clan_logo_url(clan)) as resp:
+            if resp.status == 200:
+                data = await resp.read()
+    except Exception:
+        data = None
+    _logo_cache[clan] = data
+    return data
+
+
+async def build_card_file(bot, ctx: dict) -> discord.File | None:
+    """Tarjeta de imagen del encabezado (bot/services/profile_card.py)."""
+    import asyncio
+    from bot.services.profile_card import render_profile_card
+    from bot.utils import current_thresholds, next_tier, is_test_map
+    p, dp = ctx["p"], ctx["dp"]
+    ps = p.get("Performance Score", 0) or 0
+    thr = ctx["thr"] or current_thresholds()
+    tier = _tier_name(ps, thr)
+    floor = {"Recluta": 0.0, "Soldado": thr["soldado"], "Experimentado": thr["experimentado"],
+             "Veterano": thr["veterano"], "Elite": thr["elite"]}.get(tier, 0.0)
+    wr = role = map_key = None
+    games = 0
+    if dp and dp.get("rounds_played"):
+        games = (dp.get("wins", 0) or 0) + (dp.get("losses", 0) or 0)
+        wr = dp["wins"] / games if games >= 10 else None
+        best = dp.get("best_role")
+        if best:
+            role = (best, next((r.get("label") for r in dp.get("roles") or [] if r.get("key") == best), best))
+        maps = {k: v for k, v in (dp.get("maps_played") or {}).items() if not is_test_map(k)}
+        if maps:
+            map_key = max(maps, key=maps.get)
+    clan = p.get("Clan") or None
+    logo = await _clan_logo_bytes(bot, clan)
+    buf = await asyncio.to_thread(
+        render_profile_card,
+        name=p["Player"], clan=clan, logo_bytes=logo, tier=tier, ps=ps, tier_floor=floor,
+        next_tier=next_tier(ps, thr), rank=ctx["rk_global"], total=len(ctx["all"]),
+        kd=p.get("K/D Ratio", 0) or 0, kpr=p.get("Kills per Round", 0) or 0,
+        spr=p.get("Score per Round", 0) or 0, rounds=p.get("Rounds", 0) or 0,
+        winrate=wr, winrate_games=games, best_role=role, map_key=map_key,
+    )
+    return discord.File(buf, filename=_CARD_FILE)
+
+
 async def render_profile(bot, name: str, tab: str, *, owner: int, guild_id):
     """→ (view, files) o (None, mensaje de error)."""
     ctx = await load_context(bot, name)
@@ -391,7 +459,13 @@ async def render_profile(bot, name: str, tab: str, *, owner: int, guild_id):
     except Exception as exc:
         logger.warning("Pestaña '%s' falló para %s: %s", tab, name, exc)
         items, files = [discord.ui.TextDisplay("No se pudo cargar esta vista.")], []
-    return PlayerProfileView(ctx, tab, items, owner=owner, allow_demos=allow), files
+    try:
+        card = await build_card_file(bot, ctx)
+    except Exception as exc:  # sin imagen, queda el encabezado de texto
+        logger.warning("No se pudo dibujar la tarjeta de %s: %s", name, exc)
+        card = None
+    view = PlayerProfileView(ctx, tab, items, owner=owner, allow_demos=allow, card=bool(card))
+    return view, ([card] if card else []) + files
 
 
 async def send_profile(ctx, name: str, tab: str = "resumen"):

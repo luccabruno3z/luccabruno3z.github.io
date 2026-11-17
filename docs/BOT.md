@@ -45,7 +45,7 @@ Entre corchetes van los alias.
 ### Jugadores
 | Comando | Qué hace |
 |---|---|
-| `-perfil` [`profile`, `p`] / `-estadisticas` [`stats`, `st`, `e`] | Perfil con pestañas: Resumen, Récords, Perfil, Historial y selector de demos |
+| `-perfil` [`profile`, `p`] / `-estadisticas` [`stats`, `st`, `e`] | Perfil con pestañas: Resumen, Récords, Perfil, Historial y selector de demos. Arriba, una tarjeta de imagen (`bot/services/profile_card.py`, Pillow) con insignia del tier, Performance, puesto y 6 estadísticas sobre el mapa más jugado; si falla, vuelve el encabezado de texto |
 | `-vincular <IGN>` [`link`, `soy`] / `-desvincular` [`unlink`] | Asocia o quita tu IGN; con el vínculo, `-perfil`, `-mejora`, `-tendencia` e `-historial` andan sin nombre |
 | `-buscar_usuario` [`buscar`, `search`, `find`] | Busca jugadores por nombre parcial |
 | `-tendencia` [`trend`, `evolucion`] · `-historial` [`hist`] | Evolución del Performance |
