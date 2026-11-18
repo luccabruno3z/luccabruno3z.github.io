@@ -1,1 +1,1 @@
-{"player": "REAPER.2", "grid_size": 128, "maps": {"operation_marlin": {"kills": [], "deaths": [[47, 57, 1], [51, 56, 1], [54, 57, 1]]}, "gaza_2": {"kills": [], "deaths": [[95, 54, 1], [82, 54, 1], [35, 43, 1], [58, 66, 1], [77, 38, 1]]}}}
+{"player": "REAPER.2", "grid_size": 128, "maps": {"gaza_2": {"kills": [], "deaths": [[95, 54, 1], [82, 54, 1], [35, 43, 1], [58, 66, 1], [77, 38, 1]]}, "operation_marlin": {"kills": [], "deaths": [[47, 57, 1], [51, 56, 1], [54, 57, 1]]}}}
